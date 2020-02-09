@@ -1,0 +1,105 @@
+---
+title: "Dictionary of Disease Ontologies (DODO): Feeding the Neo4j DB"
+author: "Patrice Godard"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output:
+    html_document:
+        fig_width: 9
+        fig_height: 5
+        keep_md: yes
+        number_sections: yes
+        theme: cerulean
+        toc: yes
+        toc_float: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+
+# Introduction
+
+This document shows how to feed the Dictionary of Disease Ontologies (DODO).
+It can be adapted according to specific needs and DB access.
+The DODO functions used to feed the DB are not exported to avoid
+unintended modifications of the DB. To call them, they are preceded
+by `neoDODO:::`.
+
+```{r setup, message=FALSE}
+##
+library(knitr)
+library(neoDODO)
+##
+workingDirectory <- "working"
+##
+opts_knit$set(root.dir=workingDirectory)
+opts_chunk$set(
+   eval=TRUE,
+   message=FALSE,
+   root.dir=workingDirectory
+)
+## Specific config
+dodoInstance <- "UCB-Public"
+dodoVersion <- format(Sys.Date(), "%Y.%m.%d")
+## General config
+reDumpThr <- as.difftime(2, units="days")
+curDate <- Sys.Date()
+```
+
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+
+# DODO initialization
+
+DODO is based on [Neo4j](https://neo4j.com/).
+
+The S01-NewDODO-Container.sh shows how to run it in
+a [docker](https://www.docker.com/) container.
+
+Because the import functions use massively the `LOAD CSV` Neo4j query, 
+the feeding of the DODO database can only be down from the
+computer hosting the Neo4j relevant instance.
+
+The chunk below shows how to connect to DODO In this example,
+neo4j authentication is disabled.
+
+```{r, message=FALSE}
+connect_to_dodo(
+   url="http://localhost:7475",
+   importPath=file.path(getwd(), "neo4jImport")
+)
+```
+
+## Check empty DB
+
+Do not go further if your DODO DB is not empty.
+
+```{r, message=FALSE}
+dbSize <- call_dodo(cypher, 'MATCH (n) RETURN count(n)')[,1]
+if(dbSize!=0){
+    stop("DODO DB is not empty ==> clean it before loading the content below")
+}
+```
+
+## Set DODO instance and version
+
+```{r, message=FALSE}
+print(dodoInstance)
+print(dodoVersion)
+neoDODO:::set_dodo_version(dodoInstance=dodoInstance, dodoVersion=dodoVersion)
+```
+
+## Load Data model
+
+**Start**: `r Sys.time()`
+
+```{r, message=FALSE}
+neoDODO:::load_dodo_model()
+```
+
+**End**: `r Sys.time()`
+
+
+

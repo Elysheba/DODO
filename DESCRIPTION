@@ -1,0 +1,22 @@
+Package: neoDODO
+Type: Package
+Title: Neo4j Dictionary of Disease Ontologies (DODO)
+Version: 0.0.1
+Author: Patrice Godard
+Maintainer: Patrice Godard <patrice.godard@gmail.com>
+Description: This package is a temporary package to develop DODO based on Neo4j.
+License: TBD
+LazyData: TRUE
+Depends:
+    R (>= 3.6),
+    neo2R (>= 2.0.1)
+Imports:
+    readr,
+    utils,
+Suggests:
+    knitr,
+    rmarkdown
+Encoding: UTF-8
+VignetteBuilder: knitr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.0.2

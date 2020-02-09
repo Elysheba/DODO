@@ -1,0 +1,11 @@
+Meta
+doc
+.Rproj.user
+.Rhistory
+.RData
+tmp
+*.Rproj
+vignettes/*.html
+vignettes/DODO.R
+Build/working
+Build/DODO-images
