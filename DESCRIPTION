@@ -9,7 +9,7 @@ License: TBD
 LazyData: TRUE
 Depends:
     R (>= 3.6),
-    neo2R (>= 2.0.1)
+    neo2R (>= 2.0.2)
 Imports:
     readr,
     utils,

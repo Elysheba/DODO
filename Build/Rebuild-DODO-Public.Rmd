@@ -17,7 +17,6 @@ editor_options:
 
 <!----------------------------------------------------------------->
 <!----------------------------------------------------------------->
-
 # Introduction
 
 This document shows how to feed the Dictionary of Disease Ontologies (DODO).
@@ -30,6 +29,8 @@ by `neoDODO:::`.
 ##
 library(knitr)
 library(neoDODO)
+library(dplyr)
+library(readr)
 ##
 workingDirectory <- "working"
 ##
@@ -45,12 +46,18 @@ dodoVersion <- format(Sys.Date(), "%Y.%m.%d")
 ## General config
 reDumpThr <- as.difftime(2, units="days")
 curDate <- Sys.Date()
+## Original resources location
+oriDir <- "~/Shared/Data-Science/Data-Source-Model-Repository"
+## Connect to DODO database
+connect_to_dodo(
+   url="http://localhost:7475",
+   importPath=file.path(getwd(), "neo4jImport")
+)
 ```
 
 
 <!----------------------------------------------------------------->
 <!----------------------------------------------------------------->
-
 # DODO initialization
 
 DODO is based on [Neo4j](https://neo4j.com/).
@@ -65,7 +72,7 @@ computer hosting the Neo4j relevant instance.
 The chunk below shows how to connect to DODO In this example,
 neo4j authentication is disabled.
 
-```{r, message=FALSE}
+```{r, message=FALSE, eval=FALSE}
 connect_to_dodo(
    url="http://localhost:7475",
    importPath=file.path(getwd(), "neo4jImport")
@@ -100,6 +107,55 @@ neoDODO:::load_dodo_model()
 ```
 
 **End**: `r Sys.time()`
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Importing Disease Ontology
+
+## Database definition
+
+```{r}
+toImport <- tibble(
+  name="DOID",
+  idURL="http://disease-ontology.org/term/%s"
+)
+neoDODO:::load_db_definitions(toImport)
+```
+
+## Concepts
+
+```{r}
+rdir <- file.path(oriDir, "DO", "data")
+ids <- read_tsv(file.path(rdir, "DO_entryId.txt"), col_types="ccci")
+labels <- read_tsv(file.path(rdir, "DO_idNames.txt"), col_types="cccl")
+```
+
+```{r}
+toImport <- ids %>%
+  left_join(
+    labels %>% filter(canonical) %>% select(-canonical),
+    by=c("DB", "id")
+  ) %>%
+  rename(
+    "database"="DB",
+    "shortID"="id",
+    "definition"="def",
+    "label"="syn"
+  )
+stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
+neoDODO:::load_concept_definitions(toImport, "Disease")
+```
+
+## Synonyms
+
+```{r}
+toImport <- labels %>%
+  select("database"=DB, "shortID"=id, "value"=syn) %>%
+  distinct()
+neoDODO:::load_concept_synonyms(toImport, "Disease")
+```
+
+
 
 
 
