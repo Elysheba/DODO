@@ -112,11 +112,16 @@ neoDODO:::load_dodo_model()
 <!----------------------------------------------------------------->
 # Importing Disease Ontology
 
+```{r}
+db <- "DOID"
+rdir <- file.path(oriDir, "DO", "data")
+```
+
 ## Database definition
 
 ```{r}
 toImport <- tibble(
-  name="DOID",
+  name=db,
   idURL="http://disease-ontology.org/term/%s"
 )
 neoDODO:::load_db_definitions(toImport)
@@ -125,7 +130,6 @@ neoDODO:::load_db_definitions(toImport)
 ## Concepts
 
 ```{r}
-rdir <- file.path(oriDir, "DO", "data")
 ids <- read_tsv(file.path(rdir, "DO_entryId.txt"), col_types="ccci")
 labels <- read_tsv(file.path(rdir, "DO_idNames.txt"), col_types="cccl")
 ```
@@ -155,6 +159,23 @@ toImport <- labels %>%
 neoDODO:::load_concept_synonyms(toImport, "Disease")
 ```
 
+## Alternative identifiers
+
+```{r}
+altid <- read_tsv(file.path(rdir, "DO_altId.txt"), col_types="cccc")
+toImport <- altid %>%
+  rename("database"="DB", "shortID"="id", "altdb"="altDB", "altid"="alt")
+neoDODO:::load_alternative_identifiers(toImport, "Disease")
+```
+
+## Parents
+
+```{r}
+parents <- read_tsv(file.path(rdir, "DO_parentId.txt"), col_types="ccccc")
+toImport <- parents %>%
+  select("database"=DB, "shortID"=id, "parentdb"=pDB, "parentid"=parent)
+neoDODO:::load_parent_identifiers(toImport, "Disease", db)
+```
 
 
 
