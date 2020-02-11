@@ -30,6 +30,11 @@ load_concept_definitions <- function(toImport, concept){
    toImport$label_up <- toupper(toImport$label)
    toImport$defintion_up <- toupper(toImport$definition)
    
+   ## Load databases first ----
+   dbs <- unique(toImport[, "database", drop=FALSE])
+   colnames(dbs) <- "name"
+   load_db_names(dbs)
+   
    ## Query ----
    cql <- c(
       'MATCH (db:Database {name:row.database})',
@@ -60,16 +65,21 @@ load_concept_names <- function(toImport, concept){
    )
    mandatory <- c(
       "database",
-      "shortID",
+      "shortID"
    )
    check_df_to_import(toImport, tlc, mandatory)
-   toImport$name <- paste(toImport$name, toImport$shortID, sep=":")
+   toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
+   
+   ## Load databases first ----
+   dbs <- unique(toImport[, "database", drop=FALSE])
+   colnames(dbs) <- "name"
+   load_db_names(dbs)
    
    ## Query ----
    cql <- c(
       'MATCH (db:Database {name:row.database})',
       sprintf('MERGE (c:%s {name:row.name})-[:is_in]->(db)', concept),
-      'SET c.shortID=row.shortID, '
+      'SET c.shortID=row.shortID'
    )
    import_in_dodo(neo2R::prepCql(cql), toImport)
 }

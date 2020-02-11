@@ -25,7 +25,11 @@ load_concept_synonyms <- function(toImport, concept){
    check_df_to_import(toImport, tlc, mandatory)
    toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
    toImport$value_up <- toupper(toImport$value)
-   toImport <- toImport[, c("name", "value", "value_up")]
+   toImport <- toImport
+   
+   ## Concepts ----
+   cToImport <- unique(toImport[, c("database", "shortID")])
+   load_concept_names(cToImport, concept)
    
    ## Query ----
    cql <- c(
@@ -33,5 +37,8 @@ load_concept_synonyms <- function(toImport, concept){
       'MERGE (s:Synonym {value:row.value, value_up:row.value_up})',
       'MERGE (c)-[:is_known_as]->(s)'
    )
-   import_in_dodo(neo2R::prepCql(cql), toImport)
+   import_in_dodo(
+      neo2R::prepCql(cql),
+      toImport[, c("name", "value", "value_up")]
+   )
 }

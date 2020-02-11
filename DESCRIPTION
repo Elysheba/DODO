@@ -15,7 +15,9 @@ Imports:
     utils,
 Suggests:
     knitr,
-    rmarkdown
+    rmarkdown,
+    dplyr,
+    readr
 Encoding: UTF-8
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)

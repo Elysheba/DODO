@@ -48,6 +48,23 @@ reDumpThr <- as.difftime(2, units="days")
 curDate <- Sys.Date()
 ## Original resources location
 oriDir <- "~/Shared/Data-Science/Data-Source-Model-Repository"
+## XREF DB
+xrefDB <- matrix(c(
+  "DOID",   "EFO",
+  "DOID",   "MeSH",
+  "DOID",   "MONDO",
+  "DOID",   "ORPHA",
+  "EFO",    "MeSH",
+  "EFO",    "MONDO",
+  "EFO",    "MeSH",
+  "ICD10",  "ICD9",
+  "MedGen", "UMLS",
+  "MeSH",   "MONDO",
+  "MeSH",   "ORPHA",
+  "MONDO",  "ORPHA"
+), ncol=2, byrow=TRUE, dimnames=list(c(), c("DB1", "DB2"))) %>%
+  as_tibble() %>%
+  distinct()
 ## Connect to DODO database
 connect_to_dodo(
    url="http://localhost:7475",
@@ -147,7 +164,7 @@ toImport <- ids %>%
     "label"="syn"
   )
 stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
-neoDODO:::load_concept_definitions(toImport, "Disease")
+neoDODO:::load_concept_definitions(toImport, concept="Disease")
 ```
 
 ## Synonyms
@@ -156,7 +173,7 @@ neoDODO:::load_concept_definitions(toImport, "Disease")
 toImport <- labels %>%
   select("database"=DB, "shortID"=id, "value"=syn) %>%
   distinct()
-neoDODO:::load_concept_synonyms(toImport, "Disease")
+neoDODO:::load_concept_synonyms(toImport, concept="Disease")
 ```
 
 ## Alternative identifiers
@@ -165,7 +182,7 @@ neoDODO:::load_concept_synonyms(toImport, "Disease")
 altid <- read_tsv(file.path(rdir, "DO_altId.txt"), col_types="cccc")
 toImport <- altid %>%
   rename("database"="DB", "shortID"="id", "altdb"="altDB", "altid"="alt")
-neoDODO:::load_alternative_identifiers(toImport, "Disease")
+neoDODO:::load_alternative_identifiers(toImport, concept="Disease")
 ```
 
 ## Parents
@@ -174,8 +191,17 @@ neoDODO:::load_alternative_identifiers(toImport, "Disease")
 parents <- read_tsv(file.path(rdir, "DO_parentId.txt"), col_types="ccccc")
 toImport <- parents %>%
   select("database"=DB, "shortID"=id, "parentdb"=pDB, "parentid"=parent)
-neoDODO:::load_parent_identifiers(toImport, "Disease", db)
+neoDODO:::load_parent_identifiers(toImport, concept="Disease", origin=db)
 ```
+
+## Cross references
+
+```{r}
+allXref <- read_tsv(file.path(rdir, "DO_crossId.txt"), col_types="cccc")
+toImport <- allXref
+neoDODO:::load_cross_references(toImport, xrefDB, concept="Disease")
+```
+
 
 
 

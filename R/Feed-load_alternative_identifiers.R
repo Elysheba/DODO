@@ -12,8 +12,8 @@
 #' @param concept either "Disease" or "Phenotype"
 #'
 load_alternative_identifiers <- function(toImport, concept){
-   concept <- match.arg(concept, c("Disease", "Phenotype"))
    ## Checks ----
+   concept <- match.arg(concept, c("Disease", "Phenotype"))
    tlc <- c(
       "database"="character",
       "shortID"="character",
@@ -29,7 +29,13 @@ load_alternative_identifiers <- function(toImport, concept){
    check_df_to_import(toImport, tlc, mandatory)
    toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
    toImport$alt <- paste(toImport$altdb, toImport$altid, sep=":")
-   toImport <- toImport[, c("name", "alt")]
+   
+   ## Concepts ----
+   cToImport1 <- toImport[, c("database", "shortID")]
+   cToImport2 <- toImport[, c("altdb", "altid")]
+   colnames(cToImport1) <- colnames(cToImport2) <- c("database", "shortID")
+   cToImport <- unique(rbind(cToImport1, cToImport2))
+   load_concept_names(cToImport, concept)
    
    ## Query ----
    cql <- c(
@@ -37,5 +43,5 @@ load_alternative_identifiers <- function(toImport, concept){
       sprintf('MATCH (a:%s {name:row.alt})', concept),
       'MERGE (a)-[:is_alt]->(c)'
    )
-   import_in_dodo(neo2R::prepCql(cql), toImport)
+   import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "alt")])
 }
