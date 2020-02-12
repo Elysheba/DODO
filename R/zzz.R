@@ -60,7 +60,7 @@ connect_to_dodo <- function(
       )
    }
    ## The graph DB
-   assign(
+   try(assign(
       "graph",
       neo2R::startGraph(
          url=url,
@@ -69,7 +69,7 @@ connect_to_dodo <- function(
          importPath=importPath
       ),
       dodoEnv
-   )
+   ))
    corrConn <- check_dodo_connection(verbose=TRUE)
    if(!corrConn){
       rm("graph", envir=dodoEnv)
