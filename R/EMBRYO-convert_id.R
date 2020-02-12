@@ -15,6 +15,8 @@ convert_id <- function(from, concept=c("Disease", "Phenotype")){
       'CALL apoc.path.expandConfig(',
       'f, {uniqueness:"NODE_GLOBAL", relationshipFilter:"is_xref_nba>"}',
       ') YIELD path',
+      # 'WITH (nodes(path))[0] as s, last(nodes(path)) as e',
+      # 'MATCH (e)-[:is_related|is_xref*0..1]->(e2)'
       'RETURN distinct',
       '(nodes(path))[0].name AS from, ',
       'last(nodes(path)).name AS to, ',

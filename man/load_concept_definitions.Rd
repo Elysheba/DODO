@@ -9,7 +9,9 @@ load_concept_definitions(toImport, concept)
 \arguments{
 \item{toImport}{a data.frame with the following columns:
 \itemize{
-\item database: \emph{character} name of the database (mandatory)
+\item database: \emph{character} name of the concept reference database (mandatory)
+\item origin: \emph{character} name of the database from which the concept was
+taken (optional). If not provided or NA, the database field is used.
 \item shortID: \emph{character} short concept ID (mandatory)
 \item label: \emph{character} concept label (optional)
 \item definition: \emph{character} concept definition (optional)

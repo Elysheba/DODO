@@ -151,6 +151,7 @@ toImport <- ids %>%
     "definition"="def",
     "label"="syn"
   )
+toImport$origin <- db
 stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
 neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
 ```
@@ -222,6 +223,7 @@ toImport <- ids %>%
     "definition"="def",
     "label"="syn"
   )
+toImport$origin <- db
 stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
 neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
 ```
@@ -294,6 +296,7 @@ ids <- read_tsv(file.path(rdir, "HPO_hp.txt"), col_types="ccci")
 toImport <- ids %>%
   rename("shortID"="id", "label"="name", "definition"="description") %>%
   mutate("database"=db)
+toImport$origin <- db
 stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
 neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
 ```
@@ -304,7 +307,7 @@ neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
 syns <- read_tsv(file.path(rdir, "HPO_synonyms.txt"), col_types="ccc")
 toImport <- syns %>%
   select("shortID"=id, "value"=synonym) %>%
-  mutate("database"=db)
+  mutate("database"=db) %>%
   distinct()
 neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
 ```
@@ -350,6 +353,82 @@ neoDODO:::load_has_phenotypes(toImport=toImport)
 ```
 
 ## Disease definitions from HPO are not imported yet
+
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Importing EFO
+
+```{r}
+db <- "EFO"
+concept <- "Disease"
+rdir <- file.path(oriDir, "EFO", "data")
+```
+
+## Concepts
+
+```{r}
+ids <- read_tsv(file.path(rdir, "EFO_entryId.txt"), col_types="ccci")
+labels <- read_tsv(file.path(rdir, "EFO_idNames.txt"), col_types="cccl")
+```
+
+```{r}
+warning(
+   "EFO CONCEPTS IMPORT: ",
+   "DEFINITION FROM ORIGINAL DATABASES WILL BE OVERWRITTEN"
+)
+toImport <- ids %>%
+  left_join(
+    labels %>% filter(canonical) %>% select(-canonical),
+    by=c("DB", "id")
+  ) %>%
+  rename(
+    "database"="DB",
+    "shortID"="id",
+    "definition"="def",
+    "label"="syn"
+  )
+toImport$origin <- db
+stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
+neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
+```
+
+## Synonyms
+
+```{r}
+toImport <- labels %>%
+  select("database"=DB, "shortID"=id, "value"=syn) %>%
+  distinct()
+neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
+```
+
+## NO Alternative identifiers
+
+```{r}
+# altid <- read_tsv(file.path(rdir, "EFO_altId.txt"), col_types="cccc")
+# toImport <- altid %>%
+#   rename("database"="DB", "shortID"="id", "altdb"="altDB", "altid"="alt")
+# neoDODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
+```
+
+## Parents
+
+```{r}
+parents <- read_tsv(file.path(rdir, "EFO_parentId.txt"), col_types="ccccc")
+toImport <- parents %>%
+  select("database"=DB, "shortID"=id, "parentdb"=pDB, "parentid"=parent)
+neoDODO:::load_parent_identifiers(toImport=toImport, concept=concept, origin=db)
+```
+
+## Cross references
+
+```{r}
+allXref <- read_tsv(file.path(rdir, "EFO_crossId.txt"), col_types="cccc")
+toImport <- allXref
+neoDODO:::load_cross_references(
+  toImport=toImport, xrefDB=xrefDB, concept=concept
+)
+```
 
 <!----------------------------------------------------------------->
 <!----------------------------------------------------------------->

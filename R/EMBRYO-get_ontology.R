@@ -4,51 +4,38 @@
 #' 
 get_ontology <- function(database, concept=c("Disease", "Phenotype")){
    concept <- match.arg(concept)
-   ## Get parents ----
-   cql <- c(
-      sprintf(
-         'MATCH (c:%s)-[r:is_a {origin:$database}]->(p:%s)',
-         concept, concept
-      )
-   )
-   parents <- call_dodo(
-      neo2R::cypher,
-      prepCql(c(
-         cql,
-         'RETURN c.name AS child,  p.name AS parent'
-      )),
-      parameters=list(database=database),
-      result="row"
-   )
-   concepts <- call_dodo(
-      neo2R::cypher,
-      prepCql(c(
-         cql,
-         'WITH collect(c)+collect(p) AS cc',
-         'UNWIND cc AS c',
-         'RETURN c.name AS name, c.shortID AS shortID, c.label AS label, ',
-         'c.definition AS definition, c.level AS level'
-      )),
-      parameters=list(database=database),
-      result="row"
-   )
-   ## Get other concepts ----
+   ## Get concepts ----
    cql <- c(
       sprintf(
          'MATCH (c:%s)-[:is_in]->(:Database {name:$database})',
          concept
       ),
-      'WHERE NOT (c)-[:is_a {origin:$database}]->()'
+      'RETURN DISTINCT c.name AS name, c.shortID AS shortID, c.label AS label,',
+      'c.definition AS definition, c.level AS level'
    )
-   concepts2 <- call_dodo(
+   concepts <- call_dodo(
       neo2R::cypher,
-      prepCql(c(
-         cql,
-         'RETURN c.name AS name, c.shortID AS shortID, c.label AS label, ',
-         'c.definition AS definition, c.level AS level'
-      )),
+      prepCql(cql),
       parameters=list(database=database),
       result="row"
+   )
+   ## Get parents ----
+   cql <- c(
+      sprintf(
+         'MATCH (c:%s)-[r:is_a {origin:$database}]->(p:%s)',
+         concept, concept
+      ),
+      'RETURN DISTINCT c.name AS child,  p.name AS parent'
+   )
+   parents <- call_dodo(
+      neo2R::cypher,
+      prepCql(cql),
+      parameters=list(database=database),
+      result="row"
+   )
+   stopifnot(
+      all(parents$child %in% concepts$name),
+      all(parents$parent %in% concepts$name)
    )
    ## Get alternative concepts ----
    cql <- c(
@@ -60,20 +47,22 @@ get_ontology <- function(database, concept=c("Disease", "Phenotype")){
          'MATCH (a:%s)-[:is_in]->(:Database {name:$database})',
          concept
       ),
-      'MATCH (a)-[r:is_alt]->(c)'
+      'MATCH (a)-[r:is_alt]->(c)',
+      'RETURN DISTINCT a.name as alt, c.name as name'
    )
    alt <- call_dodo(
       neo2R::cypher,
-      prepCql(c(
-         cql,
-         'RETURN a.name as alt, c.name as name'
-      )),
+      prepCql(cql),
       parameters=list(database=database),
       result="row"
    )
+   stopifnot(
+      all(alt$name %in% concepts$name),
+      all(alt$alt %in% concepts$name)
+   )
    ## Return all results ----
    return(list(
-      concepts=unique(rbind(concepts, concepts2)),
+      concepts=concepts,
       parents=parents,
       alt=alt
    ))
