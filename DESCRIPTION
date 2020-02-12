@@ -11,8 +11,7 @@ Depends:
     R (>= 3.6),
     neo2R (>= 2.0.2)
 Imports:
-    readr,
-    utils,
+    utils
 Suggests:
     knitr,
     rmarkdown,
