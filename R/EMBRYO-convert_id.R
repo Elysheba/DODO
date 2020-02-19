@@ -20,7 +20,7 @@ convert_id <- function(from, concept=c("Disease", "Phenotype")){
       'RETURN distinct',
       '(nodes(path))[0].name AS from, ',
       'last(nodes(path)).name AS to, ',
-      'length(relationships(path)) AS hops'
+      'size(relationships(path)) AS hops'
    )
    toRet <- call_dodo(
       neo2R::cypher,
