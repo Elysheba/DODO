@@ -1,0 +1,465 @@
+---
+title: "Dictionary of Disease Ontologies (DODO): Feeding the Neo4j DB"
+author: "Patrice Godard"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+output:
+    html_document:
+        fig_width: 9
+        fig_height: 5
+        keep_md: yes
+        number_sections: yes
+        theme: cerulean
+        toc: yes
+        toc_float: yes
+editor_options: 
+  chunk_output_type: console
+---
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Introduction
+
+This document shows how to feed the Dictionary of Disease Ontologies (DODO).
+It can be adapted according to specific needs and DB access.
+The DODO functions used to feed the DB are not exported to avoid
+unintended modifications of the DB. To call them, they are preceded
+by `neoDODO:::`.
+
+```{r setup, message=FALSE}
+##
+library(knitr)
+library(neoDODO)
+library(dplyr)
+library(readr)
+##
+workingDirectory <- "working"
+##
+opts_knit$set(root.dir=workingDirectory)
+opts_chunk$set(
+   eval=TRUE,
+   message=FALSE,
+   root.dir=workingDirectory
+)
+## Specific config
+dodoInstance <- "UCB-Public"
+dodoVersion <- format(Sys.Date(), "%Y.%m.%d")
+## General config
+reDumpThr <- as.difftime(2, units="days")
+curDate <- Sys.Date()
+## Original resources location
+oriDir <- "~/Shared/Data-Science/Data-Source-Model-Repository"
+## XREF DB
+xrefDB <- matrix(c(
+  "DOID",   "EFO",
+  "DOID",   "MeSH",
+  "DOID",   "MONDO",
+  "DOID",   "ORPHA",
+  "EFO",    "MeSH",
+  "EFO",    "MONDO",
+  "EFO",    "MeSH",
+  "ICD10",  "ICD9",
+  "MedGen", "UMLS",
+  "MeSH",   "MONDO",
+  "MeSH",   "ORPHA",
+  "MONDO",  "ORPHA"
+), ncol=2, byrow=TRUE, dimnames=list(c(), c("DB1", "DB2"))) %>%
+  as_tibble() %>%
+  distinct()
+## Connect to DODO database
+connect_to_dodo(
+   url="http://localhost:7475",
+   importPath=file.path(getwd(), "neo4jImport")
+)
+```
+
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# DODO initialization
+
+DODO is based on [Neo4j](https://neo4j.com/).
+
+The S01-NewDODO-Container.sh shows how to run it in
+a [docker](https://www.docker.com/) container.
+
+Because the import functions use massively the `LOAD CSV` Neo4j query, 
+the feeding of the DODO database can only be down from the
+computer hosting the Neo4j relevant instance.
+
+The chunk below shows how to connect to DODO In this example,
+neo4j authentication is disabled.
+
+```{r, message=FALSE, eval=FALSE}
+connect_to_dodo(
+   url="http://localhost:7475",
+   importPath=file.path(getwd(), "neo4jImport")
+)
+```
+
+## Check empty DB
+
+Do not go further if your DODO DB is not empty.
+
+```{r, message=FALSE}
+dbSize <- call_dodo(cypher, 'MATCH (n) RETURN count(n)')[,1]
+if(dbSize!=0){
+    stop("DODO DB is not empty ==> clean it before loading the content below")
+}
+```
+
+## Set DODO instance and version
+
+```{r, message=FALSE}
+print(dodoInstance)
+print(dodoVersion)
+neoDODO:::set_dodo_version(dodoInstance=dodoInstance, dodoVersion=dodoVersion)
+```
+
+## Load Data model
+
+```{r, message=FALSE}
+neoDODO:::load_dodo_model()
+```
+
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Importing Disease Ontology
+
+```{r}
+db <- "DOID"
+concept <- "Disease"
+rdir <- file.path(oriDir, "DO", "data")
+```
+
+## Concepts
+
+```{r}
+ids <- read_tsv(file.path(rdir, "DO_entryId.txt"), col_types="ccci")
+labels <- read_tsv(file.path(rdir, "DO_idNames.txt"), col_types="cccl")
+```
+
+```{r}
+toImport <- ids %>%
+  left_join(
+    labels %>% filter(canonical) %>% select(-canonical),
+    by=c("DB", "id")
+  ) %>%
+  rename(
+    "database"="DB",
+    "shortID"="id",
+    "definition"="def",
+    "label"="syn"
+  )
+toImport$origin <- db
+stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
+neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
+```
+
+## Synonyms
+
+```{r}
+toImport <- labels %>%
+  select("database"=DB, "shortID"=id, "value"=syn) %>%
+  distinct()
+neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
+```
+
+## Alternative identifiers
+
+```{r}
+altid <- read_tsv(file.path(rdir, "DO_altId.txt"), col_types="cccc")
+toImport <- altid %>%
+  rename("database"="DB", "shortID"="id", "altdb"="altDB", "altid"="alt")
+neoDODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
+```
+
+## Parents
+
+```{r}
+parents <- read_tsv(file.path(rdir, "DO_parentId.txt"), col_types="ccccc")
+toImport <- parents %>%
+  select("database"=DB, "shortID"=id, "parentdb"=pDB, "parentid"=parent)
+neoDODO:::load_parent_identifiers(toImport=toImport, concept=concept, origin=db)
+```
+
+## Cross references
+
+```{r}
+allXref <- read_tsv(file.path(rdir, "DO_crossId.txt"), col_types="cccc")
+toImport <- allXref
+neoDODO:::load_cross_references(
+  toImport=toImport, xrefDB=xrefDB, concept=concept
+)
+```
+
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Importing Monarch
+
+```{r}
+db <- "MONDO"
+concept <- "Disease"
+rdir <- file.path(oriDir, "Monarch", "data")
+```
+
+## Concepts
+
+```{r}
+ids <- read_tsv(file.path(rdir, "Monarch_entryId.txt"), col_types="ccci")
+labels <- read_tsv(file.path(rdir, "Monarch_idNames.txt"), col_types="cccl")
+```
+
+```{r}
+toImport <- ids %>%
+  left_join(
+    labels %>% filter(canonical) %>% select(-canonical),
+    by=c("DB", "id")
+  ) %>%
+  rename(
+    "database"="DB",
+    "shortID"="id",
+    "definition"="def",
+    "label"="syn"
+  )
+toImport$origin <- db
+stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
+neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
+```
+
+## Synonyms
+
+```{r}
+toImport <- labels %>%
+  select("database"=DB, "shortID"=id, "value"=syn) %>%
+  distinct()
+neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
+```
+
+## NO Alternative identifiers
+
+```{r}
+# altid <- read_tsv(file.path(rdir, "Monarch_altId.txt"), col_types="cccc")
+# toImport <- altid %>%
+#   rename("database"="DB", "shortID"="id", "altdb"="altDB", "altid"="alt")
+# neoDODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
+```
+
+## Parents
+
+```{r}
+parents <- read_tsv(file.path(rdir, "Monarch_parentId.txt"), col_types="ccccc")
+toImport <- parents %>%
+  select("database"=DB, "shortID"=id, "parentdb"=pDB, "parentid"=parent)
+neoDODO:::load_parent_identifiers(toImport=toImport, concept=concept, origin=db)
+```
+
+## Cross references
+
+```{r}
+allXref <- read_tsv(file.path(rdir, "Monarch_crossId.txt"), col_types="cccc")
+toImport <- allXref
+neoDODO:::load_cross_references(
+  toImport=toImport, xrefDB=xrefDB, concept=concept
+)
+```
+
+## Diseases - Phenotypes
+
+```{r}
+hasPheno <- read_tsv(file.path(rdir, "Monarch_hp.txt"), col_types="ccc")
+toImport <- hasPheno %>%
+  rename("diseaseDB"="DB", "diseaseID"="id", "phenoID"="hp") %>%
+  mutate(phenoDB="HP")
+neoDODO:::load_has_phenotypes(toImport=toImport)
+```
+
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Importing HPO
+
+```{r}
+db <- "HP"
+concept <- "Phenotype"
+rdir <- file.path(oriDir, "HPO", "data")
+```
+
+## Concepts
+
+```{r}
+ids <- read_tsv(file.path(rdir, "HPO_hp.txt"), col_types="ccci")
+```
+
+```{r}
+toImport <- ids %>%
+  rename("shortID"="id", "label"="name", "definition"="description") %>%
+  mutate("database"=db)
+toImport$origin <- db
+stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
+neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
+```
+
+## Synonyms
+
+```{r}
+syns <- read_tsv(file.path(rdir, "HPO_synonyms.txt"), col_types="ccc")
+toImport <- syns %>%
+  select("shortID"=id, "value"=synonym) %>%
+  mutate("database"=db) %>%
+  distinct()
+neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
+```
+
+## Alternative identifiers
+
+```{r}
+altid <- read_tsv(file.path(rdir, "HPO_altId.txt"), col_types="cc")
+toImport <- altid %>%
+  rename("shortID"="id", "altid"="alt") %>%
+  mutate("database"=db, "altdb"=db)
+neoDODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
+```
+
+## Parents
+
+```{r}
+parents <- read_tsv(file.path(rdir, "HPO_parents.txt"), col_types="cc")
+toImport <- parents %>%
+  rename("shortID"=id, "parentid"=parent) %>%
+  mutate("database"=db, parentdb=db)
+neoDODO:::load_parent_identifiers(toImport=toImport, concept=concept, origin=db)
+```
+
+## No Cross references
+
+```{r}
+# allXref <- read_tsv(file.path(rdir, "HPO_crossId.txt"), col_types="cccc")
+# toImport <- allXref
+# neoDODO:::load_cross_references(
+#   toImport=toImport, xrefDB=xrefDB, concept=concept
+# )
+```
+
+## Diseases - Phenotypes
+
+```{r}
+hasPheno <- read_tsv(file.path(rdir, "HPO_diseaseHP.txt"), col_types="ccc")
+toImport <- hasPheno %>%
+  rename("diseaseDB"="db", "diseaseID"="id", "phenoID"="hp") %>%
+  mutate(phenoDB=db)
+neoDODO:::load_has_phenotypes(toImport=toImport)
+```
+
+## Disease definitions from HPO are not imported yet
+
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Importing EFO
+
+```{r}
+db <- "EFO"
+concept <- "Disease"
+rdir <- file.path(oriDir, "EFO", "data")
+```
+
+## Concepts
+
+```{r}
+ids <- read_tsv(file.path(rdir, "EFO_entryId.txt"), col_types="ccci")
+labels <- read_tsv(file.path(rdir, "EFO_idNames.txt"), col_types="cccl")
+```
+
+```{r}
+warning(
+   "EFO CONCEPTS IMPORT: ",
+   "DEFINITION FROM ORIGINAL DATABASES WILL BE OVERWRITTEN"
+)
+toImport <- ids %>%
+  left_join(
+    labels %>% filter(canonical) %>% select(-canonical),
+    by=c("DB", "id")
+  ) %>%
+  rename(
+    "database"="DB",
+    "shortID"="id",
+    "definition"="def",
+    "label"="syn"
+  )
+toImport$origin <- db
+stopifnot(nrow(distinct(toImport, database, shortID))==nrow(toImport))
+neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
+```
+
+## Synonyms
+
+```{r}
+toImport <- labels %>%
+  select("database"=DB, "shortID"=id, "value"=syn) %>%
+  distinct()
+neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
+```
+
+## NO Alternative identifiers
+
+```{r}
+# altid <- read_tsv(file.path(rdir, "EFO_altId.txt"), col_types="cccc")
+# toImport <- altid %>%
+#   rename("database"="DB", "shortID"="id", "altdb"="altDB", "altid"="alt")
+# neoDODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
+```
+
+## Parents
+
+```{r}
+parents <- read_tsv(file.path(rdir, "EFO_parentId.txt"), col_types="ccccc")
+toImport <- parents %>%
+  select("database"=DB, "shortID"=id, "parentdb"=pDB, "parentid"=parent)
+neoDODO:::load_parent_identifiers(toImport=toImport, concept=concept, origin=db)
+```
+
+## Cross references
+
+```{r}
+allXref <- read_tsv(file.path(rdir, "EFO_crossId.txt"), col_types="cccc")
+toImport <- allXref
+neoDODO:::load_cross_references(
+  toImport=toImport, xrefDB=xrefDB, concept=concept
+)
+```
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Database URL templates
+
+```{r}
+databases <- matrix(c(
+	"DOID",     "http://disease-ontology.org/term/%s", 
+	"EFO",      "http://www.ebi.ac.uk/efo/EFO_%s",
+	"MedGen",   "https://www.ncbi.nlm.nih.gov/medgen/%s",
+	"MONDO",    "https://monarchinitiative.org/disease/MONDO%3A%s", 
+	"OMIM",     "https://www.omim.org/entry/%s",
+	"ORPHA",    "http://www.orpha.net/consor/cgi-bin/OC_Exp.php?lng,EN&Expert=%s", 
+	"MeSH",     "https://meshb.nlm.nih.gov/record/ui?ui=%s", 
+	"ICD10",    "https://www.icd10data.com/search?s=%s", 
+	"ICD10CM",  "https://www.icd10data.com/search?s=%s", 
+	"ICD9",     "http://icd9cm.chrisendres.com/index.php?action=search&srchtext=%s", 
+	"ICD9CM",   "http://icd9cm.chrisendres.com/index.php?action=search&srchtext=%s", 
+	"SNOMEDCT", "http://browser.ihtsdotools.org/?perspective=full&conceptId1=%s", 
+	"NCIt",     "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&version=16.12d&ns=NCI_Thesaurus&code=%s", 
+	"GTR",      "https://www.ncbi.nlm.nih.gov/gtr/all/tests/?term=%s[mim]", 
+	"GARD",     "https://rarediseases.info.nih.gov/GARD/Disease.aspx?diseaseID=%s", 
+	"HP",       "https://hpo.jax.org/app/browse/term/HP:%s", 
+	"MedDRA",   "http://bioportal.bioontology.org/ontologies/MEDDRA?p=classes&conceptid=%s", 
+	"DECIPHER", "https://decipher.sanger.ac.uk/syndrome/%s", 
+	"OMIMPS",   "https://omim.org/entry/%s"
+), ncol=2, byrow=TRUE, dimnames=list(c(), c("name", "idURL"))) %>%
+  as_tibble() %>%
+  distinct()
+neoDODO:::load_db_definitions(toImport=databases)
+```
+
+
+

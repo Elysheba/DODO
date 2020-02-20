@@ -7,5 +7,6 @@ tmp
 *.Rproj
 vignettes/*.html
 vignettes/DODO.R
-Build/working
-Build/DODO-images
+build/working
+build/ARCHIVE
+build/data
