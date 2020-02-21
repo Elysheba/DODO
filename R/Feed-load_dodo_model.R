@@ -6,7 +6,7 @@ load_dodo_model <- function(){
    pkgname <- utils::packageName()
    ## Model
    cqlFile <- system.file(
-      "Documentation", "DODO-Model", "DODO-model.cql",
+      "documentation", "data-model", "DODO.cql",
       package=pkgname
    )
    queries <- neo2R::readCql(cqlFile)

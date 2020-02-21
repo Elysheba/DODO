@@ -33,11 +33,11 @@ load_db_names <- function(toImport){
    ## Checks ----
    tlc <- c("name"="character")
    mandatory <- c("name")
-   check_df_to_import(toImport, tlc, mandatory)
+   neoDODO:::check_df_to_import(toImport, tlc, mandatory)
    
    ## Query ----
    cql <- c(
       'MERGE (db:Database {name:row.name})'
    )
-   import_in_dodo(neo2R::prepCql(cql), toImport)
+   neoDODO:::import_in_dodo(cql = neo2R::prepCql(cql), toImport = toImport)
 }

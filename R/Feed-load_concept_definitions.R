@@ -31,7 +31,7 @@ load_concept_definitions <- function(toImport, concept){
       "database",
       "shortID"
    )
-   check_df_to_import(toImport, tlc, mandatory)
+   neoDODO:::check_df_to_import(toImport, tlc, mandatory)
    toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
    toImport$origin <- ifelse(
       is.na(toImport$origin), toImport$database, toImport$origin
@@ -42,7 +42,7 @@ load_concept_definitions <- function(toImport, concept){
    ## Load databases first ----
    dbs <- unique(toImport[, "origin", drop=FALSE])
    colnames(dbs) <- "name"
-   load_db_names(dbs)
+   neoDODO:::load_db_names(dbs)
    
    ## Query ----
    cql <- c(

@@ -7,7 +7,7 @@
 show_dodo_data_model <- function(){
    pkgname <- utils::packageName()
    htmlFile <- system.file(
-      "Documentation", "DODO-Model", "DODO.html",
+      "documentation", "data-model", "DODO.html",
       package=pkgname
    )
    utils::browseURL(paste0('file://', htmlFile))
