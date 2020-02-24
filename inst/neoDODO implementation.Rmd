@@ -1,0 +1,18 @@
+---
+title: "neoDODO_implementations"
+author: "Liesbeth François"
+date: "2/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Transitivity mapping
+
+For converting identifiers, the transtivity mapping between ontologies is used to return a full conversion. Always the entire graph is used to convert identifiers with no limitations to the number of steps. Due to the ambiguity of cross-reference edges, two type of such edges are created within the database. The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. The conversion is implemented in a two-step manner, where the *is_xref* reference edges are used in a transitive manner to obtain the entire network. Next, the resulting nodes functions as input to extend the network with one additional step using both *is_related* edges as well as *is_xref* edges. As can be seen, the *is_xref* edge is still used to gain one addition step and the reason lies with the ambiguity filtering that can be implemented on the edges.
+
+In addition to the type of the edge, the notion of ambiguity is implemented where filtering is possible both on the ambiguity starting from (forward ambiguity) or moving to a node (backward ambiguity). It is advised to use no filtering on the forward ambiguity as this is similar to moving from a more broadly defined concept to a narrower concept. The backward ambiguity resembles moving from a more narrow to broader concept which might result in jumping to higher levels identifiers. Depending on the question, a filterting might be required to control this behavior. For the first step of the conversion, the transitivity mapping, it is advised to consider only backward ambiguities of one for two reasons. The first is that the aim is to return a set of identifiers that are "equal" to each other or none ambiguous (backward ambiguity = 1). The second reason lies in the computation load of including all *is_xref* edges. 
+
+The final step of conversion aims to return all relationships (both *is_xref* and *is_related*) that lie one step beyond this returned disease network. As mentioned before, the filtering on backward ambiguity varies with each question. If the aim is to ensure that the returned relationships deal with concepts of the same network (the core network), a backward ambiguity of one should be used. Instead, if the aim is to return the extended network or to connect with external resources that deal with highly ambiguous concept (e.g. ICD10), no filtering should be used.
