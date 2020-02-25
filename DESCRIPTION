@@ -1,9 +1,9 @@
 Package: neoDODO
 Type: Package
-Title: Neo4j Dictionary of Disease Ontologies (DODO)
-Version: 0.0.1
-Author: Patrice Godard
-Maintainer: Patrice Godard <patrice.godard@gmail.com>
+Title: Dictionary of Disease Ontologies (DODO)
+Version: 0.0.2
+Author: Liesbeth François, Patrice Godard
+Maintainer: Liesbeth François <francois.liesbeth@gmail.com>
 Description: This package is a temporary package to develop DODO based on Neo4j.
 License: TBD
 LazyData: TRUE

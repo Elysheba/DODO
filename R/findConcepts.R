@@ -1,8 +1,7 @@
 ###############################################################################@
 #' Find concept by identifier 
 #' 
-#' @param ID a character vector of concept to search formatted as "DB:id" (e.g. "MONDO:0005027")
-#' @param concept concept (Disease or Phenotype) to focus the search on (default = NULL)
+#' @param ids a character vector of concept to search formatted as "DB:id" (e.g. "MONDO:0005027")
 #' 
 #' @return A character vector of concept identfiers in DODO
 #' 
@@ -11,7 +10,7 @@
 #' 
 #' @export
 #' 
-findID <- function(id){
+findID <- function(ids){
   cql <- c('MATCH (n)',
            'WHERE n.name IN $from',
            'RETURN n.name'
@@ -19,10 +18,10 @@ findID <- function(id){
   
   toRet <- call_dodo(neo2R::cypher,
                      prepCql(cql),
-                     parameters = list(from = as.list(id)),
+                     parameters = list(from = as.list(ids)),
                      result = "row")
   
-  return(unlist(toRet))  
+  return(unname(unlist(toRet)))  
 }
 
 ###############################################################################@
@@ -30,8 +29,8 @@ findID <- function(id){
 #' 
 #' Querying for concept through searchterms (label, synonym, definition)
 #' 
-#' @param term
-#' @param fields
+#' @param term a character vector of terms to search (e.g. "epilep")
+#' @param fields the field(s) where to look for matches (label, synonym, definition).
 #'  
 #' @return A character vector of concept identfiers in DODO
 #' 
@@ -71,7 +70,7 @@ findTerm <- function(term,
            'RETURN DISTINCT n.name')
   toRet <- call_dodo(neo2R::cypher,
                      prepCql(cql),
-                     parameters = list(from = as.list(id)),
+                     parameters = NULL,
                      result = "row")
-  return(unlist(toRet))
+  return(unname(unlist(toRet)))
 }
