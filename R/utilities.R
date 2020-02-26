@@ -1,23 +1,23 @@
-#'========================================================================================
-#'========================================================================================
-#' Check if there is a connection to a DODO database
-#'
-#' Checks if there is a connection already established with a DODO Dgraph instance
-#'
-#' @param verbose if TRUE print information about the DODO connection
-#' (default: FALSE).
-#'
-#' @return \itemize{
-#'  \item{TRUE if the connection can be established}
-#'  \item{Or FALSE if the connection cannot be established or the "System" node
-#'  does not exist or does not have "DODO" as name or any version recorded.
-#'  }
-#' }
-#'
-#'
-#' @export
+#========================================================================================
+#========================================================================================
+# Check if there is a connection to a DODO database
+#
+# Checks if there is a connection already established with a DODO Dgraph instance
+#
+# @param verbose if TRUE print information about the DODO connection
+# (default: FALSE).
+#
+# @return \itemize{
+#  \item{TRUE if the connection can be established}
+#  \item{Or FALSE if the connection cannot be established or the "System" node
+#  does not exist or does not have "DODO" as name or any version recorded.
+#  }
+# }
+#
+#
+# @export
 # checkDODOConn <- function(verbose = FALSE){
-#   if(!exists("graph", dodoEnv)){
+#  if(!exists("graph", dodoEnv)){
 #     warning("You should connect to a DODO DB using the connectToDODO function")
 #     return(FALSE)
 #   }
@@ -40,26 +40,26 @@
 #   }
 # }
 
-#'========================================================================================
-#'========================================================================================
-#' Connect to DODO instance
-#'
-#' Connects to a DODO Dgraph instance by the default port "localhost:8080".
-#'
-#' @param host host for the graph database (default:"localhost")
-#' @param port port on which the graph database is listening (default: 8080)
-#' @param remember if TRUE the connection is stored to be used next time
-#' @param reconnect if TRUE it will use stored connections if available
-#'
-#' @examples
-#' result <- dodoCall(
-#'    dgraphRequest,
-#'    postText=q)
-#'
-#'
-#' @export
-#'
-#'
+#========================================================================================
+#========================================================================================
+# Connect to DODO instance
+#
+# Connects to a DODO Dgraph instance by the default port "localhost:8080".
+#
+# @param host host for the graph database (default:"localhost")
+# @param port port on which the graph database is listening (default: 8080)
+# @param remember if TRUE the connection is stored to be used next time
+# @param reconnect if TRUE it will use stored connections if available
+#
+# @examples
+# result <- dodoCall(
+#    dgraphRequest,
+#    postText=q)
+#
+#
+# @export
+#
+#
 # connectToDODO <- function(host = "localhost",
 #                           port = 8080,
 #                           remember = T,
@@ -383,10 +383,10 @@ describeConcept <- function(ids){
            'WHERE n.name IN $from',
            'RETURN n.name as id, n.label as label')
   toRet <- call_dodo(
-      neo2R::cypher,
-      prepCql(cql),
-      parameters = list(from = as.list(ids)),
-      result = "row") %>%
+    neo2R::cypher,
+    prepCql(cql),
+    parameters = list(from = as.list(ids)),
+    result = "row") %>%
     tibble::as_tibble()
   return(toRet)
 }
@@ -489,15 +489,15 @@ getConceptUrl <- function(ids,
            'WHERE n.name IN $from',
            'RETURN n.name as id, db.name as origin, db.idURL as url')
   toRet <- call_dodo(
-      neo2R::cypher,
-      prepCql(cql),
-      parameters = list(from = as.list(ids)),
-      result = "row") %>%
+    neo2R::cypher,
+    prepCql(cql),
+    parameters = list(from = as.list(ids)),
+    result = "row") %>%
     tibble::as_tibble() %>%
     dplyr::mutate(db = gsub(":.*", "", id),
                   shortID = gsub(".*:", "", id),
                   url = sprintf(stringr::str_replace(url, "%3A", "%%3A"), shortID))
-
+  
   if(exact){
     toRet <- dplyr::filter(toRet,
                            db == origin)

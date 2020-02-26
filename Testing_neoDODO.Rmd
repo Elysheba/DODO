@@ -1,0 +1,40 @@
+---
+title: "Testing"
+author: "Liesbeth François"
+date: "2/26/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(neoDODO)
+```
+
+
+```{r cars}
+#from = ["HP:0002516", "ORPHA:637", "MeSH:D016518", "HP:0010628", "ORPHA:637", "MeSH:D016518"]
+ids <- c("HP:0002516", "ORPHA:637", "MeSH:D016518", "HP:0010628", "ORPHA:637", "MeSH:D016518", "EFO:0008514")
+ids <- c("HP:0002516", "ORPHA:637", "MeSH:D016518", "HP:0010628", "ORPHA:637", "MeSH:D016518")
+ids <- c("MONDO:0005027", "EFO:0000474")
+ids <- c("HP:0002516", "ORPHA:637")
+ids <- findTerm("epilep")    
+```
+
+## Testing different buildDisNet functions
+
+- standard buildDisNet
+- performing multi query buildDisNet (buildMultiDisNet)
+- performing graph query buildDisNet (buildGraphDisNet)
+
+```{r}
+length(ids)
+
+system.time(a <- buildDisNet(ids = ids))
+
+system.time(b <- buildMultiDisNet(ids = ids))
+
+# system.time(d <- buildGraphDisNet(ids = ids))
+
+```

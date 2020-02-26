@@ -6,7 +6,7 @@
 \usage{
 buildDisNetByTerm(
   term,
-  fields,
+  fields = c("label", "synonym", "definition"),
   backwardAmbiguity = 1,
   forwardAmbiguity = NULL,
   avoidOrigin = NULL

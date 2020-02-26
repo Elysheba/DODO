@@ -98,59 +98,17 @@ extendDisNet <- function(
   seed <- disNet$seed
   ##
   ids <- disNet$nodes$id
-  ids <- try(findID(ids = ids), silent = TRUE)
+  # ids <- try(findID(ids = ids), silent = TRUE)
   if(!is.null(avoidNodes)){
     ids <- setdiff(ids, avoidNodes)
   }
-  if(class(ids) == "try-error"){
-    stop(c("No nodes to extend from"))
-  }
-  
+  # if(class(ids) == "try-error"){
+  #   stop(c("No nodes to extend from"))
+  # }
+  # 
   ##############################################@
   ## xref/parent/child ----
   if(c("xref", "parent", "child") %in% relations){
-    # if(step == 1){
-    #   ## build relationship
-    #   q <- ""
-    #   if("xref" %in% relations){
-    #     if(is.null(BA.non_transitivity)){
-    #       relationship <- "is_related|is_xref"
-    #     }else{
-    #       relationship <- "is_related_nba|is_xref_nba"
-    #     }
-    #     q <- c(q, relationship)
-    #   }
-    #   if("parent" %in% relations){
-    #     q <- c("-[r:", q, "|is_a]->")
-    #   }
-    #   if("child" %in% relations){
-    #     q <- c("<-[r:", q, "|is_a]-")
-    #   }
-    #   q <- paste0(q, collapse = "")
-    #   ## build query
-    #   cql <- c(
-    #     sprintf('MATCH (f)%s(x)',
-    #             q),
-    #     sprintf('WHERE f.name IN $from %s %s',
-    #             ifelse(is.null(avoidNodes),"", "AND NOT x.name IN $avoid"),
-    #             ifelse(is.null(avoidOrigin), "", "AND NOT r.origin IN $origin")),
-    #     'RETURN f.name AS from, x.name AS to, r.origin as origin,',
-    #     'r.FA AS forwardAmbiguity, r.BA AS backwardAmbiguity'
-    #     )
-    #   ## Call
-    #   toRet <- call_dodo(
-    #       neo2R::cypher,
-    #       prepCql(cql),
-    #       parameters = list(from = as.list(ids),
-    #                         avoid = as.list(avoidNodes),
-    #                         origin = as.list(avoidOrigin)),
-    #       result = "row")  %>%
-    #     tibble::as_tibble()
-    # 
-    #   ## Post-processing
-    #   xref <-
-    #   
-    if(step > 0){
       ###################@
       ## build relationship
       
@@ -164,12 +122,8 @@ extendDisNet <- function(
         }
         q <- c(q, transitivity)
       }
-      if("parent" %in% relations){ 
-        q <- c(q, "|is_a>")
-      }
-      if("child" %in% relations){ 
-        q <- c(q, "|<is_a")
-      }
+      if("parent" %in% relations){q <- c(q, "|is_a>")}
+      if("child" %in% relations){q <- c(q, "|<is_a")}
       q <- paste0(q, collapse = ">")
       
       ## Non-transitivity
@@ -181,11 +135,11 @@ extendDisNet <- function(
       
       ##############@
       ## build query
-      cql <- c(
+      cql.xref <- c(
         'MATCH (f)',
         ifelse(is.null(avoidNodes), 
                'WHERE f.name IN $from', 
-               'MATCH (a) WHERE f.name IN $from AND a.name IN $avoid'),
+               'MATCH (a:Concept) WHERE f.name IN $from AND a.name IN $avoid'),
         'CALL apoc.path.expandConfig(',
         sprintf('f, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s", maxLevel:-1 %s}',
                 q,
@@ -193,14 +147,18 @@ extendDisNet <- function(
                 ifelse(is.null(avoidNodes), "", ", blacklistNodes:a")),
         ') YIELD path',
         'WITH nodes(path) AS e',
-        sprintf('MATCH (e1)-[r:%s]->(e2) WHERE e1 IN e %s',
+        sprintf('MATCH (e1:Concept)-[r:%s]->(e2:Concept) WHERE e1 IN e %s',
                 relationship,
                 ifelse(is.null(avoidNodes), "", "AND NOT e1.name IN $avoid AND NOT e2.name IN $avoid")),
         # 'RETURN DISTINCT',
         # 'e.name AS from, e2.name AS to'
-        'UNWIND nodes(path) as n',
-        'RETURN DISTINCT n.name, e2.name'
+        # 'UNWIND nodes(path) as n',
+        'RETURN DISTINCT e1.name, e2.name, r.FA, r.BA'
       )
+      
+      
+      
+      
       ## Call
       toRet <- call_dodo(
           neo2R::cypher,

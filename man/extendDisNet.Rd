@@ -7,10 +7,12 @@
 extendDisNet(
   disNet,
   relations = "xref",
-  step = 10000,
-  forwardAmbiguity = NULL,
-  backwardAmbiguity = 1,
-  avoidNodes = NA,
+  step = NULL,
+  FA.transitivity = NULL,
+  BA.transitivity = 1,
+  FA.non_transitivity = NULL,
+  BA.non_transitivity = NULL,
+  avoidNodes = NULL,
   avoidOrigin = NULL
 )
 }
@@ -23,17 +25,15 @@ Possible values among combinations of: "xref", "child", "parent", and/or "pheno"
 
 \item{step}{the number of steps to take in the search (default: 10000 ==> ~exhaustive)}
 
-\item{forwardAmbiguity}{level of forward ambiguity allowed
-(default: 10000 ==> ~no filter)}
+\item{FA.transitivity}{forward ambiguity while using transitivity to identify cross-references (default: no filter)}
 
-\item{backwardAmbiguity}{level of backward ambiguity allowed
-(default: 1 ==> no ambiguity allowed)}
+\item{BA.transitivity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
+
+\item{FA.non_transitivity}{forward ambiguity while using transitivity to identify cross-references (default: no filter)}
+
+\item{BA.non_transitivity}{backward ambiguity while using transitivity to identify cross-references (default: no filter)}
 
 \item{avoidNodes}{a vector of disease ids to be avoided in the search path}
-
-\item{blacklist}{a vector of databases to avoid when extending (default = NA)}
-
-\item{whitelist}{a vector of databases to trust when extending, only going through these database nodes (default = NA)}
 
 \item{avoidOrigin:}{allows to avoid traversing parent/child edges from a particular ontology (default = NULL)}
 
@@ -62,27 +62,11 @@ This can result in 'hopping' through more broader defined nodes, more distantly 
 Filtering on forward ambiguity is not advised by default but is equivalent to moving from a more broadly defined disease
 concept to several narrower disease concepts in another ontology.
 
-In addition to ambiguity scores, the use of blacklist and whitelist of ontologies that should be avoided or
-required (respectively) when passing through cross-reference edges. A blacklist can be considered as a list of
-databases which cros-sreference edges are trusted less than those of other databases. The nodes of these blacklisted
-databases are returned; however, they are not traversed when returning cross-references. By providing NA and NULL
-values to either blacklist or whitelist, a specific filtering can be obtained, more details in the table below:
-
-Blacklist    Whitelist    Result
-
-NA           NA           No filter applied
-NULL         NULL         Returns error
-NA           x            setdiff(listDB()$db - whitelist)
-x            NA           blacklist
-NULL         x            setdiff(listDB()$db - whitelist)
-x            NULL         blacklist
-x            x            setdiff(listDB()$db - whitelist)
-
 It is also possible to extend to phenotype information with some limitations.
 The basis of \emph{DODO} is the objective to travers the different disease ontologies efficiently and exhaustively.
 A disNet can be annotated with phenotype information using the "pheno" as additional property for \emph{relations}.
 However, obtaining diseases associated to a set of phenotype identifiers cannot directly be done using the extendDisNet.
-This can be done using the \emph{convertConcept} function first, then followed by \emph{extendDisNet} (also see vignette).
+This can be done using the \emph{convertConcept} function first, then followed by \emph{extendDisNet} (see vignette).
 }
 \examples{
 disNet <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
