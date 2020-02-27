@@ -6,8 +6,9 @@
 #' *buildDisNetByTerm* and *buildDisNetByID*. 
 #' 
 #' 
-#' @param ids: disease ids to include in the network
-#' @param seed: special disease ids considered as the network seed (all of them should be in ids)
+#' @param ids disease ids to include in the network
+#' @param term a character vector of terms to search (e.g. "epilepsy")
+#' @param fields the field(s) where to look for matches (default: c(label, synonym, definition)).
 #' @param forwardAmbiguity level of forward ambiguity allowed
 #' (default: 10000 ==> ~no filter)
 #' @param backwardAmbiguity level of backward ambiguity allowed
@@ -84,21 +85,19 @@
 #' 
 #' @export
 #' 
-buildDisNet <- function(ids = c(), 
-                        seed = c(), 
+buildDisNet <- function(ids = NULL, 
+                        term = NULL,
+                        fields = c("label", "synonym", "definition"),
                         backwardAmbiguity = 1, 
                         forwardAmbiguity = NULL, 
                         avoidOrigin = NULL){
-  if(any(!seed %in% ids)){
-    stop("All seed should be in ids")
-  }
-  ## avoidOrigin 
-  if(!is.null(avoidOrigin)){
-    match.arg(avoidOrigin, listDB()$db, several.ok = T)
-  }
+  if(any(!seed %in% ids)){stop("All seed should be in ids")}
+  fields <- match.arg(fields, c("label", "synonym", "definition"), several.ok = TRUE)
+  if(!is.null(avoidOrigin)){match.arg(avoidOrigin, listDB()$db, several.ok = T)}
   
   stopifnot(is.null(forwardAmbiguity) || forwardAmbiguity == 1,
-            is.null(backwardAmbiguity) || backwardAmbiguity == 1)
+            is.null(backwardAmbiguity) || backwardAmbiguity == 1,
+            is.null(ids) & is.null(term))
   
   if(is.null(backwardAmbiguity)){
     relationship <- "is_related|is_xref"
@@ -139,7 +138,13 @@ buildDisNet <- function(ids = c(),
     ),
     seed=character()
   )
-  if(length(ids) > 0){
+  
+  if(!is.null(term)){
+    ids <- findTerm(term = term,
+                     fields = fields)
+  }
+  ## Identifiers input
+  if(!is.null(ids)){
     ## nodes
     cql.nodes <- c('MATCH (n:Concept)',
                    'WHERE n.name IN $from',
@@ -162,7 +167,6 @@ buildDisNet <- function(ids = c(),
     cql.pheno <- c('MATCH (n:Disease)-[r:has_pheno]->(p:Phenotype)',
                    'WHERE n.name IN $from AND p.name IN $from',
                    'RETURN DISTINCT n.name as disease, p.name as phenotype')
-    
     statements <- list(nodes = prepCql(cql.nodes),
                        syn = prepCql(cql.syn),
                        xref = prepCql(cql.xref),
@@ -173,72 +177,141 @@ buildDisNet <- function(ids = c(),
                              result =  "row",
                              parameters = list(from = as.list(ids),
                                                origin = as.list(avoidOrigin)))
-    # Send queries
-    toRet <- multicypher(graph = get("graph", neoDODO:::dodoEnv),
-                         queries = queries,
-                         result = NULL,
-                         parameters = NULL)
-    lapply(toRet,
-           head)
+  
+# else{
+#     st <- toupper(term)
+#     query <- NULL
+#     if("label" %in% fields){
+#       query <- c(query,
+#                  sprintf('s.value_up CONTAINS "%s"', st)
+#       )
+#     }
+#     if("synonym" %in% fields){
+#       query <- c(query,
+#                  sprintf('n.label_up CONTAINS "%s"',
+#                          st)
+#       )
+#     }
+#     if("definition" %in% fields){
+#       query <- c(query,
+#                  sprintf('n.definition_up CONTAINS "%s"',
+#                          st)
+#       )
+#     }
+#     query <- paste(query, collapse = " OR ")
+#     cql.nodes <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
+#                      st),
+#                    query,
+#                    'RETURN DISTINCT n.name as id, n.label as label, n.definition as definition, ',
+#                    'n.shortID as shortID, n.level as level, labels(n) as type, s.value as synonym')
+#     cql.xref <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
+#                           st),
+#                   query,
+#                   'WITH COLLECT(n) as nid',
+#                   sprintf('MATCH path = (:Concept)-[:%s]->(:Concept)',
+#                           relationship),
+#                   'WHERE ALL (node IN nodes(path) WHERE node IN nid)',
+#                   'WITH nodes(path)[0] as from, last(nodes(path)) as to, relationships(path) as r',
+#                   'RETURN DISTINCT from.name as from , to.name as to,',
+#                   '[fa in r | fa.FA] as FA, [ba in r | ba.BA] as BA')
+#     cql.child <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
+#                            st),
+#                    query,
+#                    'WITH COLLECT(n) as nid',
+#                    'MATCH path = (:Concept)-[r:is_a]->(:Concept)',
+#                    sprintf('WHERE %s ALL (node IN nodes(path) WHERE node IN nid)',
+#                            ifelse(is.null(avoidOrigin),
+#                                   "",
+#                                   "NOT r.origin IN $origin AND")),
+#                    'WITH nodes(path)[0] as child, last(nodes(path)) as parent, relationships(path) as r',
+#                    'RETURN DISTINCT child.name as child, parent.name as parent, [o in r| o.origin] as origin')
+#     cql.pheno <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
+#                            st),
+#                    query,
+#                    'WITH COLLECT(n) as nid',
+#                    'MATCH path = (:Disease)-[r:has_pheno]->(:Phenotype)',
+#                    'WHERE ALL (node IN nodes(path) WHERE node IN nid)',
+#                    'WITH nodes(path)[0] as d, last(nodes(path)) as p',
+#                    'RETURN DISTINCT d.name as disease, p.name as phenotype')
+#     statements <- list(nodes = prepCql(cql.nodes),
+#                        # syn = prepCql(cql.syn),
+#                        xref = prepCql(cql.xref),
+#                        child = prepCql(cql.child),
+#                        pheno = prepCql(cql.pheno))
+#     
+#     queries <- build_queries(statements = statements,
+#                              result =  "row",
+#                              parameters = list(origin = as.list(avoidOrigin)))
+#   }
     
-    nodes <- toRet$nodes %>%
-      tibble::as_tibble() 
-    if(nrow(nodes) == 0){
-      nodes <- diseaseNetwork$nodes
-    }else{
-      nodes <- nodes %>%
-        dplyr::mutate(database = gsub(":.*", "", id))
-    }
-    
-    ## synonyms
-    synonyms <- toRet$syn %>%
-      tibble::as_tibble()
-    if(nrow(synonyms) == 0){
-      synonyms <- diseaseNetwork$synonyms
-    }
-    
-    ## cross-references
-    xref <- toRet$xref %>%
-      tibble::as_tibble()
-    if(nrow(xref) == 0){
-      xref <- diseaseNetwork$xref
-    }else{
-      xref <- xref  %>%
-        dplyr::mutate(ur = paste(pmin(xref$from, xref$to), pmax(xref$from, xref$to), sep = "<->")) %>%
-        dplyr::distinct(ur, .keep_all = TRUE)
-    }
-    
-    ## hierarchy
-    children <- toRet$child %>%
-      tibble::as_tibble()
-    if(nrow(children) == 0){
-      children <- diseaseNetwork$children
-    }
-    
-    ## phenotypes
-    pheno <- toRet$pheno %>%
-      tibble::as_tibble()
-    if(nrow(pheno) == 0){
-      pheno <- diseaseNetwork$pheno
-    }
-    
-    ## seed
-    seed <- seed
-    
-    ## Reset rownames
-    rownames(nodes) <- NULL
-    rownames(synonyms) <- NULL
-    rownames(children) <- NULL
-    rownames(xref) <- NULL
-    rownames(pheno) <- NULL
-    ##
-    diseaseNetwork <- list(nodes = nodes,
-                           synonyms = synonyms,
-                           children = children,
-                           xref = xref,
-                           pheno = pheno,
-                           seed = seed)
+
+  # Send queries
+  toRet <- multicypher(graph = get("graph", neoDODO:::dodoEnv),
+                       queries = queries,
+                       result = NULL,
+                       parameters = NULL)
+  lapply(toRet,
+         head)
+  
+  nodes <- toRet$nodes %>%
+    tibble::as_tibble() 
+  if(nrow(nodes) == 0){
+    nodes <- diseaseNetwork$nodes
+  }else{
+    nodes <- nodes %>%
+      dplyr::mutate(database = gsub(":.*", "", id))
   }
+  
+  ## synonyms
+  synonyms <- toRet$syn %>%
+    tibble::as_tibble()
+  if(nrow(synonyms) == 0){
+    synonyms <- diseaseNetwork$synonyms
+  }
+  
+  ## cross-references
+  xref <- toRet$xref %>%
+    tibble::as_tibble()
+  if(nrow(xref) == 0){
+    xref <- diseaseNetwork$xref
+  }else{
+    xref <- xref  %>%
+      dplyr::mutate(ur = paste(pmin(xref$from, xref$to), pmax(xref$from, xref$to), sep = "<->")) %>%
+      dplyr::distinct(ur, .keep_all = TRUE)
+  }
+  
+  ## hierarchy
+  children <- toRet$child %>%
+    tibble::as_tibble()
+  if(nrow(children) == 0){
+    children <- diseaseNetwork$children
+  }
+  
+  ## phenotypes
+  pheno <- toRet$pheno %>%
+    tibble::as_tibble()
+  if(nrow(pheno) == 0){
+    pheno <- diseaseNetwork$pheno
+  }
+  
+  ## seed
+  seed <- ids
+    
+  ## Reset rownames
+  rownames(nodes) <- NULL
+  rownames(synonyms) <- NULL
+  rownames(children) <- NULL
+  rownames(xref) <- NULL
+  rownames(pheno) <- NULL
+  ##
+  diseaseNetwork <- list(nodes = nodes,
+                         synonyms = synonyms,
+                         children = children,
+                         xref = xref,
+                         pheno = pheno,
+                         seed = seed)
+  }
+
   diseaseNetwork <- structure(diseaseNetwork,
                               class = "disNet")
   return(diseaseNetwork)
