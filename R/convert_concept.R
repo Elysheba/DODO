@@ -23,33 +23,31 @@
 #' 
 #' @export
 #' 
-convertConcept <- function(from, 
-                       to = NULL,
-                       from.concept = c("Disease", "Phenotype"),
-                       to.concept = c("Disease", "Phenotype"),
-                       FA.transitivity = NULL,
-                       BA.transitivity = 1,
-                       FA.non_transitivity = NULL,
-                       BA.non_transitivity = NULL,
-                       verbose = FALSE){
+convert_concept <- function(from, 
+                            to = NULL,
+                            from.concept = c("Disease", "Phenotype"),
+                            to.concept = c("Disease", "Phenotype"),
+                            # FA.transitive = NULL,
+                            BA.transitive = 1,
+                            # FA.intransitive = NULL,
+                            BA.intransitive = NULL,
+                            verbose = FALSE){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"))
    from <- setdiff(from, NA)
    stopifnot(is.character(from), length(from)>0)
    
-   stopifnot(is.null(FA.transitivity) || FA.transitivity == 1,
-             is.null(BA.transitivity) || BA.transitivity == 1,
-             is.null(FA.non_transitivity) || FA.non_transitivity == 1, 
-             is.null(BA.non_transitivity) || BA.non_transitivity == 1)
+   stopifnot(#is.null(FA.transitivity) || FA.transitivity == 1,
+             is.null(BA.transitive) || BA.transitive == 1,
+             #is.null(FA.intransitive) || FA.intransitive == 1, 
+             is.null(BA.intransitive) || BA.intransitive == 1)
    
-   ## add removing edges for FA (within upload)
-   
-   if(is.null(BA.transitivity)){
+   if(is.null(BA.transitive)){
       transitivity <- "is_xref"
    }else{
       transitivity <- "is_xref_nba"
    }
    
-   if(is.null(BA.non_transitivity)){
+   if(is.null(BA.intransitive)){
       relationship <- ":is_related|is_xref*0..1"
    }else{
       relationship <- ":is_related_nba|is_xref_nba*0..1"
@@ -81,30 +79,6 @@ convertConcept <- function(from,
       prepCql(cql),
       parameters = list(from = as.list(from)),
       result = "row")
-   
-   # cql <- c(
-   #    sprintf(
-   #       'MATCH (f:%s)-[%s]-(t:%s) WHERE f.name in $from',
-   #       from.concept,
-   #       relationship,
-   #       from.concept),
-   #    'RETURN DISTINCT f.name AS from, t.name AS to'
-   #    )
-   # b1.related <- call_dodo(
-   #       neo2R::cypher,
-   #       prepCql(cql),
-   #       parameters = list(from = as.list(unique(b1.xref$to))),
-   #       result = "row") %>%
-   #    dplyr::mutate(hops = NA) %>%
-   #    dplyr::left_join(b1.xref %>% dplyr::select(ori = from, to),
-   #                     by = c("from" = "to")) %>%
-   #    dplyr::select(from = ori,
-   #                  to,
-   #                  hops)
-   # toRet <- dplyr::bind_rows(b1.xref,
-   #                           b1.related) %>%
-   #    tibble::as_tibble() %>%
-   #    dplyr::distinct()
    
    #############################################@
    ## Convert between concepts: B2

@@ -85,7 +85,7 @@
 #' 
 #' @export
 #' 
-buildDisNet <- function(ids = NULL, 
+build_disNet <- function(ids = NULL, 
                         term = NULL,
                         fields = c("label", "synonym", "definition"),
                         backwardAmbiguity = 1, 
@@ -173,86 +173,18 @@ buildDisNet <- function(ids = NULL,
                        child = prepCql(cql.child),
                        pheno = prepCql(cql.pheno))
     
-    queries <- build_queries(statements = statements,
-                             result =  "row",
-                             parameters = list(from = as.list(ids),
-                                               origin = as.list(avoidOrigin)))
-  
-# else{
-#     st <- toupper(term)
-#     query <- NULL
-#     if("label" %in% fields){
-#       query <- c(query,
-#                  sprintf('s.value_up CONTAINS "%s"', st)
-#       )
-#     }
-#     if("synonym" %in% fields){
-#       query <- c(query,
-#                  sprintf('n.label_up CONTAINS "%s"',
-#                          st)
-#       )
-#     }
-#     if("definition" %in% fields){
-#       query <- c(query,
-#                  sprintf('n.definition_up CONTAINS "%s"',
-#                          st)
-#       )
-#     }
-#     query <- paste(query, collapse = " OR ")
-#     cql.nodes <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
-#                      st),
-#                    query,
-#                    'RETURN DISTINCT n.name as id, n.label as label, n.definition as definition, ',
-#                    'n.shortID as shortID, n.level as level, labels(n) as type, s.value as synonym')
-#     cql.xref <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
-#                           st),
-#                   query,
-#                   'WITH COLLECT(n) as nid',
-#                   sprintf('MATCH path = (:Concept)-[:%s]->(:Concept)',
-#                           relationship),
-#                   'WHERE ALL (node IN nodes(path) WHERE node IN nid)',
-#                   'WITH nodes(path)[0] as from, last(nodes(path)) as to, relationships(path) as r',
-#                   'RETURN DISTINCT from.name as from , to.name as to,',
-#                   '[fa in r | fa.FA] as FA, [ba in r | ba.BA] as BA')
-#     cql.child <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
-#                            st),
-#                    query,
-#                    'WITH COLLECT(n) as nid',
-#                    'MATCH path = (:Concept)-[r:is_a]->(:Concept)',
-#                    sprintf('WHERE %s ALL (node IN nodes(path) WHERE node IN nid)',
-#                            ifelse(is.null(avoidOrigin),
-#                                   "",
-#                                   "NOT r.origin IN $origin AND")),
-#                    'WITH nodes(path)[0] as child, last(nodes(path)) as parent, relationships(path) as r',
-#                    'RETURN DISTINCT child.name as child, parent.name as parent, [o in r| o.origin] as origin')
-#     cql.pheno <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
-#                            st),
-#                    query,
-#                    'WITH COLLECT(n) as nid',
-#                    'MATCH path = (:Disease)-[r:has_pheno]->(:Phenotype)',
-#                    'WHERE ALL (node IN nodes(path) WHERE node IN nid)',
-#                    'WITH nodes(path)[0] as d, last(nodes(path)) as p',
-#                    'RETURN DISTINCT d.name as disease, p.name as phenotype')
-#     statements <- list(nodes = prepCql(cql.nodes),
-#                        # syn = prepCql(cql.syn),
-#                        xref = prepCql(cql.xref),
-#                        child = prepCql(cql.child),
-#                        pheno = prepCql(cql.pheno))
-#     
-#     queries <- build_queries(statements = statements,
-#                              result =  "row",
-#                              parameters = list(origin = as.list(avoidOrigin)))
-#   }
-    
+    queries <- build_multicypher(statements = statements,
+                                 result =  "row",
+                                 parameters = list(from = as.list(ids),
+                                                   origin = as.list(avoidOrigin)))
 
   # Send queries
   toRet <- multicypher(graph = get("graph", neoDODO:::dodoEnv),
                        queries = queries,
                        result = NULL,
                        parameters = NULL)
-  lapply(toRet,
-         head)
   
+  ## nodes
   nodes <- toRet$nodes %>%
     tibble::as_tibble() 
   if(nrow(nodes) == 0){
@@ -314,110 +246,7 @@ buildDisNet <- function(ids = NULL,
 
   diseaseNetwork <- structure(diseaseNetwork,
                               class = "disNet")
-  return(diseaseNetwork)
-}
-
-###############################################################################@
-#' Build a network of diseases according to provided identifiers
-#' 
-#' Querying for (a) disease identifier(s) is simplified using the 
-#' helper function *buildDisNetByID* using a vector or dataframe as input.
-#' 
-#' 
-#' @param ids a character vector of identifier to search formatted as *DB:id* (e.g. "MONDO:0005027")
-#' @param forwardAmbiguity level of forward ambiguity allowed
-#' (default: 10000 ==> ~no filter)
-#' @param backwardAmbiguity level of backward ambiguity allowed
-#' (default: 1 ==> no ambiguity allowed)
-#' @param avoidOrigin: allows to avoid traversing parent/child edges from a particular ontology (default = NULL)
-#' 
-#' @details 
-#' 
-#' The disNet object is constructed around the return 
-#' query results also providing information on their relationships. Therefore the *buildDisNet* function
-#' doesn't deal with transitivity of cross-reference edges, so the forward and backward ambiguity
-#' are applied for both type of cross-references (*is_xref* and *is_related*) consistently.
-#' The default implementation only has a limit on the backward ambiguity (see vignette).
-#' In addition, it is possible to avoid returning a particular 
-#' hierarchical relationship by specifiying *avoidOrigin*.
-#' 
-#' @return A normalized disease network 
-#' 
-#' @examples 
-#' 
-#' buildDisNetByID(ids = c("ORPHA:86814","MONDO:0005099"))
-#' 
-#' @seealso buildDisNet, buildDisNetByTerm
-#' 
-#' @export
-#' 
-buildDisNetByID <- function(ids,
-                            backwardAmbiguity = 1, 
-                            forwardAmbiguity = NULL, 
-                            avoidOrigin = NULL
-){
-  seed <- findID(ids = ids)
-  return(buildDisNet(ids = seed, 
-                     seed = seed, 
-                     backwardAmbiguity = backwardAmbiguity, 
-                     forwardAmbiguity = forwardAmbiguity, 
-                     avoidOrigin = avoidOrigin))
-}
-
-
-###############################################################################@
-#' Build a network of diseases according to provided identifiers
-#' 
-#' Querying for (a) disease identifier(s) is simplified using the 
-#' helper function *buildDisNetByID* using a vector or dataframe as input.
-#' 
-#' 
-#' @param term a character vector of identifier to search formatted as *DB:id* (e.g. "MONDO:0005027")
-#' @param fields the field(s) where to look for matches.
-#' "synonym", "label", "definition" are supported and all of them are considered
-#' by default
-#' @param forwardAmbiguity level of forward ambiguity allowed
-#' (default: 10000 ==> ~no filter)
-#' @param backwardAmbiguity level of backward ambiguity allowed
-#' (default: 1 ==> no ambiguity allowed)
-#' @param avoidOrigin: allows to avoid traversing parent/child edges from a particular ontology (default = NULL)
-#' 
-#' @details 
-#' 
-#' Querying for a search term is simplified using the 
-#' helper function *buildDisNetByTerm* where you can specify which type of 
-#' information related to a disease you want to query, such as disease label, disease synonyms, 
-#' or disease definition, or a combination. The disNet object is constructed around the return 
-#' query results also providing information on their relationships. Therefore the *buildDisNet* function
-#' doesn't deal with transitivity of cross-reference edges, so the forward and backward ambiguity
-#' are applied for both type of cross-references (*is_xref* and *is_related*) consistently.
-#' The default implementation only has a limit on the backward ambiguity (see vignette).
-#' In addition, it is possible to avoid returning a particular 
-#' hierarchical relationship by specifiying *avoidOrigin*.
-#' 
-#' @return A normalized disease network 
-#' 
-#' @examples 
-#' 
-#' buildDisNetByTerm("epilep", fields = c("synonym"))
-#' 
-#' @seealso buildDisNet, buildDisNetByTerm
-#' 
-#' @export
-#' 
-buildDisNetByTerm <- function(term,
-                              fields = c("label", "synonym", "definition"),
-                              backwardAmbiguity = 1, 
-                              forwardAmbiguity = NULL, 
-                              avoidOrigin = NULL
-){
-  seed <- findTerm(term = term,
-                   fields = fields)
-  return(buildDisNet(ids = seed, 
-                     seed = seed, 
-                     backwardAmbiguity = backwardAmbiguity, 
-                     forwardAmbiguity = forwardAmbiguity, 
-                     avoidOrigin = avoidOrigin))
+  return(normalize(diseaseNetwork))
 }
 
 ###############################################################################@
@@ -569,7 +398,7 @@ c.disNet <- function(...,
 #' 
 #' @export
 #' 
-normalizeDisNet <- function(disNet){
+normalize.disNet <- function(disNet){
   if(!is.null(disNet$children)){
     disNet$children <- disNet$children[which(
       disNet$children$parent %in% disNet$nodes$id &
@@ -607,7 +436,7 @@ normalizeDisNet <- function(disNet){
 #' @param parameters parameters for the cypher query
 #' 
 #' @export
-build_queries <- function(statements,
+build_multicypher <- function(statements,
                           result = "row",
                           parameters = NULL){
   if(length(result) != length(statements)){
@@ -651,26 +480,6 @@ multicypher <- function(graph,
   endpoint <- graph$cypher_endpoint
   nm <- names(queries)
   postText <- list(statements = unname(queries))
-  
-  # qs <- lapply(1:length(statements),
-  #              function(s){
-  #                toRet <- list(statement = statements[[s]],
-  #                              resultDataContents = list(result))
-  #                if(!is.null(parameters)){
-  #                  toRet$parameters <- parameters
-  #                }
-  #                return(toRet)
-  #              })
-  # 
-  # postText <- list(statements = list(list(statement = statements$nodes, 
-  #                                         resultDataContents = list(result)),
-  #                                    list(statement = statements$syn, 
-  #                                         resultDataContents = list(result))
-  #                                    ))
-  # if (!is.null(parameters)) {
-  #   postText$statements[[1]]$parameters <- parameters
-  #   postText$statements[[2]]$parameters <- parameters
-  # }
   
   results <- graphRequest(graph = graph, 
                           endpoint = endpoint, 

@@ -10,7 +10,7 @@
 #' 
 #' @export
 #' 
-findID <- function(ids){
+find_id <- function(ids){
   cql <- c('MATCH (n)',
            'WHERE n.name IN $from',
            'RETURN n.name'
@@ -36,7 +36,7 @@ findID <- function(ids){
 #' 
 #' @export
 
-findTerm <- function(term,
+find_term <- function(term,
                      fields = c("label", "synonym", "definition")){
   fields <- match.arg(fields, c("label", "synonym", "definition"), several.ok = TRUE)
  
