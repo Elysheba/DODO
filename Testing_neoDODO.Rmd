@@ -29,12 +29,72 @@ ids <- findTerm("epilep")
 - performing graph query buildDisNet (buildGraphDisNet)
 
 ```{r}
+ids <- c("MONDO:0005027", "EFO:0000474")
 length(ids)
 
-system.time(a <- buildDisNet(ids = ids))
+system.time(a <- build_disNet(ids = ids))
+a
 
-system.time(b <- buildMultiDisNet(ids = ids))
+system.time(b <- extend_disNet(disNet = a, relations = c("xref", "child")))
+b
+## 3.820
+# The disNet contains:
+#  -  2186 disease nodes from 11 ontologies and 0 phenotype nodes from 0 ontologies 
+#  -  8739 synonyms of the disease nodes
+#  -  1951 parent/child edges
+#  -  1761 crossreference edges
+#  -  0 phenotype edges
+#  -  The disNet was build based on 2 seeds
 
-# system.time(d <- buildGraphDisNet(ids = ids))
+system.time(d <- extend_disNet(disNet = a, relations = c("xref", "child", "pheno")))
+d
+## 10.390s
+# The disNet contains:
+#  -  5245 disease nodes from 27 ontologies and 2530 phenotype nodes from 1 ontologies 
+#  -  15016 synonyms of the disease nodes
+#  -  1951 parent/child edges
+#  -  7966 crossreference edges
+#  -  19847 phenotype edges
+#  -  The disNet was build based on 2 seeds
 
+ids <- find_term("epilep")    
+length(ids)
+system.time(e <- convert_concept(from = ids, from.concept = "Disease", to.concept = "Phenotype"))
+e
+## 11.123s
+## 60,860 rows
+
+```
+
+
+```{r}
+## Obtain all EFO identifiers and there synonyms
+
+## Directly in Neo4j interface
+
+# MATCH (n:Concept)-[:is_in]->(:Database {name:"EFO"}) 
+# with collect(n) as node
+# MATCH (n:Concept)-[:is_known_as]->(s:Synonym) WHERE n in node
+# RETURN DISTINCT n.name AS id, s.value as syn
+
+## --> for displaying 1000 rows = 76ms
+
+## R interface
+cql <- c(
+       'MATCH (n:Concept)-[:is_in]->(:Database {name:$database})',
+       'RETURN DISTINCT n.name AS id, n.label AS label, n.definition AS definition, ',
+                    'n.shortID AS shortID, n.level AS level, labels(n) AS type')
+system.time(concepts <- call_dodo(
+       neo2R::cypher,
+       prepCql(cql),
+       parameters=list(database=database),
+       result="row"
+))
+## 1.9s
+ids = concepts$id
+cql.syn <- c('MATCH (n:Concept)-[r:is_known_as]-(s:Synonym)',
+             'WHERE n.name IN $from',
+             'RETURN DISTINCT n.name AS id, s.value AS synonym')
+system.time(call_dodo(cypher, prepCql(cql.syn), parameters = list(from = as.list(ids)), result = "row"))
+## 44s
 ```

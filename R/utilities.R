@@ -1,123 +1,5 @@
 #========================================================================================@
 #========================================================================================@
-# Check if there is a connection to a DODO database
-#
-# Checks if there is a connection already established with a DODO Dgraph instance
-#
-# @param verbose if TRUE print information about the DODO connection
-# (default: FALSE).
-#
-# @return \itemize{
-#  \item{TRUE if the connection can be established}
-#  \item{Or FALSE if the connection cannot be established or the "System" node
-#  does not exist or does not have "DODO" as name or any version recorded.
-#  }
-# }
-#
-#
-# @export
-# checkDODOConn <- function(verbose = FALSE){
-#  if(!exists("graph", dodoEnv)){
-#     warning("You should connect to a DODO DB using the connectToDODO function")
-#     return(FALSE)
-#   }
-#   if(verbose) message(get("graph", dodoEnv)$url)
-#   q <- c('{',
-#          'dodo(func: eq(type, "DODO")){name version}',
-#          '}')
-#   q <- paste(q,collapse = "\n")
-#   rq <- try(dodoCall(DgraphR::dgraphRequest,
-#                      postText = q,
-#                      dodoCheck=FALSE))
-#   if(inherits(rq, "try-error")){
-#     return(FALSE)
-#   }else{
-#     rq <- unlist(rq$result$data$dodo)
-#     if(verbose){
-#       message(paste("Version DODO:", rq["version"]))
-#     }
-#     return(TRUE)
-#   }
-# }
-
-#========================================================================================@
-#========================================================================================@
-# Connect to DODO instance
-#
-# Connects to a DODO Dgraph instance by the default port "localhost:8080".
-#
-# @param host host for the graph database (default:"localhost")
-# @param port port on which the graph database is listening (default: 8080)
-# @param remember if TRUE the connection is stored to be used next time
-# @param reconnect if TRUE it will use stored connections if available
-#
-# @examples
-# result <- dodoCall(
-#    dgraphRequest,
-#    postText=q)
-#
-#
-# @export
-#
-#
-# connectToDODO <- function(host = "localhost",
-#                           port = 8080,
-#                           remember = T,
-#                           reconnect = T){
-#   #########################@
-#   ##
-#   dodoDir <- file.path(Sys.getenv("HOME"),"R","DODO")
-#   dir.create(dodoDir,
-#              showWarnings = F,
-#              recursive = T)
-#   conFile <- file.path(dodoDir,
-#                        "DODO-Connection.rda")
-#   connection <- list()
-#   if(reconnect){
-#     if(file.exists(conFile)){
-#       load(conFile)
-#       if(length(connection)==0){
-#         checkDODOConn()
-#         return(FALSE)
-#       }else{
-#         message("Using last connection")
-#         host <- connection[["host"]]
-#         port <- connection[["port"]]
-#       }
-#     }else{
-#       connection <- list(
-#         host = host,
-#         port = port)
-#     }
-#   }else{
-#     connection <- list(
-#       host = host,
-#       port = port)
-#   }
-#   #######################@
-#   ## Connect to DODO
-#   assign("graph",
-#          DgraphR::startDgraph(url = sprintf("http://%s:%s",host,port)),
-#          envir = dodoEnv)
-#   if(!exists("graph", dodoEnv)){
-#     warning("You should check the connection or availability of the DODO database")
-#   }else{
-#     message("A connection to DODO dgraph host ",
-#             sprintf("http://%s:%s",
-#                     host,
-#                     port),
-#             " was established",
-#             appendLF = T)
-#   }
-#   ######################@
-#   ## Remember connection
-#   if(remember){
-#     save(connection, file = conFile)
-#   }
-#   invisible(TRUE)
-# }
-
-###############################################################################@
 #' Connect to a neo4j DODO database
 #'
 #' @param url a character string. The host and the port are sufficient
@@ -143,7 +25,7 @@
 #'
 #' @export
 #'
-connectToDODO <- function(
+connect_to_dodo <- function(
   url=NULL, username=NULL, password=NULL, connection=1,
   remember=TRUE,
   importPath=NA
@@ -250,7 +132,8 @@ connectToDODO <- function(
   check_dodo_cache(newCon=TRUE)
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Check if there is a connection to a DODO database
 #'
 #' @param verbose if TRUE print information about the DODO connection
@@ -265,7 +148,7 @@ connectToDODO <- function(
 #'
 #' @export
 #'
-checkDODOConn <- function(verbose=FALSE){
+check_dodo_connection <- function(verbose=FALSE){
   if(!exists("graph", dodoEnv)){
     warning(
       "You should connect to a DODO DB using the connect_to_dodo function"
@@ -321,7 +204,8 @@ checkDODOConn <- function(verbose=FALSE){
   return(toRet)
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' List all registered DODO connection
 #'
 #' @seealso [connect_to_dodo],
@@ -329,7 +213,7 @@ checkDODOConn <- function(verbose=FALSE){
 #'
 #' @export
 #'
-listConnections <- function(){
+list_dodo_connections <- function(){
   conFile <- file.path(
     Sys.getenv("HOME"), "R", "DODO", "DODO-Connections.rda"
   )
@@ -340,7 +224,8 @@ listConnections <- function(){
   return(connections)
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Forget a DODO connection
 #'
 #' @param connection the id of the connection to forget.
@@ -363,36 +248,8 @@ forget_dodo_connection <- function(connection){
 }
 
 
-#'========================================================================================
-#'========================================================================================
-#' Get concept description
-#' 
-#' Describing provided concept identifiers (when available) using disease label
-#' 
-#' @param ids a character vector of  concept identifier to search (e.g. "MONDO:0005027")
-#' @return vector of disease labels
-#' 
-#' @export
-describeConcept <- function(ids){
-  ## Checking
-  if(is.null(ids)){ 
-    stop('Please provide ID')
-  }
-  
-  cql <- c('MATCH (n)',
-           'WHERE n.name IN $from',
-           'RETURN n.name as id, n.label as label')
-  toRet <- call_dodo(
-    neo2R::cypher,
-    prepCql(cql),
-    parameters = list(from = as.list(ids)),
-    result = "row") %>%
-    tibble::as_tibble()
-  return(toRet)
-}
-
-#'========================================================================================
-#'========================================================================================
+#========================================================================================@
+#========================================================================================@
 #' Call a function on the DODO graph
 #'
 #' @param f the function to call
@@ -413,8 +270,8 @@ dodoCall <- function(f, ..., dodoCheck=FALSE){
 }
 
 
-#'========================================================================================
-#'========================================================================================
+#========================================================================================@
+#========================================================================================@
 #' List of databases in DODO
 #' 
 #' lists all databases present in the database
@@ -425,7 +282,7 @@ dodoCall <- function(f, ..., dodoCheck=FALSE){
 #'
 #' @export
 #'
-listDB <- function(){
+list_db <- function(){
   ## Prepare query
   cql <- c('MATCH (n:Database)<-[r:is_in]-(d)',
            'RETURN n.name as database, count(r) as count')
@@ -438,8 +295,8 @@ listDB <- function(){
   return(toRet)
 }
 
-#'========================================================================================
-#'========================================================================================
+#========================================================================================@
+#========================================================================================@
 #' List of nodes types in DODO
 #' 
 #' Lists the different type of node present in the database
@@ -450,7 +307,7 @@ listDB <- function(){
 #'
 #' @export
 #'
-listType <- function(){
+list_node_type <- function(){
   cql <- c('MATCH (n)',
            'RETURN labels(n) as type, count(n) as count')
   toRet <- call_dodo(
@@ -462,8 +319,38 @@ listType <- function(){
   return(toRet)
 }
 
-#'========================================================================================
-#'========================================================================================
+
+#========================================================================================@
+#========================================================================================@
+#' Get concept description
+#' 
+#' Describing provided concept identifiers (when available) using disease label
+#' 
+#' @param ids a character vector of  concept identifier to search (e.g. "MONDO:0005027")
+#' @return vector of disease labels
+#' 
+#' @export
+describe_concept <- function(ids){
+  ## Checking
+  if(is.null(ids)){ 
+    stop('Please provide ID')
+  }
+  
+  cql <- c('MATCH (n)',
+           'WHERE n.name IN $from',
+           'RETURN n.name as id, n.label as label')
+  toRet <- call_dodo(
+    neo2R::cypher,
+    prepCql(cql),
+    parameters = list(from = as.list(ids)),
+    result = "row") %>%
+    tibble::as_tibble()
+  return(toRet)
+}
+
+
+#========================================================================================@
+#========================================================================================@
 #' Get URL of database
 #' 
 #' Returns a vector of urls of the provided concept identifiers
@@ -478,7 +365,7 @@ listType <- function(){
 #' 
 #' @export
 #'
-getConceptUrl <- function(ids,
+get_concept_url <- function(ids,
                           exact = TRUE){
   ## Checking
   if(is.null(ids)){ 
@@ -506,8 +393,8 @@ getConceptUrl <- function(ids,
 }
 
 
-#'========================================================================================
-#'========================================================================================
+#========================================================================================@
+#========================================================================================@
 #' Returns current version
 #' 
 #' Returns the version of the current DODO database
@@ -518,7 +405,7 @@ getConceptUrl <- function(ids,
 #'
 #' @export
 #'
-getVersion <- function(){
+get_version <- function(){
   cql <- c('MATCH (f {name: "DODO"})',
            'RETURN f.name as Name, f.instance as Instance, f.version as Version')
   toRet <- call_dodo(
@@ -530,15 +417,15 @@ getVersion <- function(){
   return(toRet)
 }
 
-#'=======================================================================================
-#'=======================================================================================
+#========================================================================================@
+#========================================================================================@
 #' Show the data model of DODO
 #'
 #' Show the shema of the DODO data model.
 #'
 #' @export
 #'
-getSchema <- function(){
+get_schema <- function(){
   pkgname <- utils::packageName()
   htmlFile <- system.file(
     "documentation", "data-model", "DODO.html",
@@ -547,7 +434,8 @@ getSchema <- function(){
   utils::browseURL(paste0('file://', htmlFile))
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: Imports a data.frame in the DODO graph database
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -564,7 +452,7 @@ getSchema <- function(){
 #'
 #' @importFrom utils write.table
 #'
-importinDODO <- function(
+import_in_dodo <- function(
   cql, toImport, ...
 ){
   neo2R::import_from_df(graph=get("graph", dodoEnv), cql=cql, toImport, ...)

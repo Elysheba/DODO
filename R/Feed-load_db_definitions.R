@@ -11,7 +11,7 @@ load_db_definitions <- function(toImport){
    ## Checks ----
    tlc <- c("name"="character", "idURL"="character")
    mandatory <- c("name")#, "idURL")
-   check_df_to_import(toImport, tlc, mandatory)
+   neoDODO:::check_df_to_import(toImport, tlc, mandatory)
    
    ## Query ----
    cql <- c(

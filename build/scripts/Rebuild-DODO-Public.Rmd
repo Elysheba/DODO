@@ -32,7 +32,7 @@ library(neoDODO)
 library(dplyr)
 library(readr)
 ##
-workingDirectory <- "working"
+workingDirectory <- "working1"
 ##
 opts_knit$set(root.dir=workingDirectory)
 opts_chunk$set(
@@ -67,7 +67,7 @@ xrefDB <- matrix(c(
   distinct()
 ## Connect to DODO database
 connect_to_dodo(
-   url="http://localhost:7475",
+   url="http://localhost:7476",
    importPath=file.path(getwd(), "neo4jImport")
 )
 ```
@@ -91,7 +91,7 @@ neo4j authentication is disabled.
 
 ```{r, message=FALSE, eval=FALSE}
 connect_to_dodo(
-   url="http://localhost:7475",
+   url="http://localhost:7476",
    importPath=file.path(getwd(), "neo4jImport")
 )
 ```

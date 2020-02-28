@@ -1,4 +1,5 @@
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Build a disease network
 #' 
 #' Building a network of disease identifiers based on their relationships
@@ -6,7 +7,7 @@
 #' *buildDisNetByTerm* and *buildDisNetByID*. 
 #' 
 #' 
-#' @param ids disease ids to include in the network
+#' @param id disease id to include in the network
 #' @param term a character vector of terms to search (e.g. "epilepsy")
 #' @param fields the field(s) where to look for matches (default: c(label, synonym, definition)).
 #' @param forwardAmbiguity level of forward ambiguity allowed
@@ -29,7 +30,7 @@
 #' \itemize{
 #' \item nodes: a data.frame describind disease nodes with the following columns
 #'    \itemize{
-#'    \item id (character): disease ids (database:shortID)
+#'    \item id (character): disease id (database:shortID)
 #'    \item database (character): disease databases
 #'    \item shortID (character): disease short identifiers
 #'    \item label (character): disease labels
@@ -39,19 +40,19 @@
 #'    }
 #' \item synonyms: a data.frame with disease synonyms with the following columns
 #'    \itemize{
-#'    \item id (character): disease ids
+#'    \item id (character): disease id
 #'    \item synonym (character): disease synonyms
 #'    }
 #' \item children: a data.frame with ontology information
 #'    \itemize{
-#'    \item parent (character): parent disease ids
-#'    \item child (character): child disease ids
+#'    \item parent (character): parent disease id
+#'    \item child (character): child disease id
 #'    \item origin (character): ontology of origin where the parent/child relationship is recorded
 #'    }
 #' \item xref: a data.frame with cross-references
 #'    \itemize{
-#'    \item from (character): disease 1 ids
-#'    \item to (character): disease 2 ids
+#'    \item from (character): disease 1 id
+#'    \item to (character): disease 2 id
 #'    \item ur (character): xref
 #'    identifier: \code{paste(sort(c(xref$from, xref$to)), collapse="<-->")}
 #'    \item forwardAmbiguity (numeric): number of cross-references
@@ -59,12 +60,17 @@
 #'    \item backwardAmbiguity (numeric): number of cross-references
 #'    between disease 2 and database 1
 #'    }
+#' \item alt: a data.frame with alternative identifiers
+#'    \itemize{
+#'    \item id (character): disease identifier
+#'    \item alt (character): alternative disease identifier
+#'    }
 #' \item pheno: a data.frame with phenotype information
 #'    \itemize{
 #'    \item disease (character): disease identifier
 #'    \item phenotype (character): phenotype identifier
 #'    }
-#' \item seed: a character vector of disease ids
+#' \item seed: a character vector of disease id
 #' }
 #' The following statements are ensured in normalized disease networks:
 #' \itemize{
@@ -78,34 +84,31 @@
 #' }
 #' 
 #' @examples 
-#' x <- extDisNet$nodes$id
-#' buildDisNet(ids = x$kept, seed = x$kept)
-#' 
-#' @seealso buildDisNetByID, buildDisNetByTerm
+#' build_disNet(id = "MONDO:0005027")
 #' 
 #' @export
 #' 
-build_disNet <- function(ids = NULL, 
+build_disNet <- function(id = NULL, 
                         term = NULL,
                         fields = c("label", "synonym", "definition"),
-                        backwardAmbiguity = 1, 
-                        forwardAmbiguity = NULL, 
+                        ambiguity = 1, 
                         avoidOrigin = NULL){
-  if(any(!seed %in% ids)){stop("All seed should be in ids")}
+  #########################@
+  ## Check ----
   fields <- match.arg(fields, c("label", "synonym", "definition"), several.ok = TRUE)
   if(!is.null(avoidOrigin)){match.arg(avoidOrigin, listDB()$db, several.ok = T)}
   
-  stopifnot(is.null(forwardAmbiguity) || forwardAmbiguity == 1,
-            is.null(backwardAmbiguity) || backwardAmbiguity == 1,
-            is.null(ids) & is.null(term))
+  stopifnot(is.null(ambiguity) || ambiguity == 1,
+            xor(is.null(id), is.null(term)))
   
-  if(is.null(backwardAmbiguity)){
+  if(is.null(ambiguity)){
     relationship <- "is_related|is_xref"
   }else{
     relationship <- "is_related_nba|is_xref_nba"
   }
   
-  ## Empty disNet
+  #########################@
+  ## Initiate disNet ----
   diseaseNetwork <- list(
     nodes = tibble::tibble(
       id = character(),
@@ -132,6 +135,10 @@ build_disNet <- function(ids = NULL,
       backwardAmbiguity = numeric(),
       ur = character() 
     ),
+    alt = tibble::tibble(
+      id = character(),
+      alt = character()
+    ),
     pheno = tibble::tibble(
       disease = character(),
       phenotype = character()
@@ -139,52 +146,62 @@ build_disNet <- function(ids = NULL,
     seed=character()
   )
   
+  #########################@
+  ## Identifiers input ----
+  
+  ## Terms
   if(!is.null(term)){
-    ids <- findTerm(term = term,
+    id <- findTerm(term = term,
                      fields = fields)
   }
-  ## Identifiers input
-  if(!is.null(ids)){
-    ## nodes
+  
+  #########################@
+  ## Build query ----
+  if(!is.null(id)){
+    
     cql.nodes <- c('MATCH (n:Concept)',
                    'WHERE n.name IN $from',
-                   'RETURN DISTINCT n.name as id, n.label as label, n.definition as definition, ',
-                   'n.shortID as shortID, n.level as level, labels(n) as type')
+                   'RETURN DISTINCT n.name AS id, n.label AS label, n.definition AS definition, ',
+                   'n.shortID AS shortID, n.level AS level, labels(n) AS type')
     cql.syn <- c('MATCH (n:Concept)-[r:is_known_as]-(s:Synonym)',
                  'WHERE n.name IN $from',
-                 'RETURN DISTINCT n.name as id, s.value as synonym')
+                 'RETURN DISTINCT n.name AS id, s.value AS synonym')
     cql.xref <- c(sprintf("MATCH (n:Concept)-[r:%s]->(x:Concept)",
                           relationship),
                   "WHERE n.name IN $from AND x.name IN $from",
-                  "RETURN DISTINCT n.name as from, x.name as to,",
-                  "r.FA as forwardAmbiguity, r.BA as backwardAmbiguity")
+                  "RETURN DISTINCT n.name AS from, x.name AS to,",
+                  "r.FA AS forwardAmbiguity, r.BA AS backwardAmbiguity")
     cql.child <- c('MATCH (c:Concept)-[r:is_a]->(p:Concept)',
                    sprintf('WHERE %s c.name IN $from AND p.name IN $from',
                            ifelse(is.null(avoidOrigin),
                                   "",
                                   "r.origin IN $origin AND")),
-                   'RETURN DISTINCT p.name as parent, c.name as child, r.origin as origin')
+                   'RETURN DISTINCT p.name AS parent, c.name AS child, r.origin AS origin')
+    cql.alt <- c('MATCH (c:Concept)<-[r:is_alt]-(a:Concept)',
+                 'WHERE c.name in $from AND a.name in $from' ,
+                 'RETURN DISTINCT c.name AS id, a.name AS alt')
     cql.pheno <- c('MATCH (n:Disease)-[r:has_pheno]->(p:Phenotype)',
                    'WHERE n.name IN $from AND p.name IN $from',
-                   'RETURN DISTINCT n.name as disease, p.name as phenotype')
+                   'RETURN DISTINCT n.name AS disease, p.name AS phenotype')
     statements <- list(nodes = prepCql(cql.nodes),
                        syn = prepCql(cql.syn),
                        xref = prepCql(cql.xref),
                        child = prepCql(cql.child),
                        pheno = prepCql(cql.pheno))
-    
-    queries <- build_multicypher(statements = statements,
-                                 result =  "row",
-                                 parameters = list(from = as.list(ids),
-                                                   origin = as.list(avoidOrigin)))
-
-  # Send queries
-  toRet <- multicypher(graph = get("graph", neoDODO:::dodoEnv),
-                       queries = queries,
-                       result = NULL,
-                       parameters = NULL)
   
-  ## nodes
+  #######################@
+  # Send queries ----
+  toRet <- call_dodo(
+     neo2R::multicypher,
+     queries = statements,
+     result = "row",
+     parameters = list(from = as.list(id),
+                       origin = as.list(avoidOrigin)))
+  
+  #######################@
+  ## Post-processing ----
+    
+  ## **nodes ----
   nodes <- toRet$nodes %>%
     tibble::as_tibble() 
   if(nrow(nodes) == 0){
@@ -194,62 +211,73 @@ build_disNet <- function(ids = NULL,
       dplyr::mutate(database = gsub(":.*", "", id))
   }
   
-  ## synonyms
+  ## **synonyms ----
   synonyms <- toRet$syn %>%
     tibble::as_tibble()
   if(nrow(synonyms) == 0){
     synonyms <- diseaseNetwork$synonyms
   }
   
-  ## cross-references
+  ## **xref ----
   xref <- toRet$xref %>%
     tibble::as_tibble()
   if(nrow(xref) == 0){
     xref <- diseaseNetwork$xref
   }else{
     xref <- xref  %>%
-      dplyr::mutate(ur = paste(pmin(xref$from, xref$to), pmax(xref$from, xref$to), sep = "<->")) %>%
+      dplyr::mutate(ur = paste(pmin(from, to), pmax(from, to), sep = "<->")) %>%
       dplyr::distinct(ur, .keep_all = TRUE)
   }
   
-  ## hierarchy
+  ## **alt ----
+    alt <- toRet$alt %>%
+    tibble::as_tibble()
+  if(nrow(alt) == 0){
+    alt <- diseaseNetwork$alt
+  }
+    
+    
+  ## **hierarchy ----
   children <- toRet$child %>%
     tibble::as_tibble()
   if(nrow(children) == 0){
     children <- diseaseNetwork$children
   }
   
-  ## phenotypes
+  ## **phenotypes ----
   pheno <- toRet$pheno %>%
     tibble::as_tibble()
   if(nrow(pheno) == 0){
     pheno <- diseaseNetwork$pheno
   }
   
-  ## seed
-  seed <- ids
+  ## **seed ----
+  seed <- id
     
-  ## Reset rownames
+  ## **Reset rownames ----
   rownames(nodes) <- NULL
   rownames(synonyms) <- NULL
   rownames(children) <- NULL
   rownames(xref) <- NULL
   rownames(pheno) <- NULL
-  ##
+  
+  ## **disNet ----
   diseaseNetwork <- list(nodes = nodes,
                          synonyms = synonyms,
                          children = children,
                          xref = xref,
+                         alt = alt,
                          pheno = pheno,
                          seed = seed)
   }
 
   diseaseNetwork <- structure(diseaseNetwork,
                               class = "disNet")
-  return(normalize(diseaseNetwork))
+  return(neoDODO::normalize_disNet(diseaseNetwork))
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Check validity 
 #' @export
 
@@ -258,7 +286,8 @@ is.disNet <- function(x, ...){
 }
 
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Prints a disNet object
 #' @export
 
@@ -268,7 +297,8 @@ print.disNet <- function(x, ...){
   
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' format disNet
 format.disNet <- function(x, ...){
   toRet <-    c(capture.output(x$nodes),
@@ -284,13 +314,15 @@ format.disNet <- function(x, ...){
                 paste(" - ", nrow(x$synonyms), "synonyms of the disease nodes"),
                 paste(" - ", nrow(x$children), "parent/child edges"),
                 paste(" - ", nrow(x$xref), "crossreference edges"),
+                paste(" - ", nrow(x$alt), "alternative edges"),
                 paste(" - ", nrow(x$pheno), "phenotype edges"),
                 paste(" - ", "The disNet was build based on", length(x$seed), "seeds")
   )
   return(toRet)
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Returns the number of nodes in a disNet object
 #' @export
 
@@ -300,7 +332,8 @@ length.disNet <- function(x, ...){
   
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Returns the dimension of the nodes dataframe in a disNet object
 #' @export
 
@@ -310,18 +343,17 @@ dim.disNet <- function(x, ...){
   
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Subset `[`
 #' @export
 #' 
 '[.disNet' <- function(x, ...){
-  
   stop("Action not allowed on a disNet object")
-  
-  
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Subset `[[`
 #' @export
 #' 
@@ -332,7 +364,8 @@ dim.disNet <- function(x, ...){
   
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Slice a disNet
 #' 
 #' Choose rows by their ordinal position in the disNet
@@ -344,15 +377,16 @@ dim.disNet <- function(x, ...){
 #' 
 #' @export
 #' 
-slice.disNet <- function(x,
+slice_disNet <- function(x,
                          n){
   x$nodes <- x$nodes %>%
     dplyr::slice(n)
-  return(normalizeDisNet(x))
+  return(normalize_disNet(x))
   
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Merge several disease networks
 #' 
 #' @param ... disease networks to merge
@@ -379,15 +413,17 @@ c.disNet <- function(...,
     synonyms = unique(do.call(rbind, lapply(arg, function(x) x$synonyms))),
     children = unique(do.call(rbind, lapply(arg, function(x) x$children))),
     xref = unique(do.call(rbind, lapply(arg, function(x) x$xref))),
+    alt = unique(do.call(rbind, lapply(arg, function(x) x$alt))),
     pheno = unique(do.call(rbind,lapply(arg, function(x) x$pheno))),
     seed = unique(unlist(lapply(arg, function(x) x$seed)))
   )
   disNet <- structure(disNet,
                       class = "disNet")
-  return(normalizeDisNet(disNet))
+  return(normalize_disNet(disNet))
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Normalize disease network
 #' 
 #' This function ensure that disease network properties are fulfilled.
@@ -398,35 +434,41 @@ c.disNet <- function(...,
 #' 
 #' @export
 #' 
-normalize.disNet <- function(disNet){
-  if(!is.null(disNet$children)){
-    disNet$children <- disNet$children[which(
-      disNet$children$parent %in% disNet$nodes$id &
-        disNet$children$child %in% disNet$nodes$id
+normalize_disNet <- function(x){
+  if(!is.null(x$children)){
+    x$children <- x$children[which(
+      x$children$parent %in% x$nodes$id &
+        x$children$child %in% x$nodes$id
     ),]
   }
-  if(!is.null(disNet$xref)){
-    disNet$xref <- disNet$xref[which(!duplicated(disNet$xref$ur)),]
-    disNet$xref <- disNet$xref[which(
-      disNet$xref$from %in% disNet$nodes$id &
-        disNet$xref$to %in% disNet$nodes$id
+  if(!is.null(x$xref)){
+    x$xref <- x$xref[which(!duplicated(x$xref$ur)),]
+    x$xref <- x$xref[which(
+      x$xref$from %in% x$nodes$id &
+        x$xref$to %in% x$nodes$id
     ),]
   }
-  if(!is.null(disNet$pheno)){
-    # disNet$pheno <- disNet$pheno[which(!duplicated(disNet$pheno$ur)),]
-    disNet$pheno <- disNet$pheno[which(
-      disNet$pheno$disease %in% disNet$nodes$id &
-        disNet$pheno$phenotype %in% disNet$nodes$id
+  if(!is.null(x$alt)){
+    x$alt <- x$alt[which(
+      x$alt$id %in% x$nodes$id &
+        x$alt$alt %in% x$nodes$id
     ),]
   }
-  disNet$synonyms <- disNet$synonyms[which(
-    disNet$synonyms$id %in% disNet$nodes$id
+  if(!is.null(x$pheno)){
+    x$pheno <- x$pheno[which(
+      x$pheno$disease %in% x$nodes$id &
+        x$pheno$phenotype %in% x$nodes$id
+    ),]
+  }
+  x$synonyms <- x$synonyms[which(
+    x$synonyms$id %in% x$nodes$id
   ),]
-  disNet$seed <- intersect(disNet$seed, disNet$nodes$id)
-  return(disNet)
+  x$seed <- intersect(x$seed, x$nodes$id)
+  return(x)
 }
 
-#######################################################@
+#========================================================================================@
+#========================================================================================@
 #' Helper to build queries for multicypher
 #' 
 #' @param statements cypher query
@@ -455,95 +497,4 @@ build_multicypher <- function(statements,
   return(qs)
 }
 
-#######################################################@
-#' Multiple statements execute
-#' 
-#' @param graph the neo4j connection
-#' @param statements cypher query
-#' @param result the way to return results. "row" will return a data frame
-#' and "graph" will return a list of nodes, a list of relationships and 
-#' a list of paths (vectors of relationships identifiers).
-#' @param parameters parameters for the cypher query
-#' @param assayAsStrings if result="row" and arraysAsStrings is TRUE (default) 
-#' array from neo4j are converted to strings and array elements are separated by eltSep.
-#' @param eltSep if result="row" and arraysAsStrings is TRUE (default) array from 
-#' neo4j are converted to strings and array elementes are separated by eltSep.
-#' 
-#' @export
-multicypher <- function(graph, 
-                        queries, 
-                        parameters = NULL, 
-                        result = c("row", "graph"), 
-                        arraysAsStrings = TRUE, 
-                        eltSep = " || "){
-  result = match.arg(result)
-  endpoint <- graph$cypher_endpoint
-  nm <- names(queries)
-  postText <- list(statements = unname(queries))
-  
-  results <- graphRequest(graph = graph, 
-                          endpoint = endpoint, 
-                          customrequest = "POST", 
-                          postText = postText)$result
-  errors <- results$errors
-  if (length(errors) > 0) {
-    devnull <- lapply(errors, lapply, message)
-    stop("neo4j error")
-  }
-  if (result == "row") {
-    toRet <- lapply(1:length(results$results),
-                    function(r){
-                      results <- results$results[[r]]
-                      if (length(results$data) == 0) {
-                        toRet <- NULL
-                      }else {
-                        if (!is.null(names(results$data[[1]][[1]]))) {
-                          warning("Complex data from query ==> you should shift to 'graph' result.")
-                        }
-                        columns <- do.call(c, results$columns)
-                        toRet <- do.call(rbind, lapply(results$data, function(x) x$row))
-                        toRet[sapply(toRet, is.null)] <- NA
-                        toRet <- data.frame(toRet, stringsAsFactors = FALSE)
-                        if (all(sapply(toRet, class) == "list")) {
-                          for (i in 1:ncol(toRet)) {
-                            if (max(unlist(sapply(toRet[[i]], length))) == 
-                                1) {
-                              toRet[, i] <- unlist(toRet[, i])
-                            }
-                            else {
-                              if (arraysAsStrings) {
-                                toRet[, i] <- unlist(lapply(toRet[, i], 
-                                                            paste, collapse = eltSep))
-                              }
-                            }
-                          }
-                        }
-                        colnames(toRet) <- columns
-                      }
-                      return(toRet)
-                    })
-  }
-  if (result == "graph") {
-    toRet <- lapply(
-      1:length(results$results),
-      function(r){
-        d <- results$results[[r]]$data
-        if (is.null(d) || length(d) == 0) {
-          return(NULL)
-        }
-        nodes <- unique(do.call(c, lapply(d, function(x) x$graph$nodes)))
-        names(nodes) <- unlist(lapply(nodes, function(n) n$id))
-        relationships <- unique(do.call(c, lapply(d, function(x) x$graph$relationships)))
-        names(relationships) <- unlist(lapply(relationships, 
-                                              function(n) n$id))
-        p <- lapply(d, function(x) unique(unlist(lapply(x$graph$relationships, 
-                                                        function(y) y$id))))
-        p <- p[which(!unlist(lapply(p, is.null)))]
-        toRet <- list(nodes = nodes, relationships = relationships, 
-                      paths = p)
-      })
-  }
-  names(toRet) <- nm
-  invisible(toRet)
-}
 

@@ -2,9 +2,7 @@
 % Please edit documentation in R/utilities.R
 \name{dodoCall}
 \alias{dodoCall}
-\title{========================================================================================
-
-Call a function on the DODO graph}
+\title{Call a function on the DODO graph}
 \usage{
 dodoCall(f, ..., dodoCheck = FALSE)
 }
@@ -19,8 +17,6 @@ dodoCall(f, ..., dodoCheck = FALSE)
 The output of the called function.
 }
 \description{
-========================================================================================
-
 Call a function on the DODO graph
 }
 \seealso{
