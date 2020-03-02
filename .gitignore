@@ -8,5 +8,8 @@ tmp
 vignettes/*.html
 vignettes/DODO.R
 build/working
+build/working1
 build/ARCHIVE
 build/data
+build/plugins
+bck/

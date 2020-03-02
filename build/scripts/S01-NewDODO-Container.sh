@@ -7,8 +7,8 @@
 export CONTAINER=neoDODO3
 
 ## Chose Neo4j version (Only versions 3 and 4 are supported)
+# export NJ_VERSION=4.0.0
 export NJ_VERSION=3.5.14
-# export NJ_VERSION=3.5.14
 
 ## Ports
 export NJ_HTTP_PORT=7476
@@ -53,6 +53,7 @@ then
 else
    echo "Downloading $NJ_APOC"
    cp $NJ_APOC_LOC/apoc-3.5.0.8-all.jar $NJ_PLUGINS
+   # cp $NJ_APOC_LOC/apoc-4.0.0.3-all.jar $NJ_PLUGINS
    # wget --no-check-certificate $NJ_APOC_URL -O $NJ_APOC
 fi
 cd -
