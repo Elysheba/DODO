@@ -34,11 +34,37 @@ library(neoDODO)
 library(knitr)
 library(here)
 library(dplyr)
+library(readr)
 library(tibble)
 library(stringr)
 library(DT)
 library(ReDaMoR)
 ##
+
+workingDirectory <- here("build/working1")
+# setwd("~/Documents/Development/neoDODO/build/working1/")
+##
+opts_knit$set(root.dir=workingDirectory)
+opts_chunk$set(
+   eval=TRUE,
+   message=FALSE,
+   root.dir=workingDirectory
+)
+## Specific config
+dodoInstance <- "UCB-Public"
+dodoVersion <- format(Sys.Date(), "%Y.%m.%d")
+## General config
+reDumpThr <- as.difftime(2, units="days")
+curDate <- Sys.Date()
+## Original resources location
+# oriDir <- "~/Shared/Data-Science/Data-Source-Model-Repository"
+## Connect to DODO database
+connect_to_dodo(
+   url = "http://localhost:7476",
+   importPath = "/data/lfrancois/Development/neoDODO/build/working1/neo4jImport"
+   # importPath = "neo4jImport"
+)
+
 ```
 
 <!----------------------------------------------------------------->
@@ -61,6 +87,9 @@ for(s in src){
   for(i in dbfiles){
     x <- read.table(file.path(ddir,i),header = TRUE, sep = "\t", 
                     quote = '"', comment.char = "", colClasses= c("character"))
+    # if(grepl("entryId",i)){
+    #   x$resource <- s
+    # }
     assign(gsub(".txt","",i), x) 
   }
 }
@@ -146,8 +175,18 @@ DT::datatable(toShow %>% head(n = 2))
 There are often different abbreviations available for different ontology database. Here, we adopt a naming convention to harmonize the different inputs.
 
 ```{r db_convention, echo = FALSE, include = TRUE}
-toShow <- readxl::read_xlsx(here::here("inst", "Documentation", "DatabaseDocumentation.xlsx"))
+toShow <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseDocumentation.xlsx"))
 datatable(toShow,
+          rownames = FALSE)
+```
+
+## Cross-reference edges
+
+There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges.
+
+```{r db_xref_edge, echo = FALSE, include = TRUE}
+xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "is_xref_edges.xlsx"))
+datatable(xrefDB,
           rownames = FALSE)
 ```
 
@@ -156,7 +195,7 @@ datatable(toShow,
 HPO captures phenotype information, the information in the HPO parsed files needs to be harmonized before joining.
 
 ```{r harm_hpo, echo = TRUE, results = "hide", prompt = TRUE}
-list2env(DODO:::harmonize_HPO(
+list2env(neoDODO:::harmonize_HPO(
   HPO_diseaseHP,
   HPO_synonyms,
   HPO_hp,
@@ -182,7 +221,7 @@ if(params$type == "internal"){
                        colClasses= c("character")) %>%
     dplyr::mutate(conditionId = paste("Cortellis_condition", conditionId, sep = ":")) %>%
     dplyr::distinct(conditionId, .keep_all = T) 
-   list2env(DODO:::harmonize_Cortellis(
+   list2env(neoDODO:::harmonize_Cortellis(
      CortellisONT_siConditions = CortellisONT_siConditions,
      CortellisONT_siConditionXref = CortellisONT_siConditionXref,
      CortellisONT_siConditionParents = CortellisONT_siConditionParents,
@@ -258,7 +297,7 @@ DODO_idNames <- DODO_idNames %>%
 ClinVar uses an internal clinvar disease identifier (t.id) that cross-references to different ontology. To complete the information and facilitate integration with ClinVar resource, this information is added in DODO.
 
 ```{r load_cv}
-list2env(DODO:::load_ClinVar(
+list2env(neoDODO:::load_ClinVar(
   DODO_entryId = DODO_entryId,
   path_name = "/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/ClinVar/data/",
   traitCref = "ClinVar_traitCref.txt", 
@@ -470,87 +509,20 @@ DODO_entryId$def <- gsub("\"","'",DODO_entryId$def)
 # table(unlist(sapply(DODO_entryId$def, strsplit, split = "")))
 ```
 
-## Ambiguity
+## Create multiple *is_in* edges
 
-Calculate the forward and backward ambiguity on cross-reference edges. It also ensures that the nodes are bi-directional (dbid1 <-> dbid2) to ensure proper ambiguity calculations.
+Some ontologies such as EFO (Experimental Factor Ontology) incorporate disease identifiers from external resources in particular cases. For these identifiers, an additional *is_in* edge referring to their EFO ontology needs to be created.
 
-```{r ambiguity}
-DODO_crossId <- DODO:::calculate_ambiguity(DODO_crossId = DODO_crossId)
-tmp <- DODO_crossId %>% filter(BA > 1)
-by(tmp$BA, INDICES = tmp$DB1, FUN = summary)
-by(tmp$FA, INDICES = tmp$DB1, FUN = summary)
-```
-
-## Generate Dgraph objects 
-
-The different DODO tables are converted in the Dgraph format.
-
-In some cross-reference edges more trust is put than in other as a consequence of the different manner (disease) concepts are defined across ontologies. While some ontologies use a narrower definition than other, cross-reference edges between these may result in the return of distantly related concepts. Therefore, based on the ontology as different type of cross-reference edge is implemented to capture these differences. The *is_xref* edge is used to signify relations that defined similarly related concept, while the *is_related* edge is used between nodes where the relationship is less equivalent. All nodes originating from ICD10, ICD9, MedGen/UMLS, and Cortellis resources (when available) are defined as *is_related* edges. 
-
-```{r toDgraph}
-list2env(DODO:::generate_dgraph_objects(
-  DODO_entryId = DODO_entryId,
-  DODO_crossId = DODO_crossId,
-  DODO_altId = DODO_altId,
-  DODO_pheno2dis = DODO_pheno2dis,
-  DODO_parentId = DODO_parentId,
-  DODO_idNames = DODO_idNames,
-  edge_type = here("build/data/is_xref_edges.xlsx"),
-  check = T),
-  envir = .GlobalEnv)
-if(is.null(dgraph_related)) rm(dgraph_related)
-```
-
-## Generate UID
-
-The identifiers from the different Dgraph tables are recoded based on their object_type.
-
-```{r create_uid}
-dgraph_xref <- select(dgraph_xref, - FA, - BA)
-dgraph_related <- select(dgraph_related, -FA, -BA)
-dgraph_parentId <- select(dgraph_parentId, -origin)
-dgraph_dbEdge <- select(dgraph_dbEdge, -id)
-
-convertNodes <- function(x, entryNodes){
-  if(attributes(x)$object_type %in% c("uid")){
-    x$subject <- entryNodes$subject[match(x$subject,entryNodes$object)]
-    x$object <- entryNodes$subject[match(x$object,entryNodes$object)]
-  }else{
-    x$subject <- entryNodes$subject[match(x$subject,entryNodes$object)]
-  }
-  return(x)
-}
-
-toConvert <- setdiff(grep("dgraph_",ls(),value = T),c("dgraph_entryNodes","dgraph_info"))
-for(i in toConvert){
-  print(i)
-  object <- convertNodes(x = get(i), entryNodes = dgraph_entryNodes)
-  assign(i, object)
-}
-lapply(toConvert,function(x) head(get(x), n = 2))
+```{r efo_is_in}
+DODO_database <- EFO_entryId %>%
+  filter(!grepl("EFO", DB)) %>%
+  mutate(resource = "EFO",
+         dbid = paste(DB, id, sep = ":"))
 
 ```
 
-## Convert to RDF
+## Load into Neo4j
 
-The recoded Dgraph tables are appended and converted to RDF format.
-
-```{r conv_rdf}
-##=========================@
-## **Convert to rdf ----
-toRdf <- grep("dgraph_",ls(),value = T)
-
-DODO_InputDgraph <- sapply(toRdf,
-                      function(f){
-                        print(f)
-                        x <- DODO:::df2rdf(x = get(f))
-                        return(x)
-                      },
-                      USE.NAMES = TRUE,
-                      simplify = FALSE)
-lapply(DODO_InputDgraph,function(x) head(x, n = 3))
-
-```
 
 ## Write files
 
