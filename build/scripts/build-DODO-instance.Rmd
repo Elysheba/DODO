@@ -41,8 +41,8 @@ library(DT)
 library(ReDaMoR)
 ##
 
-workingDirectory <- here("build/working1")
-# setwd("~/Documents/Development/neoDODO/build/working1/")
+workingDirectory <- here("build/working")
+# setwd("~/Documents/Development/neoDODO/build/working/")
 ##
 opts_knit$set(root.dir=workingDirectory)
 opts_chunk$set(
@@ -61,7 +61,7 @@ curDate <- Sys.Date()
 ## Connect to DODO database
 connect_to_dodo(
    url = "http://localhost:7475",
-   importPath = "/data/lfrancois/Development/neoDODO/build/working1/neo4jImport"
+   importPath = "/data/lfrancois/Development/neoDODO/build/working/neo4jImport"
    # importPath = "neo4jImport"
 )
 
@@ -635,9 +635,17 @@ neoDODO:::load_cross_references(
 ## Diseases - Phenotypes
 
 ```{r}
-toImport <- hasPheno %>%
-  rename("diseaseDB"="DB", "diseaseID"="id", "phenoID"="hp") %>%
-  mutate(phenoDB="HP")
+nodes <- DODO_entryId %>% filter(DB == "HP") %>% pull(dbid)
+neoDODO:::set_labels(concept = "Phenotype", nodes = nodes)
+
+nodes <- DODO_entryId %>% filter(DB != "HP") %>% pull(dbid)
+neoDODO:::set_labels(concept = "Disease", nodes = nodes)
+
+toImport <- DODO_pheno2dis %>%
+  select(diseaseDB = disDB, 
+         diseaseID = disID, 
+         phenoID = phenoID,
+         phenoDB = phenoDB)
 neoDODO:::load_has_phenotypes(toImport=toImport)
 ```
 
@@ -652,57 +660,32 @@ toImport <- bind_rows(DODO_parentId %>% select(DB,
                       DODO_parentId %>% select(DB = pDB,
                                                id = parent,
                                                origin)) %>%
-  distinct()
+  distinct() %>%
+  select(database = DB,
+         shortID = id,
+         origin)
 neoDODO:::load_concept_names(toImport = toImport, concept = concept)
 ```
 
 # Database URL templates
 
 ```{r db_url, echo = FALSE, include = TRUE}
-toShow <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"))
-datatable(toShow,
-          rownames = FALSE)
+databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"), col_names = c("name", "idURL"))
+# datatable(databases,
+#           rownames = FALSE)
 neoDODO:::load_db_definitions(toImport=databases)
 ```
-
-
-
-
 
 ## Write files
 
 Files are writting to the specified location both as rdf and rda files.
 
 ```{r write_files}
-fn <- here("build","data",paste0(params$name, "-dgraphInput.rdf"))
-
-a <- lapply(DODO_InputDgraph,
-            function(x){
-              slice(x, 1:100)
-            })
-
-# cat(c("{", "set{"), file = fn, append = F,sep = "\n", fill = TRUE)
-cat(c(" "), file = fn, append = F,sep = "\n", fill = TRUE)
-for(i in 1:length(DODO_InputDgraph)){
-  write.table(a[[i]],
-              col.names = F,
-              row.names = F,
-              quote = F,
-              sep = " ",
-              file = fn,
-              append = T)
-}
-# cat(c("}","}"), file g= fn, append = T, sep = "\n", fill = TRUE)
-
 ############################@
 ## Save .rda ----
 ############################@
-# toSave <- grep("^dgraph[_]", ls(), value=T)
-# save(list = toSave, 
-#      file = here("build","data",
-#                  paste0(params$name,"-dgraphInput.rda")))
-# toSave <- grep("^DODO[_]", ls(), value=T)
-# save(list = toSave,
-#      file = here("build","data",
-#                  paste0(params$name, "-combinedTables.rda")))
+toSave <- grep("^DODO[_]", ls(), value=T)
+save(list = toSave,
+     file = here("build","data",
+                 paste0(params$name, "-neo4j-input-files.rda")))
 ```

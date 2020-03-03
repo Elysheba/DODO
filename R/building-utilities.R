@@ -685,7 +685,7 @@ load_concept_names <- function(toImport, concept){
   cql <- c(
     'MATCH (db:Database {name:row.origin})',
     sprintf('MERGE (c:%s {name:row.name})', concept),
-    'SET c.shortID=row.shortID',
+    'SET c.shortID=row.shortID, c.database=row.database,',
     'MERGE (c)-[:is_in]->(db)'
   )
   import_in_dodo(neo2R::prepCql(cql), toImport)
@@ -745,13 +745,13 @@ load_concept_definitions <- function(toImport, concept){
   cql <- c(
     'MATCH (db:Database {name:row.origin})',
     sprintf('MERGE (c:%s {name:row.name})', concept),
-    'SET c.shortID=row.shortID, c.database=row.database',
+    'SET c.shortID=row.shortID, c.database=row.database,',
     'c.label=row.label, c.label_up=row.label_up, ',
     'c.definition=row.definition, c.definition_up=row.definition_up, ',
     'c.level=toInteger(row.level)',
     'MERGE (c)-[:is_in]->(db)'
   )
-  import_in_dodo(neo2R::prepCql(cql), toImport)
+   neoDODO:::import_in_dodo(neo2R::prepCql(cql), toImport)
 }
 
 
@@ -1005,6 +1005,21 @@ load_db_definitions <- function(toImport){
 
 #========================================================================================@
 #========================================================================================@
+#' Setting node label in DODO
+#'
+#' Not exported to avoid unintended modifications of the DB.
+#'
+set_labels <- function(concept, nodes){
+  concept <- match.arg(concept, c("Phenotype", "Disease"), several.ok = FALSE)
+  cql <- c('MATCH (p:Concept) WHERE p.name in $from',
+           sprintf('SET p:%s', concept))
+  call_dodo(cypher,
+            prepCql(cql),
+            parameters = list(from = as.list(nodes)))
+}
+
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load diseases-phenotypes relationships in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -1029,7 +1044,7 @@ load_has_phenotypes <- function(toImport){
     "phenoDB",
     "phenoID"
   )
-  check_df_to_import(toImport, tlc, mandatory)
+  neoDODO:::check_df_to_import(toImport, tlc, mandatory)
   toImport$disease <- paste(toImport$diseaseDB, toImport$diseaseID, sep=":")
   toImport$phenotype <- paste(toImport$phenoDB, toImport$phenoID, sep=":")
   
@@ -1037,8 +1052,8 @@ load_has_phenotypes <- function(toImport){
   diseases <- toImport[, c("diseaseDB", "diseaseID")]
   phenotypes <- toImport[, c("phenoDB", "phenoID")]
   colnames(diseases) <- colnames(phenotypes) <- c("database", "shortID")
-  load_concept_names(diseases, "Disease")
-  load_concept_names(phenotypes, "Phenotype")
+  # load_concept_names(diseases, "Disease")
+  # load_concept_names(phenotypes, "Phenotype")
   
   ## Query ----
   cql <- c(
