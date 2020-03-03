@@ -60,7 +60,7 @@ curDate <- Sys.Date()
 # oriDir <- "~/Shared/Data-Science/Data-Source-Model-Repository"
 ## Connect to DODO database
 connect_to_dodo(
-   url = "http://localhost:7476",
+   url = "http://localhost:7475",
    importPath = "/data/lfrancois/Development/neoDODO/build/working1/neo4jImport"
    # importPath = "neo4jImport"
 )
@@ -185,7 +185,7 @@ datatable(toShow,
 There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges.
 
 ```{r db_xref_edge, echo = FALSE, include = TRUE}
-xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "is_xref_edges.xlsx"))
+xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"))
 datatable(xrefDB,
           rownames = FALSE)
 ```
@@ -423,7 +423,7 @@ DODO_idNames <- filter(DODO_idNames,DB == "ICD10CM") %>%
   mutate(DB =  str_replace_all(DB, "ICD10CM","ICD10"),
          dbid = str_replace_all(dbid, "ICD10CM","ICD10")) %>%
   bind_rows(DODO_idNames) %>%
-  distinct()
+  distinct(dbid, syn, .keep_all = TRUE)
 ##
 DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "ICD10CM") %>% 
   mutate(disDB =  str_replace_all(disDB, "ICD10CM","MedGen"),
@@ -480,8 +480,9 @@ sum(duplicated(DODO_idNames))
 dim(DODO_idNames)
 dim(unique(DODO_idNames))
 DODO_idNames <- DODO_idNames[order(DODO_idNames$canonical,decreasing = T),]
-DODO_idNames <- unique(DODO_idNames)
+DODO_idNames <- DODO_idNames %>% distinct(DB, id, syn, canonical, .keep_all = TRUE) 
 dim(DODO_idNames)
+dim(unique(DODO_idNames))
 sum(duplicated(DODO_idNames))
 
 sum(duplicated(DODO_pheno2dis))
@@ -509,19 +510,163 @@ DODO_entryId$def <- gsub("\"","'",DODO_entryId$def)
 # table(unlist(sapply(DODO_entryId$def, strsplit, split = "")))
 ```
 
-## Create multiple *is_in* edges
 
-Some ontologies such as EFO (Experimental Factor Ontology) incorporate disease identifiers from external resources in particular cases. For these identifiers, an additional *is_in* edge referring to their EFO ontology needs to be created.
+# Load into Neo4j
 
-```{r efo_is_in}
-DODO_database <- EFO_entryId %>%
-  filter(!grepl("EFO", DB)) %>%
-  mutate(resource = "EFO",
-         dbid = paste(DB, id, sep = ":"))
+The workflow for importing information into the Neo4j instance by assigning all sisease and phenotype identifiers the "Concept" label. First the respective database nodes are created (or matched), where after the information on the nodes, their cross-reference, parent-child, phenotype, and alternative identifier relationships are added. Finally, the label "Phenotype" is added for all phenotype nodes while all others are assigned the "Disease" label.
 
+Connect to Neo4j and specify import path to load data.
+
+```{r, message=FALSE, eval=FALSE}
+connect_to_dodo(
+   url="http://localhost:7475",
+   importPath = "/data/lfrancois/Development/neoDODO/build/working/neo4jImport"
+   # importPath = "neo4jImport"
+)
 ```
 
-## Load into Neo4j
+## Check empty DB
+
+Do not go further if your DODO DB is not empty.
+
+```{r, message=FALSE}
+dbSize <- call_dodo(cypher, 'MATCH (n) RETURN count(n)')[,1]
+# if(dbSize!=0){
+#     stop("DODO DB is not empty ==> clean it before loading the content below")
+# }
+```
+
+## Set DODO instance and version
+
+```{r, message=FALSE}
+print(dodoInstance)
+print(dodoVersion)
+neoDODO:::set_dodo_version(dodoInstance=dodoInstance, dodoVersion=dodoVersion)
+```
+
+## Load Data model
+
+```{r, message=FALSE}
+neoDODO:::load_dodo_model()
+```
+
+<!----------------------------------------------------------------->
+<!----------------------------------------------------------------->
+# Importing Diseases nodes
+
+```{r}
+# db <- "DOID"
+concept <- "Concept"
+# rdir <- file.path(oriDir, "DO", "data")
+```
+
+## Concepts
+
+```{r}
+toImport <- DODO_entryId %>%
+  left_join(
+    DODO_idNames %>% 
+      filter(as.logical(canonical)) %>% 
+      select(-canonical, -dbid) %>% 
+      distinct(DB, id, .keep_all = TRUE),
+    by=c("DB", "id")
+  ) %>%
+  rename(
+    "database"="DB",
+    "shortID"="id",
+    "definition"="def",
+    "label"="syn",
+    "name" = "dbid"
+  ) %>%
+  mutate(level = as.integer(level))
+# toImport$origin <- db
+concept <- "Concept"
+stopifnot(nrow(distinct(toImport, name))==nrow(toImport))
+neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
+```
+
+## Synonyms
+
+```{r}
+toImport <- DODO_idNames %>%
+  select("database"=DB, 
+         "shortID"=id, 
+         "name" = dbid,
+         "value"=syn) %>%
+  distinct()
+neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
+```
+
+## Alternative identifiers
+
+```{r}
+toImport <- DODO_altId %>%
+  select("database"="DB", 
+         "shortID"="id", 
+         "altdb"="altDB", 
+         "altid"="alt")
+neoDODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
+```
+
+## Parents
+
+```{r}
+toImport <- DODO_parentId %>%
+  select("database"=DB, 
+         "shortID"=id, 
+         "parentdb"=pDB, 
+         "parentid"=parent,
+         origin)
+neoDODO:::load_parent_identifiers(toImport=toImport, concept=concept)
+```
+
+## Cross-references
+
+```{r}
+toImport <- DODO_crossId %>%
+  select(DB1, id1, DB2, id2)
+neoDODO:::load_cross_references(
+  toImport = toImport, 
+  xrefDB = xrefDB, 
+  concept = concept
+)
+```
+
+## Diseases - Phenotypes
+
+```{r}
+toImport <- hasPheno %>%
+  rename("diseaseDB"="DB", "diseaseID"="id", "phenoID"="hp") %>%
+  mutate(phenoDB="HP")
+neoDODO:::load_has_phenotypes(toImport=toImport)
+```
+
+## Additional databases
+
+Some identifiers are recorded across multiple database, e.g. EFO incorporates identifiers from Monarch, Orphanet, etc. These receive additional *is_in* edge.
+
+```{r}
+toImport <- bind_rows(DODO_parentId %>% select(DB,
+                                               id, 
+                                               origin),
+                      DODO_parentId %>% select(DB = pDB,
+                                               id = parent,
+                                               origin)) %>%
+  distinct()
+neoDODO:::load_concept_names(toImport = toImport, concept = concept)
+```
+
+# Database URL templates
+
+```{r db_url, echo = FALSE, include = TRUE}
+toShow <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"))
+datatable(toShow,
+          rownames = FALSE)
+neoDODO:::load_db_definitions(toImport=databases)
+```
+
+
+
 
 
 ## Write files

@@ -1,4 +1,5 @@
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Check data frame to import in DODO
 #' 
 #' Feeding helper function not exported
@@ -26,7 +27,8 @@ check_df_to_import <- function(toImport, tlc, mandatory){
 }
 
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: Set the DODO version
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -53,7 +55,8 @@ set_dodo_version <- function(dodoInstance, dodoVersion){
 }
 
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: Load DODO data model in neo4j
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -583,17 +586,19 @@ load_ClinVar <- function(DODO_entryId,
                   canonical) %>%
     dplyr::mutate(dbid = paste(DB, id, sep = ":")) %>%
     dplyr::distinct()
-  toAdd <- cv_idNames %>% 
-    dplyr::mutate(DB = db,
-                  id) %>%
-    dplyr::select(DB, 
-                  id,
-                  syn = name,
-                  canonical) %>%
-    dplyr::mutate(dbid = paste(DB, id, sep = ":")) %>%
-    dplyr::distinct()
-  cv_idNames <- dplyr::bind_rows(toRet,
-                                 toAdd) %>%
+  # toAdd <- cv_idNames %>% 
+  #   dplyr::mutate(DB = db,
+  #                 id) %>%
+  #   dplyr::select(DB, 
+  #                 id,
+  #                 syn = name,
+  #                 canonical) %>%
+  #   dplyr::mutate(dbid = paste(DB, id, sep = ":")) %>%
+  #   dplyr::distinct()
+  # cv_idNames <- dplyr::bind_rows(toRet,
+  #                                toAdd) %>%
+  #   dplyr::filter(!dbid %in% DODO_entryId$dbid)
+  cv_idNames <- toRet %>%
     dplyr::filter(!dbid %in% DODO_entryId$dbid)
   ## 
   cv_crossId <- clinvar %>%
@@ -612,7 +617,8 @@ load_ClinVar <- function(DODO_entryId,
 }
 
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: Register databases in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -634,7 +640,8 @@ load_db_names <- function(toImport){
 }
 
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load concept names in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -646,22 +653,25 @@ load_db_names <- function(toImport){
 #' - shortID: *character* short concept ID (mandatory)
 #'
 load_concept_names <- function(toImport, concept){
-  concept <- match.arg(concept, c("Disease", "Phenotype"))
+  concept <- match.arg(concept, c("Concept", "Disease", "Phenotype"))
   if(!"origin" %in% colnames(toImport)){
     toImport$origin <- toImport$database
+  }
+  if(!"name" %in% colnames(toImport)){
+    toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   }
   ## Checks ----
   tlc <- c(
     "database"="character",
     "origin"="character",
-    "shortID"="character"
+    "shortID"="character",
+    "name"="character"
   )
   mandatory <- c(
     "database",
     "shortID"
   )
   check_df_to_import(toImport, tlc, mandatory)
-  toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   toImport$origin <- ifelse(
     is.na(toImport$origin), toImport$database, toImport$origin
   )
@@ -681,7 +691,8 @@ load_concept_names <- function(toImport, concept){
   import_in_dodo(neo2R::prepCql(cql), toImport)
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load concept defintions in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -697,14 +708,18 @@ load_concept_names <- function(toImport, concept){
 #' @param concept either "Disease" or "Phenotype"
 #'
 load_concept_definitions <- function(toImport, concept){
-  concept <- match.arg(concept, c("Disease", "Phenotype"))
+  concept <- match.arg(concept, c("Concept", "Disease", "Phenotype"))
   if(!"origin" %in% colnames(toImport)){
     toImport$origin <- toImport$database
+  }
+  if(!"name" %in% colnames(toImport)){
+    toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   }
   ## Checks ----
   tlc <- c(
     "database"="character",
     "origin"="character",
+    "name"="character",
     "shortID"="character",
     "label"="character",
     "definition"="character",
@@ -715,7 +730,6 @@ load_concept_definitions <- function(toImport, concept){
     "shortID"
   )
   neoDODO:::check_df_to_import(toImport, tlc, mandatory)
-  toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   toImport$origin <- ifelse(
     is.na(toImport$origin), toImport$database, toImport$origin
   )
@@ -731,7 +745,7 @@ load_concept_definitions <- function(toImport, concept){
   cql <- c(
     'MATCH (db:Database {name:row.origin})',
     sprintf('MERGE (c:%s {name:row.name})', concept),
-    'SET c.shortID=row.shortID, ',
+    'SET c.shortID=row.shortID, c.database=row.database',
     'c.label=row.label, c.label_up=row.label_up, ',
     'c.definition=row.definition, c.definition_up=row.definition_up, ',
     'c.level=toInteger(row.level)',
@@ -742,7 +756,8 @@ load_concept_definitions <- function(toImport, concept){
 
 
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load concept synonyms in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -754,12 +769,16 @@ load_concept_definitions <- function(toImport, concept){
 #' @param concept either "Disease" or "Phenotype"
 #'
 load_concept_synonyms <- function(toImport, concept){
-  concept <- match.arg(concept, c("Disease", "Phenotype"))
+  concept <- match.arg(concept, c("Concept", "Disease", "Phenotype"))
   ## Checks ----
+  if(!"name" %in% colnames(toImport)){
+    toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
+  }
   tlc <- c(
     "database"="character",
     "shortID"="character",
-    "value"="character"
+    "value"="character",
+    "name"="character"
   )
   mandatory <- c(
     "database",
@@ -767,7 +786,7 @@ load_concept_synonyms <- function(toImport, concept){
     "value"
   )
   check_df_to_import(toImport, tlc, mandatory)
-  toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
+  # toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   toImport$value_up <- toupper(toImport$value)
   toImport <- toImport
   
@@ -787,7 +806,8 @@ load_concept_synonyms <- function(toImport, concept){
   )
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load concept cross references in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -804,7 +824,7 @@ load_concept_synonyms <- function(toImport, concept){
 #'
 load_cross_references <- function(toImport, xrefDB, concept){
   ## Checks ----
-  concept <- match.arg(concept, c("Disease", "Phenotype"))
+  concept <- match.arg(concept, c("Concept", "Disease", "Phenotype"))
   tlc <- c(
     "DB1"="character",
     "id1"="character",
@@ -879,12 +899,15 @@ load_cross_references <- function(toImport, xrefDB, concept){
       neo2R::cypher,
       query=prepCql(c(
         sprintf(
-          'MATCH (f:%s)-[:%s {BA:1}]->(t:%s)',
+          'MATCH (f:%s)-[r1:%s {BA:1}]->(t:%s)',
           concept, type, concept
         ),
-        sprintf('MERGE (f)-[:%s]->(t)', paste0(type, "_nba"))
+        sprintf('MERGE (f)-[r2:%s]->(t)', paste0(type, "_nba")),
+        'ON CREATE SET r2.BA = r1.BA ON CREATE SET r2.FA = r1.BA'
       ))
     )
+    ## when updating new resources, the ambiguity will be calculated on the fly
+    ## the old _nba edge might be deprecated and needs to be deleted
     call_dodo(
       neo2R::cypher,
       query=prepCql(c(
@@ -907,7 +930,8 @@ load_cross_references <- function(toImport, xrefDB, concept){
   
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load concept alternative identifiers in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -922,7 +946,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
 #'
 load_alternative_identifiers <- function(toImport, concept){
   ## Checks ----
-  concept <- match.arg(concept, c("Disease", "Phenotype"))
+  concept <- match.arg(concept, c("Concept", "Disease", "Phenotype"))
   tlc <- c(
     "database"="character",
     "shortID"="character",
@@ -955,7 +979,8 @@ load_alternative_identifiers <- function(toImport, concept){
   import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "alt")])
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: Register databases with URL template in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -978,7 +1003,8 @@ load_db_definitions <- function(toImport){
   import_in_dodo(neo2R::prepCql(cql), toImport)
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load diseases-phenotypes relationships in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -1023,7 +1049,8 @@ load_has_phenotypes <- function(toImport){
   import_in_dodo(neo2R::prepCql(cql), toImport[, c("disease", "phenotype")])
 }
 
-###############################################################################@
+#========================================================================================@
+#========================================================================================@
 #' Feeding DODO: load concept parent identifiers in DODO DB
 #'
 #' Not exported to avoid unintended modifications of the DB.
@@ -1038,19 +1065,21 @@ load_has_phenotypes <- function(toImport){
 #'
 load_parent_identifiers <- function(toImport, concept, origin){
   ## Checks ----
-  concept <- match.arg(concept, c("Disease", "Phenotype"))
-  stopifnot(is.character(origin), !is.na(origin), length(origin)==1)
+  concept <- match.arg(concept, c("Concept", "Disease", "Phenotype"))
+  # stopifnot(is.character(origin), !is.na(origin), length(origin)==1)
   tlc <- c(
     "database"="character",
     "shortID"="character",
     "parentdb"="character",
-    "parentid"="character"
+    "parentid"="character",
+    "origin"="character"
   )
   mandatory <- c(
     "database",
     "shortID",
     "parentdb",
-    "parentid"
+    "parentid",
+    "origin"
   )
   check_df_to_import(toImport, tlc, mandatory)
   toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
@@ -1067,9 +1096,9 @@ load_parent_identifiers <- function(toImport, concept, origin){
   cql <- c(
     sprintf('MATCH (c:%s {name:row.name})', concept),
     sprintf('MATCH (p:%s {name:row.parent})', concept),
-    sprintf('MERGE (c)-[:is_a {origin:"%s"}]->(p)', origin)
+    sprintf('MERGE (c)-[r:is_a]->(p) ON CREATE SET r.origin = row.origin')
   )
-  import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "parent")])
+  neoDODO:::import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "parent","origin")])
 }
 
 

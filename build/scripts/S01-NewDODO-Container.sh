@@ -4,18 +4,18 @@
 ## CONFIG according to your needs
 #################################
 
-export CONTAINER=neoDODO3
+export CONTAINER=neoDODO
 
 ## Chose Neo4j version (Only versions 3 and 4 are supported)
 # export NJ_VERSION=4.0.0
 export NJ_VERSION=3.5.14
 
 ## Ports
-export NJ_HTTP_PORT=7476
-export NJ_BOLT_PORT=7689
+export NJ_HTTP_PORT=7475
+export NJ_BOLT_PORT=7688
 
 ## Change the location of the Neo4j directory
-export NJ_HOME=/data/lfrancois/Development/neoDODO/build/working1
+export NJ_HOME=/data/lfrancois/Development/neoDODO/build/working
 
 ## Authorization
 NJ_AUTH=none # set to 'neo4j/1234' if you want to set the 'neo4j' user with the '1234' password.
@@ -73,5 +73,5 @@ docker run -d \
    --env NEO4J_AUTH=$NJ_AUTH \
    --volume $NJ_IMPORT:/var/lib/neo4j/import \
    --volume $NJ_DATA/data:/data \
-    --volume $NJ_PLUGINS:/plugins \
+   --volume $NJ_PLUGINS:/plugins \
     neo4j:$NJ_VERSION
