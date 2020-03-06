@@ -9,7 +9,7 @@
 #' 
 #' @param id disease id to include in the network
 #' @param term a character vector of terms to search (e.g. "epilepsy")
-#' @param fields the field(s) where to look for matches (default: c(label, synonym, definition)).
+#' @param fields the field(s) where to look for matches (default: c(label, synonym)).
 #' @param forwardAmbiguity level of forward ambiguity allowed
 #' (default: 10000 ==> ~no filter)
 #' @param backwardAmbiguity level of backward ambiguity allowed
@@ -90,13 +90,13 @@
 #' 
 build_disNet <- function(id = NULL, 
                         term = NULL,
-                        fields = c("label", "synonym", "definition"),
+                        fields = c("label", "synonym"),
                         ambiguity = 1, 
                         avoidOrigin = NULL){
   #########################@
   ## Check ----
-  fields <- match.arg(fields, c("label", "synonym", "definition"), several.ok = TRUE)
-  if(!is.null(avoidOrigin)){match.arg(avoidOrigin, listDB()$db, several.ok = T)}
+  fields <- match.arg(fields, c("label", "synonym"), several.ok = TRUE)
+  if(!is.null(avoidOrigin)){match.arg(avoidOrigin, list_db()$database, several.ok = T)}
   
   stopifnot(is.null(ambiguity) || ambiguity == 1,
             xor(is.null(id), is.null(term)))
@@ -152,7 +152,7 @@ build_disNet <- function(id = NULL,
   ## Terms
   if(!is.null(term)){
     id <- findTerm(term = term,
-                     fields = fields)
+                   fields = fields)
   }
   
   #########################@
@@ -175,7 +175,7 @@ build_disNet <- function(id = NULL,
                    sprintf('WHERE %s c.name IN $from AND p.name IN $from',
                            ifelse(is.null(avoidOrigin),
                                   "",
-                                  "r.origin IN $origin AND")),
+                                  "NOT r.origin IN $origin AND")),
                    'RETURN DISTINCT p.name AS parent, c.name AS child, r.origin AS origin')
     cql.alt <- c('MATCH (c:Concept)<-[r:is_alt]-(a:Concept)',
                  'WHERE c.name in $from AND a.name in $from' ,
@@ -305,12 +305,14 @@ format.disNet <- function(x, ...){
                 "",
                 "The disNet contains:",
                 paste(" - ", 
-                      x$nodes %>% dplyr::filter(type == "Disease || Concept") %>% nrow(), 
+                      x$nodes %>% dplyr::filter(grepl("Disease", type)) %>% nrow(), 
                       "disease nodes from", 
-                      length(unique(x$nodes %>% filter(type == "Disease || Concept") %>% pull(database))), "ontologies and",
-                      x$nodes %>% dplyr::filter(type == "Phenotype || Concept") %>% nrow(), 
+                      length(unique(x$nodes %>% filter(grepl("Disease", type)) %>% pull(database))), 
+                      "ontologies and",
+                      x$nodes %>% dplyr::filter(grepl("Phenotype", type)) %>% nrow(), 
                       "phenotype nodes from", 
-                      length(unique(x$nodes %>% filter(type == "Phenotype || Concept") %>% pull(database))), "ontologies "),
+                      length(unique(x$nodes %>% filter(grepl("Phenotype", type)) %>% pull(database))), 
+                      "ontologies "),
                 paste(" - ", nrow(x$synonyms), "synonyms of the disease nodes"),
                 paste(" - ", nrow(x$children), "parent/child edges"),
                 paste(" - ", nrow(x$xref), "crossreference edges"),

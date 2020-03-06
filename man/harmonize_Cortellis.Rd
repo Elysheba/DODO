@@ -2,9 +2,7 @@
 % Please edit documentation in R/building-utilities.R
 \name{harmonize_Cortellis}
 \alias{harmonize_Cortellis}
-\title{========================================================================================
-
-Harmonize Cortellis information}
+\title{Harmonize Cortellis information}
 \usage{
 harmonize_Cortellis(
   CortellisONT_siConditions,

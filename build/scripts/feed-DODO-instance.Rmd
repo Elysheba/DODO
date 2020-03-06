@@ -59,8 +59,13 @@ curDate <- Sys.Date()
 ## Original resources location
 # oriDir <- "~/Shared/Data-Science/Data-Source-Model-Repository"
 ## Connect to DODO database
+if(params$type == "internal"){
+  url <- "http://localhost:7475"
+}else{
+  url <- "http://localhost:7476"
+}
 connect_to_dodo(
-   url = "http://localhost:7475",
+   url = url,
    importPath = "/data/lfrancois/Development/neoDODO/build/working/neo4jImport"
    # importPath = "neo4jImport"
 )
@@ -519,7 +524,7 @@ Connect to Neo4j and specify import path to load data.
 
 ```{r, message=FALSE, eval=FALSE}
 connect_to_dodo(
-   url="http://localhost:7475",
+   url=url,
    importPath = "/data/lfrancois/Development/neoDODO/build/working/neo4jImport"
    # importPath = "neo4jImport"
 )

@@ -8,18 +8,14 @@
 #' @param to database to convert to (default = NULL, no filtering)
 #' @param from.concept concept (disease or phenotype) of from
 #' @param to.concept concept (disease or phenotype) to convert to
-#' @param FA forward ambiguity (default: no filter)
-#' @param BA backward ambiguity (default: BA = 1)
-#' @param FA.transitivity forward ambiguity while using transitivity to identify cross-references (default: no filter)
-#' @param BA.transitivity backward ambiguity while using transitivity to identify cross-references (default: 1)
-#' @param FA.non_transitivity forward ambiguity while using transitivity to identify cross-references (default: no filter)
-#' @param BA.non_transitivity backward ambiguity while using transitivity to identify cross-references (default: no filter)
+#' @param deprecated include deprecated identifiers (default: false)
+#' @param transitive_ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
+#' @param intransitive_ambiguity specification for backward ambiguity used in the final step of conversion (default: no filter)
 #' @param verbose show query input (default: FALSE)
 #' 
 #' @return a dataframe with three columns:
 #' - from: identifier to convert
 #' - to: returned conversion
-#' - hops: length of the shortest path between them
 #' 
 #' @export
 #' 
@@ -27,27 +23,26 @@ convert_concept <- function(from,
                             to = NULL,
                             from.concept = c("Disease", "Phenotype"),
                             to.concept = c("Disease", "Phenotype"),
-                            # FA.transitive = NULL,
-                            BA.transitive = 1,
-                            # FA.intransitive = NULL,
-                            BA.intransitive = NULL,
+                            deprecated = FALSE,
+                            transitive_ambiguity = 1,
+                            intransitive_ambiguity = NULL,
                             verbose = FALSE){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"))
+   to.concept <- match.arg(to.concept, c("Disease", "Phenotype"))
+   to <- match.arg(to, c(NULL, list_db()$database))
    from <- setdiff(from, NA)
    stopifnot(is.character(from), length(from)>0)
    
-   stopifnot(#is.null(FA.transitivity) || FA.transitivity == 1,
-             is.null(BA.transitive) || BA.transitive == 1,
-             #is.null(FA.intransitive) || FA.intransitive == 1, 
-             is.null(BA.intransitive) || BA.intransitive == 1)
+   stopifnot(is.null(transitive_ambiguity) || transitive_ambiguity == 1,
+             is.null(intransitive_ambiguity) || intransitive_ambiguity == 1)
    
-   if(is.null(BA.transitive)){
-      transitivity <- "is_xref"
+   if(is.null(transitive_ambiguity)){
+      transitivity <- "is_xref>"
    }else{
       transitivity <- "is_xref_nba"
    }
    
-   if(is.null(BA.intransitive)){
+   if(is.null(intransitive_ambiguity)){
       relationship <- ":is_related|is_xref*0..1"
    }else{
       relationship <- ":is_related_nba|is_xref_nba*0..1"
@@ -101,7 +96,40 @@ convert_concept <- function(from,
    toRet <- dplyr::bind_rows(b1,
                              b2) %>%
       tibble::as_tibble() %>%
-      dplyr::distinct()
+      dplyr::distinct() %>%
+      dplyr::mutate(deprecated = FALSE)
+   
+   #############################################@
+   ## Return deprecated identifiers
+
+   if(deprecated){
+      cql <- c(
+         'MATCH (f:Concept)<-[:is_alt]-(t:Concept)',
+         'WHERE f.name IN $from',
+         "RETURN DISTINCT f.name as from, t.name as to"
+      )
+      b3 <- call_dodo(
+         neo2R::cypher,
+         prepCql(cql),
+         parameters = list(from = as.list(from)),
+         result = "row"
+      ) %>%
+         tibble::as_tibble()
+   }
+   if(!deprecated || nrow(b3) == 0){
+      b3 <- tibble::tibble(from = character(),
+                           to = character(),
+                           deprecated = logical())
+   }else{
+      b3 <- b3 %>%
+         dplyr::distinct() %>%
+         dplyr::mutate(deprecated = TRUE)
+   }
+   
+   toRet <- dplyr::bind_rows(toRet,
+                             b3)
+   
+
    
    return(toRet)
 }

@@ -27,18 +27,18 @@ find_id <- function(ids){
 ###############################################################################@
 #' Find concept by term 
 #' 
-#' Querying for concept through searchterms (label, synonym, definition)
+#' Querying for concept through searchterms (label, synonym)
 #' 
 #' @param term a character vector of terms to search (e.g. "epilep")
-#' @param fields the field(s) where to look for matches (label, synonym, definition).
+#' @param fields the field(s) where to look for matches (label, synonym).
 #'  
 #' @return A character vector of concept identfiers in DODO
 #' 
 #' @export
 
 find_term <- function(term,
-                     fields = c("label", "synonym", "definition")){
-  fields <- match.arg(fields, c("label", "synonym", "definition"), several.ok = TRUE)
+                     fields = c("label", "synonym")){
+  fields <- match.arg(fields, c("label", "synonym"), several.ok = TRUE)
  
   st <- toupper(term)
   
@@ -54,12 +54,12 @@ find_term <- function(term,
                        st)
     )
   }
-  if("definition" %in% fields){
-    query <- c(query,
-               sprintf('n.definition_up CONTAINS "%s"',
-                       st)
-               )
-  }
+  # if("definition" %in% fields){
+  #   query <- c(query,
+  #              sprintf('n.definition_up CONTAINS "%s"',
+  #                      st)
+  #              )
+  # }
   query <- paste(query, collapse = " OR ")
 
 

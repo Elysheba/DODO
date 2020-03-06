@@ -8,26 +8,25 @@ get_ontology <- function(database){
    ## Get concepts ----
    cql <- c(
       'MATCH (n:Concept)-[:is_in]->(:Database {name:$database})',
-      'RETURN DISTINCT n.name AS id, n.label AS label, n.definition AS definition, ',
-                   'n.shortID AS shortID, n.level AS level, labels(n) AS type')
+      'RETURN DISTINCT n.name'
+      )
    
-   concepts <- call_dodo(
+   ont <- call_dodo(
       neo2R::cypher,
       prepCql(cql),
       parameters=list(database=database),
       result="row"
    )
-   toRet <- concept
    
    ## Build disNet
-   # if(database == "EFO"){
-   #    avoid = NULL
-   # }else{
-   #    avoid = "EFO"
-   # }
-   
+   if(database == "EFO"){
+      avoid = NULL
+   }else{
+      avoid = "EFO"
+   }
+
    ## Get parents ----
-   # toRet <- build_disNet(ids = concepts$id, avoidOrigin = avoid)
+   toRet <- build_disNet(id = ont$n.name, avoidOrigin = avoid)
    ## Return all results ----
    return(toRet)
 }

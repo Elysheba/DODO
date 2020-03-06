@@ -9,8 +9,9 @@ convert_concept(
   to = NULL,
   from.concept = c("Disease", "Phenotype"),
   to.concept = c("Disease", "Phenotype"),
-  BA.transitive = 1,
-  BA.intransitive = NULL,
+  deprecated = FALSE,
+  transitive_ambiguity = 1,
+  intransitive_ambiguity = NULL,
   verbose = FALSE
 )
 }
@@ -23,26 +24,19 @@ convert_concept(
 
 \item{to.concept}{concept (disease or phenotype) to convert to}
 
+\item{deprecated}{include deprecated identifiers (default: false)}
+
+\item{transitive_ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
+
+\item{intransitive_ambiguity}{specification for backward ambiguity used in the final step of conversion (default: no filter)}
+
 \item{verbose}{show query input (default: FALSE)}
-
-\item{FA}{forward ambiguity (default: no filter)}
-
-\item{BA}{backward ambiguity (default: BA = 1)}
-
-\item{FA.transitivity}{forward ambiguity while using transitivity to identify cross-references (default: no filter)}
-
-\item{BA.transitivity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
-
-\item{FA.non_transitivity}{forward ambiguity while using transitivity to identify cross-references (default: no filter)}
-
-\item{BA.non_transitivity}{backward ambiguity while using transitivity to identify cross-references (default: no filter)}
 }
 \value{
 a dataframe with three columns:
 \itemize{
 \item from: identifier to convert
 \item to: returned conversion
-\item hops: length of the shortest path between them
 }
 }
 \description{

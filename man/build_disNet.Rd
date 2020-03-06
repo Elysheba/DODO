@@ -7,7 +7,7 @@
 build_disNet(
   id = NULL,
   term = NULL,
-  fields = c("label", "synonym", "definition"),
+  fields = c("label", "synonym"),
   ambiguity = 1,
   avoidOrigin = NULL
 )
@@ -17,7 +17,7 @@ build_disNet(
 
 \item{term}{a character vector of terms to search (e.g. "epilepsy")}
 
-\item{fields}{the field(s) where to look for matches (default: c(label, synonym, definition)).}
+\item{fields}{the field(s) where to look for matches (default: c(label, synonym)).}
 
 \item{forwardAmbiguity}{level of forward ambiguity allowed
 (default: 10000 ==> ~no filter)}

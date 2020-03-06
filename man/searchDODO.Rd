@@ -8,7 +8,7 @@ searchDODO(
   searchTerm,
   database = NULL,
   type = c(),
-  fields = c("label", "synonym", "definition"),
+  fields = c("label", "synonym"),
   exact = FALSE
 )
 }
@@ -19,7 +19,7 @@ searchDODO(
 
 \item{type}{the type of the searchTerm, either id or name}
 
-\item{fields}{If a term is search, fields can be specified to label, synonym or definition. By default all fields are used.}
+\item{fields}{If a term is search, fields can be specified to label and synonym. By default all fields are used.}
 }
 \description{
 Search concept

@@ -19,7 +19,7 @@ ids <- c("HP:0002516", "ORPHA:637", "MeSH:D016518", "HP:0010628", "ORPHA:637", "
 ids <- c("HP:0002516", "ORPHA:637", "MeSH:D016518", "HP:0010628", "ORPHA:637", "MeSH:D016518")
 ids <- c("MONDO:0005027", "EFO:0000474")
 ids <- c("HP:0002516", "ORPHA:637")
-ids <- findTerm("epilep")    
+ids <- find_term("epilep")    
 ```
 
 # Testing different buildDisNet functions (done, functions removed)
@@ -32,7 +32,7 @@ ids <- findTerm("epilep")
 ids <- c("MONDO:0005027", "EFO:0000474")
 length(ids)
 
-system.time(a <- build_disNet(ids = ids))
+system.time(a <- build_disNet(id = ids))
 a
 
 system.time(b <- extend_disNet(disNet = a, relations = c("xref", "child")))

@@ -2,9 +2,7 @@
 % Please edit documentation in R/building-utilities.R
 \name{harmonize_HPO}
 \alias{harmonize_HPO}
-\title{========================================================================================
-
-Harmonize HPO}
+\title{Harmonize HPO}
 \usage{
 harmonize_HPO(
   HPO_diseaseHP,

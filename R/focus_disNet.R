@@ -26,9 +26,9 @@
 #' @export
 #' 
 focus_disNet <- function(disNet, 
-                     diseaseID, 
-                     relationship = c("xref","child"),
-                     steps = 1
+                         diseaseID, 
+                         relationship = c("xref","child"),
+                         steps = 1
 ){
   match.arg(relationship, c("xref","child","parent"),several.ok = T)
   edges <- data.frame()

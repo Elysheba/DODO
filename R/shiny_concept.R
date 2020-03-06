@@ -12,7 +12,7 @@ shinyConcept <- function(){
   library(DT)
   library(shinythemes)
   
-  if(!DODO:::checkDODOConn()){
+  if(!neoDODO:::check_dodo_connection()){
     stop("No connection to DODO instance")
   }
   
@@ -69,7 +69,7 @@ shinyConcept <- function(){
       ## Print the IDs in the console
       print(tmp)
       ## Return disNet 
-      tmp <- buildDisNetByID(id = tmp)
+      tmp <- build_disNet(id = tmp)
       stopApp(invisible(tmp))
     })
   }
@@ -148,15 +148,15 @@ conceptSearchInput <- function(id,
 conceptSearch <- function(input, output, session, internal = TRUE){
   # Define UI for application that draws a histogram
   ## DODO dbs
-  db <- DODO::listDB()$db
+  db <- neoDODO::list_db()$database
   
   ## search fields
   output$fields <- renderUI({
     ns <- session$ns
     checkboxGroupInput(inputId = ns("fields"),
                        label = "Search fields",
-                       choices = c("label","synonym","definition"),
-                       selected = c("label","synonym","definition") )
+                       choices = c("label","synonym"),
+                       selected = c("label","synonym") )
   })
   
   ## Specify db
@@ -202,10 +202,10 @@ conceptSearch <- function(input, output, session, internal = TRUE){
       type <- "term"
     }
     ##
-    tmp <- try(DODO:::searchDODO(searchTerm = term(),
-                                 type =  type,
-                                 fields = input$fields,
-                                 database = database),
+    tmp <- try(neoDODO:::searchDODO(searchTerm = term(),
+                                   type =  type,
+                                   fields = input$fields,
+                                   database = database),
                # exact = input$exact),
                silent = T)
     
@@ -235,13 +235,13 @@ conceptSearch <- function(input, output, session, internal = TRUE){
 #' @param searchTerm a term to search for, can be either an ID or a term
 #' @param database if provided, 
 #' @param type the type of the searchTerm, either id or name
-#' @param fields If a term is search, fields can be specified to label, synonym or definition. By default all fields are used.
+#' @param fields If a term is search, fields can be specified to label and synonym. By default all fields are used.
 #' 
 #' 
 searchDODO <- function(searchTerm,
                        database = NULL,
                        type = c(),
-                       fields = c("label","synonym","definition"),
+                       fields = c("label","synonym"),
                        exact = FALSE
 ){
   if(length(type) > 1){
@@ -264,42 +264,20 @@ searchDODO <- function(searchTerm,
     }
     
     ## Seed
-    seed <- findID(id = searchTerm)
+    seed <- find_id(id = searchTerm)
     
-    ## query
-    q <- c('{',
-           sprintf('var(func: eq(name,["%s"])){seed as uid}', paste(seed,collapse = '","')),
-           'desc(func: uid(seed)) {id:name lbl:label syn:synonym level:level def:definition}',
-           '}'
-    )
-    ## 
-    q <- paste(q, collapse="\n ")
-    rq <- dodoCall(f = DgraphR::dgraphRequest, postText = q)
-    toRet <- do.call(rbind,
-                     lapply(rq$result$data$desc,
-                            function(x){
-                              ## Unlist synonyms
-                              x$syn <- unlist(x$syn)
-                              ## If info is missing, add it to list as NA
-                              nm <- setdiff(c("id", "lbl", "syn", "def", "level"),
-                                            names(x))
-                              nmx <- names(x)
-                              if(length(nm) > 0){
-                                x <- c(x, rep(NA, length(nm)))
-                                names(x) <- c(nmx, nm)
-                              }
-                              
-                              x <- tibble::tibble(
-                                searchTerm = searchTerm,
-                                id = x$id,
-                                database = gsub(":.*","",x$id),
-                                label = x$lbl,
-                                synonym = paste(unique(x$syn), collapse = "; "),
-                                definition = x$def,
-                                level = x$level)
-                              return(x)
-                            })) %>%
-      dplyr::arrange(desc(level))
+    ## query to get name, definition, label, synonym, level
+    cql <- c('MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
+             sprintf('WHERE n.name IN $from %s',
+                     ifelse(is.null(database), "", "AND n.database IN $database")),
+             'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
+             'n.definition AS definition, ',
+             's.value AS synonym, n.level AS level ORDER BY level DESC')
+    toRet <- call_dodo(cypher,
+                       prepCql(cql),
+                       result = "row",
+                       parameters = list(from = as.list(seed))) %>%
+      dplyr::arrange(level)
     return(toRet)
   }
   
@@ -310,82 +288,25 @@ searchDODO <- function(searchTerm,
   if(type == "term"){
     fields <- match.arg(
       fields,
-      c("synonym", "label", "definition"),
+      c("synonym", "label"),
       several.ok=TRUE
     )
     input = searchTerm
-    q <- '{'
-    tq <- ''
-    if("synonym" %in% fields){
-      tq <- c(tq,
-              sprintf("var(func: regexp(synonym,/(%s)/i)){synonym as uid}", 
-                      paste(input, collapse = ")|(")))
-    }
-    if("label" %in% fields){
-      tq <- c(tq,
-              sprintf("var(func: regexp(label,/(%s)/i)){label as uid}", 
-                      paste(input, collapse = ")|(")))
-    }
-    if("definition" %in% fields){
-      tq <- c(tq,
-              sprintf("var(func: regexp(definition,/(%s)/i)){definition as uid}", 
-                      paste(input, collapse = ")|(")))
-    }
-    # if(exact){
-    #   tq <- gsub(pattern = "/\\(", replacement = "/\\(\b", tq)
-    #   tq <- gsub(pattern = "\\)/", replacement = "\b\\)/", tq)
-    # }
-    q <- c(q,
-           tq,
-           sprintf('seed(func: uid(%s)) %s {name}',
-                   paste(fields,collapse = ","),
-                   ifelse(is.null(database),"",  paste0("@filter(regexp(name,/(",database,")/))"))),
-           '}')
-    q <- paste(q,collapse = "\n")
-    rq <- dodoCall(DgraphR::dgraphRequest,
-                   postText = q)
-    seed <- unlist(rq$result$data$seed)
-    if(is.null(seed)){
-      toRet <- NULL
-    }else{
-      q <- c('{',
-             sprintf('var(func: eq(name,["%s"])){seed as uid}', paste(seed,collapse = '","')),
-             'desc(func: uid(seed)) {id:name lbl:label syn:synonym def:definition level:level}',
-             '}'
-      )
-      
-      ## 
-      q <- paste(q, collapse="\n ")
-      rq <- dodoCall(f = DgraphR::dgraphRequest, 
-                     postText = q)
-      ## 
-      toRet <- do.call(rbind,
-                       lapply(rq$result$data$desc,
-                              function(x){
-                                ## Unlist synonyms
-                                x$syn <- unlist(x$syn)
-                                ## If info is missing, add it to list as NA
-                                nm <- setdiff(c("id", "lbl", "syn", "def", "level"),
-                                              names(x))
-                                nmx <- names(x)
-                                if(length(nm) > 0){
-                                  x <- c(x, rep(NA, length(nm)))
-                                  names(x) <- c(nmx, nm)
-                                }
-                                
-                                ## Create tibble
-                                x <- tibble::tibble(
-                                  searchTerm = searchTerm,
-                                  id = x$id,
-                                  database = gsub(":.*","",x$id),
-                                  label = x$lbl,
-                                  synonym = paste(unique(x$syn), collapse = "; "),
-                                  definition = x$def,
-                                  level = x$level)
-                                return(x)
-                              })) %>%
-        dplyr::arrange(desc(level))
-    }
+    seed <- find_term(term = searchTerm, fields = fields)
+    
+    ## query to get name, definition, label, synonym, level
+    cql <- c('MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
+             sprintf('WHERE n.name IN $from %s',
+                     ifelse(is.null(database), "", "AND n.database IN $database")),
+             'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
+             'n.definition AS definition, ',
+             's.value AS synonym, n.level AS level ORDER BY level DESC')
+    toRet <- call_dodo(cypher,
+                       prepCql(cql),
+                       result = "row",
+                       parameters = list(from = as.list(seed),
+                                         database = as.list(database))) %>%
+      dplyr::arrange(level)
     return(toRet)
   }
 }

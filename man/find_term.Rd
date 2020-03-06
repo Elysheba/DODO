@@ -4,16 +4,16 @@
 \alias{find_term}
 \title{Find concept by term}
 \usage{
-find_term(term, fields = c("label", "synonym", "definition"))
+find_term(term, fields = c("label", "synonym"))
 }
 \arguments{
 \item{term}{a character vector of terms to search (e.g. "epilep")}
 
-\item{fields}{the field(s) where to look for matches (label, synonym, definition).}
+\item{fields}{the field(s) where to look for matches (label, synonym).}
 }
 \value{
 A character vector of concept identfiers in DODO
 }
 \description{
-Querying for concept through searchterms (label, synonym, definition)
+Querying for concept through searchterms (label, synonym)
 }

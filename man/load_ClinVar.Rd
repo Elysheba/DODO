@@ -2,9 +2,7 @@
 % Please edit documentation in R/building-utilities.R
 \name{load_ClinVar}
 \alias{load_ClinVar}
-\title{========================================================================================
-
-Load Clinvar disease IDs}
+\title{Load Clinvar disease IDs}
 \usage{
 load_ClinVar(
   DODO_entryId,

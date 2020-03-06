@@ -57,8 +57,8 @@ extend_disNet <- function(
   step = NULL,
   transitive.ambiguity = 1,
   intransitive.ambiguity = NULL,
-  avoidNodes = NULL,
-  avoidOrigin = NULL
+  avoidNodes = NULL
+  # avoidOrigin = NULL
   ){
   ## checking
   relations <- match.arg(relations, 
@@ -72,7 +72,7 @@ extend_disNet <- function(
     stop("Both phenotype and disease extension in relations, pick one...")}
   
   ## avoidOrigin 
-  if(!is.null(avoidOrigin)){match.arg(avoidOrigin, list_db()$db, several.ok = T)}
+  # if(!is.null(avoidOrigin)){match.arg(avoidOrigin, list_db()$database, several.ok = T)}
   ## ambiguity
   stopifnot(is.null(transitive.ambiguity) || transitive.ambiguity == 1,
             is.null(intransitive.ambiguity) || intransitive.ambiguity == 1)
@@ -114,7 +114,7 @@ extend_disNet <- function(
   }
   if("parent" %in% relations){q <- c(q, "|is_a>")}
   if("child" %in% relations){q <- c(q, "|<is_a")}
-  if("alt" %in% relations){q <- c(q, "|is_alt")}
+  if("alt" %in% relations){q <- c(q, "|<is_alt")}
   q <- paste0(q, collapse = "")
   
   ##############@
@@ -191,9 +191,9 @@ extend_disNet <- function(
   if(any(c("child", "parent") %in% relations)){
     cql.child <- c(
       'MATCH (c:Concept)-[r:is_a]->(p:Concept)',
-      sprintf('WHERE %s.name in $from %s',
-              ifelse("child" %in% relations, "p", "c"),
-              ifelse(is.null(avoidOrigin), "", "AND NOT r.origin in $origin")),
+      sprintf('WHERE %s.name in $from',
+              ifelse("child" %in% relations, "p", "c")),
+              # ifelse(is.null(avoidOrigin), "", "AND NOT r.origin in $origin")),
       'RETURN DISTINCT p.name as parent, c.name as child, r.origin as origin'
     )
   }
@@ -220,8 +220,8 @@ extend_disNet <- function(
     neo2R::multicypher,
     queries = statements,
     parameters = list(from = as.list(ids),
-                      avoid = as.list(avoidNodes),
-                      origin = as.list(avoidOrigin)),
+                      avoid = as.list(avoidNodes)),
+                      # origin = as.list(avoidOrigin)),
     result = "row"
   )
   
@@ -253,29 +253,37 @@ extend_disNet <- function(
   }
 
   ###########################################@
-  ## Build disNet ----
-  ## Get all extended identifiers from xref, children and pheno
+  ## get additional step of alt id ----
   ids <- unique(c(xref$from, xref$to, 
                   children$child, children$parent, 
                   pheno$disease, pheno$phenotype,
                   alt$id, alt$alt))
+  if("alt" %in% relations){
+    cql.alt <- c(
+      'MATCH (n:Concept)<-[r:is_alt]-(a:Concept)',
+      'WHERE n.name in $from',
+      'RETURN DISTINCT n.name as id, a.name as alt'
+    )
+    if(!is.null(alt)){
+      alt <- call_dodo(cypher,
+                       prepCql(cql.alt),
+                       result = "row",
+                       parameters = list(from = as.list(ids))) %>%
+        tibble::as_tibble() %>%
+        dplyr::distinct()
+    }
+  }
+  
+  ###########################################@
+  ## Build disNet ----
+  ids <- unique(c(ids, alt$alt))
   cql.nodes <- c('MATCH (n:Concept)',
                  'WHERE n.name IN $from',
                  'RETURN DISTINCT n.name as id, n.label as label, n.definition as definition, ',
                  'n.shortID as shortID, n.level as level, labels(n) as type')
-  cql.syn <- c('MATCH (n:Concept)-[r:is_known_as]-(s:Synonym)',
+  cql.syn <- c('MATCH (n:Concept)-[r:is_known_as]->(s:Synonym)',
                'WHERE n.name IN $from',
                'RETURN DISTINCT n.name as id, s.value as synonym')
-  if("alt" %in% relations){
-    cql.alt <- c(
-      'MATCH p=(n:Concept)-[r:is_alt]-(a:Concept)',
-      'WHERE n.name in $from',
-      'WITH nodes(p) as node',
-      'MATCH (n:Concept)<-[r:is_alt]-(a:Concept)',
-      'WHERE (n) in node',
-      'RETURN DISTINCT n.name as id, a.name as alt'
-    )
-  }
 
   ## Gather queries ----
   s <- grep(paste("cql.nodes", "cql.syn", "cql.alt", sep = '|'), 
@@ -304,14 +312,6 @@ extend_disNet <- function(
   if(!is.null(toRet$syn)){
    synonyms <- toRet$syn %>%
       tibble::as_tibble()
-  }
-  
-  ## **alt ----
-  if(!is.null(toRet$alt)){
-    alt <- dplyr::bind_rows(alt, 
-                            toRet$alt) %>%
-      tibble::as_tibble() %>%
-      dplyr::distinct()
   }
 
 

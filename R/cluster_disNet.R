@@ -26,19 +26,13 @@
 #' @export
 #' 
 cluster_disNet <- function(disNet, 
-                          clusterOn = c("xref"),
-                          forwardAmbiguity = 10000,
-                          backwardAmbiguity = 1,
-                          blacklist = c("Cortellis_condition", "Cortellis_indication","ICD9", "ICD10"),
-                          whitelist = NA){
+                           clusterOn = c("xref"),
+                           ambiguity = 1
+                           ){
   match.arg(clusterOn, 
             c("children","xref"),
             several.ok = T)
   stopifnot(is.disNet(disNet))
-  
-  ## Avoiding DBs
-  avoidDB <- DODO:::blacklistingDB(blacklist = blacklist,
-                                   whitelist = whitelist)
   
   if("children" %in% clusterOn){
     child <- igraph::graph.data.frame(
@@ -77,20 +71,20 @@ cluster_disNet <- function(disNet,
                                  which(igraph::E(xref)$forwardAmbiguity > forwardAmbiguity | 
                                          igraph::E(xref)$backwardAmbiguity > backwardAmbiguity))
     ## Filter blacklist
-    if(!all(is.na(avoidDB))){
-      edgeList <- igraph::as_edgelist(xref) %>%
-        tibble::as_tibble() %>%
-        dplyr::rename(from = V1,
-                      to = V2) %>%
-        dplyr::mutate(edge = paste(from, to, sep = "|"))
-      toRem <- edgeList %>%
-        dplyr::filter(grepl(paste(avoidDB, collapse = "|"),
-                            dplyr::pull(edgeList, edge))) 
-      toKeep <- edgeList %>%
-        dplyr::filter(!edge %in% toRem$edge)
-      xref <- igraph::induced_subgraph(xref, 
-                                       vids = which(igraph::V(xref)$name %in% toKeep$from))
-    }
+    # if(!all(is.na(avoidDB))){
+    #   edgeList <- igraph::as_edgelist(xref) %>%
+    #     tibble::as_tibble() %>%
+    #     dplyr::rename(from = V1,
+    #                   to = V2) %>%
+    #     dplyr::mutate(edge = paste(from, to, sep = "|"))
+    #   toRem <- edgeList %>%
+    #     dplyr::filter(grepl(paste(avoidDB, collapse = "|"),
+    #                         dplyr::pull(edgeList, edge))) 
+    #   toKeep <- edgeList %>%
+    #     dplyr::filter(!edge %in% toRem$edge)
+    #   xref <- igraph::induced_subgraph(xref, 
+    #                                    vids = which(igraph::V(xref)$name %in% toKeep$from))
+    # }
   }
   
   if(length(clusterOn) == 2){
@@ -113,10 +107,10 @@ cluster_disNet <- function(disNet,
     toRet <- "NULL"
   }else if(cpIgraph$no == 1){
     cpIgraph <- names(cpIgraph$membership)
-    if(any(cpIgraph %in% toRem$to)){
-      cpIgraph <- c(cpIgraph, unique(toRem$from[which(toRem$to %in% cpIgraph)]))
-    }
-    toRet <- list("1" = filterByID(disNet, cpIgraph))
+    # if(any(cpIgraph %in% toRem$to)){
+    #   cpIgraph <- c(cpIgraph, unique(toRem$from[which(toRem$to %in% cpIgraph)]))
+    # }
+    toRet <- list("1" = filter_by_id(disNet, cpIgraph))
     class(toRet) <- "setDisNet"
   }else{
     cpIgraph <- unstack(
@@ -127,15 +121,15 @@ cluster_disNet <- function(disNet,
       ),
       n~c
     )
-    cpIgraph <- sapply(cpIgraph,
-                       function(x){
-                         if(any(x %in% toRem$to)){
-                           x <- c(x, unique(toRem$from[which(toRem$to %in% x)]))
-                         }
-                         return(x)
-                       })
-    toRet <- splitDisNet(disNet = disNet,
-                         diseaseList = cpIgraph)
+    # cpIgraph <- sapply(cpIgraph,
+    #                    function(x){
+    #                      if(any(x %in% toRem$to)){
+    #                        x <- c(x, unique(toRem$from[which(toRem$to %in% x)]))
+    #                      }
+    #                      return(x)
+    #                    })
+    toRet <- split_disNet(disNet = disNet,
+                          diseaseList = cpIgraph)
   }
   return(toRet)
 }

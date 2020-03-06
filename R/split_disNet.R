@@ -13,8 +13,8 @@
 #' @export
 #' 
 split_disNet <- function(disNet, 
-                        diseaseList){
-  toRet <- lapply(diseaseList, filterByID, disNet = disNet)
+                         diseaseList){
+  toRet <- lapply(diseaseList, filter_by_id, disNet = disNet)
   class(toRet) <- "setDisNet"
   return(toRet)
 }

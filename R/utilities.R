@@ -185,10 +185,12 @@ check_dodo_connection <- function(verbose=FALSE){
       return(FALSE)
     }
   }
+  dbVersion$url <- get("graph", dodoEnv)$url
   if(verbose){
     message(dbVersion$name)
     message(dbVersion$instance)
     message(dbVersion$version)
+    
   }
   if(
     is.null(dbVersion$name) || dbVersion$name!="DODO" ||

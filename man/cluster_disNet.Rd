@@ -4,14 +4,7 @@
 \alias{cluster_disNet}
 \title{Cluster a disNet}
 \usage{
-cluster_disNet(
-  disNet,
-  clusterOn = c("xref"),
-  forwardAmbiguity = 10000,
-  backwardAmbiguity = 1,
-  blacklist = c("Cortellis_condition", "Cortellis_indication", "ICD9", "ICD10"),
-  whitelist = NA
-)
+cluster_disNet(disNet, clusterOn = c("xref"), ambiguity = 1)
 }
 \arguments{
 \item{disNet}{the disease network to cluster and split}

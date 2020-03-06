@@ -10,8 +10,7 @@ extend_disNet(
   step = NULL,
   transitive.ambiguity = 1,
   intransitive.ambiguity = NULL,
-  avoidNodes = NULL,
-  avoidOrigin = NULL
+  avoidNodes = NULL
 )
 }
 \arguments{
