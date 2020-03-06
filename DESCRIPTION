@@ -4,7 +4,10 @@ Title: Dictionary of Disease Ontologies (DODO)
 Version: 1.0.0
 Author: Liesbeth François, Patrice Godard
 Maintainer: Liesbeth François <francois.liesbeth@gmail.com>
-Description: This package is a temporary package to develop DODO based on Neo4j.
+Description: DODO is a Neo4j database that collects the information of 
+    different disease ontologies. This package aims to provide 
+    convenient entrypoint to DOD and allows the conversion of disease identifiers 
+    between databases or the construction of a disease landscape.
 License: TBD
 LazyData: TRUE
 Depends:
