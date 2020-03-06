@@ -1,7 +1,7 @@
 Package: neoDODO
 Type: Package
 Title: Dictionary of Disease Ontologies (DODO)
-Version: 0.0.2
+Version: 1.0.0
 Author: Liesbeth François, Patrice Godard
 Maintainer: Liesbeth François <francois.liesbeth@gmail.com>
 Description: This package is a temporary package to develop DODO based on Neo4j.
