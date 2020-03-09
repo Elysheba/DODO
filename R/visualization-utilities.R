@@ -155,10 +155,9 @@ plot.setDisNet <- function(
 #' @param dbid concept identifier formatted as db:id
 #' @param relations the kind of relationships to take into account -> xref
 #' @param step the depth of the search (default: 10000 ==> ~exhaustive)
-#' @param forwardAmbiguity level of forward ambiguity allowed
-#' (default: 10000 ==> ~no filter)
-#' @param backwardAmbiguity level of backward ambiguity allowed
-#' (default: 1 ==> no ambiguity allowed)
+#' @param transitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
+# @param FA.non_transitivity forward ambiguity while using transitivity to identify cross-references (default: no filter)
+#' @param intransitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: no filter)
 #' @param blacklist a vector of databases to avoid when extending (default = NA)
 #' @param whitelist a vector of databases to trust when extending, only going through these database nodes (default = NA) 
 #' 
@@ -167,11 +166,9 @@ plot.setDisNet <- function(
 #' @export
 
 show_relations <- function(dbid,
-                          step = NULL
-                          # forwardAmbiguity = 10000,
-                          # backwardAmbiguity = 1,
-                          # blacklist = c("Cortellis_condition", "Cortellis_indication","ICD9", "ICD10"),
-                          # whitelist = NA
+                          step = NULL,
+                          transitive.ambiguity = transitive.ambiguity, 
+                          intransitive.ambiguity = intransitive.ambiguity
                           ){
   if(length(dbid) > 1){
     stop("Too many ids provided")
@@ -181,8 +178,8 @@ show_relations <- function(dbid,
   xref <- extend_disNet(build_disNet(id = dbid), 
                         relations = "xref", 
                         step = step,
-                        # forwardAmbiguity = forwardAmbiguity,
-                        backwardAmbiguity = backwardAmbiguity)
+                        transitive.ambiguity = transitive.ambiguity, 
+                        intransitive.ambiguity = intransitive.ambiguity)
   col <- color_database(disNet = xref)
   
   ## network object

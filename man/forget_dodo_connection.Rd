@@ -13,6 +13,6 @@ forget_dodo_connection(connection)
 Forget a DODO connection
 }
 \seealso{
-\link{ls_dodo_connections},
+\link{list_dodo_connections},
 \link{connect_to_dodo}, \link{check_dodo_connection}
 }

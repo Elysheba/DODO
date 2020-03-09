@@ -28,8 +28,6 @@ Possible values among combinations of: "xref", "child", "parent", and/or "pheno"
 
 \item{avoidNodes}{a vector of disease ids to be avoided in the search path}
 
-\item{avoidOrigin:}{allows to avoid traversing parent/child edges from a particular ontology (default = NULL)}
-
 \item{verbose}{show query input (default = FALSE)}
 }
 \value{

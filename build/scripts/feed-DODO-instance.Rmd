@@ -30,7 +30,7 @@ In this example several publically available disease ontologies are integrated i
 
 ```{r config, message=FALSE}
 ##
-library(neoDODO)
+library(DODO)
 library(knitr)
 library(here)
 library(dplyr)
@@ -42,7 +42,7 @@ library(ReDaMoR)
 ##
 
 workingDirectory <- here("build/working")
-# setwd("~/Documents/Development/neoDODO/build/working/")
+# setwd("~/Documents/Development/DODO/build/working/")
 ##
 opts_knit$set(root.dir=workingDirectory)
 opts_chunk$set(
@@ -66,7 +66,7 @@ if(params$type == "internal"){
 }
 connect_to_dodo(
    url = url,
-   importPath = "/data/lfrancois/Development/neoDODO/build/working/neo4jImport"
+   importPath = "/data/lfrancois/Development/DODO/build/working/neo4jImport"
    # importPath = "neo4jImport"
 )
 
@@ -98,6 +98,14 @@ for(s in src){
     assign(gsub(".txt","",i), x) 
   }
 }
+
+## Some issues in the first lines of HPO files
+toRem <- grep("disease-db", HPO_diseaseHP$db)
+HPO_diseaseHP <- HPO_diseaseHP[-toRem,]
+toRem <- grep("disease-db", HPO_diseases$db)
+HPO_diseases <- HPO_diseases[-toRem,]
+toRem <- grep("disease-db", HPO_diseaseSynonyms$db)
+HPO_diseaseSynonyms <- HPO_diseaseSynonyms[-toRem,]
 ```
 
 
@@ -200,7 +208,7 @@ datatable(xrefDB,
 HPO captures phenotype information, the information in the HPO parsed files needs to be harmonized before joining.
 
 ```{r harm_hpo, echo = TRUE, results = "hide", prompt = TRUE}
-list2env(neoDODO:::harmonize_HPO(
+list2env(DODO:::harmonize_HPO(
   HPO_diseaseHP,
   HPO_synonyms,
   HPO_hp,
@@ -226,7 +234,7 @@ if(params$type == "internal"){
                        colClasses= c("character")) %>%
     dplyr::mutate(conditionId = paste("Cortellis_condition", conditionId, sep = ":")) %>%
     dplyr::distinct(conditionId, .keep_all = T) 
-   list2env(neoDODO:::harmonize_Cortellis(
+   list2env(DODO:::harmonize_Cortellis(
      CortellisONT_siConditions = CortellisONT_siConditions,
      CortellisONT_siConditionXref = CortellisONT_siConditionXref,
      CortellisONT_siConditionParents = CortellisONT_siConditionParents,
@@ -302,7 +310,7 @@ DODO_idNames <- DODO_idNames %>%
 ClinVar uses an internal clinvar disease identifier (t.id) that cross-references to different ontology. To complete the information and facilitate integration with ClinVar resource, this information is added in DODO.
 
 ```{r load_cv}
-list2env(neoDODO:::load_ClinVar(
+list2env(DODO:::load_ClinVar(
   DODO_entryId = DODO_entryId,
   path_name = "/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/ClinVar/data/",
   traitCref = "ClinVar_traitCref.txt", 
@@ -525,7 +533,7 @@ Connect to Neo4j and specify import path to load data.
 ```{r, message=FALSE, eval=FALSE}
 connect_to_dodo(
    url=url,
-   importPath = "/data/lfrancois/Development/neoDODO/build/working/neo4jImport"
+   importPath = "/data/lfrancois/Development/DODO/build/working/neo4jImport"
    # importPath = "neo4jImport"
 )
 ```
@@ -546,13 +554,13 @@ dbSize <- call_dodo(cypher, 'MATCH (n) RETURN count(n)')[,1]
 ```{r, message=FALSE}
 print(dodoInstance)
 print(dodoVersion)
-neoDODO:::set_dodo_version(dodoInstance=dodoInstance, dodoVersion=dodoVersion)
+DODO:::set_dodo_version(dodoInstance=dodoInstance, dodoVersion=dodoVersion)
 ```
 
 ## Load Data model
 
 ```{r, message=FALSE}
-neoDODO:::load_dodo_model()
+DODO:::load_dodo_model()
 ```
 
 <!----------------------------------------------------------------->
@@ -587,7 +595,7 @@ toImport <- DODO_entryId %>%
 # toImport$origin <- db
 concept <- "Concept"
 stopifnot(nrow(distinct(toImport, name))==nrow(toImport))
-neoDODO:::load_concept_definitions(toImport=toImport, concept=concept)
+DODO:::load_concept_definitions(toImport=toImport, concept=concept)
 ```
 
 ## Synonyms
@@ -599,7 +607,7 @@ toImport <- DODO_idNames %>%
          "name" = dbid,
          "value"=syn) %>%
   distinct()
-neoDODO:::load_concept_synonyms(toImport=toImport, concept=concept)
+DODO:::load_concept_synonyms(toImport=toImport, concept=concept)
 ```
 
 ## Alternative identifiers
@@ -610,7 +618,7 @@ toImport <- DODO_altId %>%
          "shortID"="id", 
          "altdb"="altDB", 
          "altid"="alt")
-neoDODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
+DODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
 ```
 
 ## Parents
@@ -622,15 +630,18 @@ toImport <- DODO_parentId %>%
          "parentdb"=pDB, 
          "parentid"=parent,
          origin)
-neoDODO:::load_parent_identifiers(toImport=toImport, concept=concept)
+DODO:::load_parent_identifiers(toImport=toImport, concept=concept)
 ```
 
 ## Cross-references
 
 ```{r}
+xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"))
+datatable(xrefDB,
+          rownames = FALSE)
 toImport <- DODO_crossId %>%
   select(DB1, id1, DB2, id2)
-neoDODO:::load_cross_references(
+DODO:::load_cross_references(
   toImport = toImport, 
   xrefDB = xrefDB, 
   concept = concept
@@ -641,17 +652,17 @@ neoDODO:::load_cross_references(
 
 ```{r}
 nodes <- DODO_entryId %>% filter(DB == "HP") %>% pull(dbid)
-neoDODO:::set_labels(concept = "Phenotype", nodes = nodes)
+DODO:::set_labels(concept = "Phenotype", nodes = nodes)
 
 nodes <- DODO_entryId %>% filter(DB != "HP") %>% pull(dbid)
-neoDODO:::set_labels(concept = "Disease", nodes = nodes)
+DODO:::set_labels(concept = "Disease", nodes = nodes)
 
 toImport <- DODO_pheno2dis %>%
   select(diseaseDB = disDB, 
          diseaseID = disID, 
          phenoID = phenoID,
          phenoDB = phenoDB)
-neoDODO:::load_has_phenotypes(toImport=toImport)
+DODO:::load_has_phenotypes(toImport=toImport)
 ```
 
 ## Additional databases
@@ -669,7 +680,7 @@ toImport <- bind_rows(DODO_parentId %>% select(DB,
   select(database = DB,
          shortID = id,
          origin)
-neoDODO:::load_concept_names(toImport = toImport, concept = concept)
+DODO:::load_concept_names(toImport = toImport, concept = concept)
 ```
 
 # Database URL templates
@@ -678,7 +689,7 @@ neoDODO:::load_concept_names(toImport = toImport, concept = concept)
 databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"), col_names = c("name", "idURL"))
 # datatable(databases,
 #           rownames = FALSE)
-neoDODO:::load_db_definitions(toImport=databases)
+DODO:::load_db_definitions(toImport=databases)
 ```
 
 ## Write files

@@ -12,12 +12,10 @@
 #' Possible values among combinations of: "xref", "child", "parent", and/or "pheno".
 #' (Default value: "xref")
 #' @param step the number of steps to take in the search (default: 10000 ==> ~exhaustive)
-# @param FA.transitivity forward ambiguity while using transitivity to identify cross-references (default: no filter)
 #' @param transitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
-# @param FA.non_transitivity forward ambiguity while using transitivity to identify cross-references (default: no filter)
 #' @param intransitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: no filter)
 #' @param avoidNodes a vector of disease ids to be avoided in the search path
-#' @param avoidOrigin: allows to avoid traversing parent/child edges from a particular ontology (default = NULL)
+# @param avoidOrigin: allows to avoid traversing parent/child edges from a particular ontology (default = NULL)
 #' @param verbose show query input (default = FALSE)
 #' 
 #' @details 
@@ -140,7 +138,7 @@ extend_disNet <- function(
               
     
     ## run transitivity ----
-    transitivity <- neoDODO::call_dodo(
+    transitivity <- DODO::call_dodo(
         neo2R::cypher,
         prepCql(cql.trans),
         parameters = list(from = as.list(ids),
@@ -264,7 +262,7 @@ extend_disNet <- function(
       'WHERE n.name in $from',
       'RETURN DISTINCT n.name as id, a.name as alt'
     )
-    if(!is.null(alt)){
+    if(nrow(alt) != 0){
       alt <- call_dodo(cypher,
                        prepCql(cql.alt),
                        result = "row",

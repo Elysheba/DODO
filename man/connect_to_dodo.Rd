@@ -25,7 +25,7 @@ connect_to_dodo(
 default the first registered connection is used.}
 
 \item{remember}{if TRUE the connection is registered. All the registered
-connections can be listed with \link{ls_dodo_connections} and any of
+connections can be listed with \link{list_dodo_connections} and any of
 them can be forgotten with \link{forget_dodo_connection}.}
 
 \item{importPath}{the path to the import folder for loading information
@@ -43,6 +43,6 @@ Be carefull that you should reconnect to DODO database each time
 the environment is reloaded.
 }
 \seealso{
-\link{check_dodo_connection}, \link{ls_dodo_connections},
+\link{check_dodo_connection}, \link{list_dodo_connections},
 \link{forget_dodo_connection}
 }

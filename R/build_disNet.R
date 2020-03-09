@@ -273,7 +273,7 @@ build_disNet <- function(id = NULL,
 
   diseaseNetwork <- structure(diseaseNetwork,
                               class = "disNet")
-  return(neoDODO::normalize_disNet(diseaseNetwork))
+  return(DODO::normalize_disNet(diseaseNetwork))
 }
 
 #========================================================================================@

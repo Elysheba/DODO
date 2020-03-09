@@ -75,8 +75,8 @@ load_dodo_model <- function(){
   invisible(TRUE)
 }
 
-#========================================================================================
-#========================================================================================
+#========================================================================================@
+#========================================================================================@
 #' Harmonize Cortellis information
 #' 
 #' Harmonizing the Cortellis input information for DODO
@@ -629,13 +629,13 @@ load_db_names <- function(toImport){
   ## Checks ----
   tlc <- c("name"="character")
   mandatory <- c("name")
-  neoDODO:::check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   
   ## Query ----
   cql <- c(
     'MERGE (db:Database {name:row.name})'
   )
-  neoDODO:::import_in_dodo(cql = neo2R::prepCql(cql), toImport = toImport)
+  DODO:::import_in_dodo(cql = neo2R::prepCql(cql), toImport = toImport)
 }
 
 
@@ -670,7 +670,7 @@ load_concept_names <- function(toImport, concept){
     "database",
     "shortID"
   )
-  check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   toImport$origin <- ifelse(
     is.na(toImport$origin), toImport$database, toImport$origin
   )
@@ -678,16 +678,16 @@ load_concept_names <- function(toImport, concept){
   ## Load databases first ----
   dbs <- unique(toImport[, "origin", drop=FALSE])
   colnames(dbs) <- "name"
-  load_db_names(dbs)
+  DODO:::load_db_names(dbs)
   
   ## Query ----
   cql <- c(
     'MATCH (db:Database {name:row.origin})',
     sprintf('MERGE (c:%s {name:row.name})', concept),
-    'SET c.shortID=row.shortID, c.database=row.database,',
+    'SET c.shortID=row.shortID, c.database=row.database',
     'MERGE (c)-[:is_in]->(db)'
   )
-  import_in_dodo(neo2R::prepCql(cql), toImport)
+  DODO:::import_in_dodo(neo2R::prepCql(cql), toImport)
 }
 
 #========================================================================================@
@@ -728,7 +728,7 @@ load_concept_definitions <- function(toImport, concept){
     "database",
     "shortID"
   )
-  neoDODO:::check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   toImport$origin <- ifelse(
     is.na(toImport$origin), toImport$database, toImport$origin
   )
@@ -738,7 +738,7 @@ load_concept_definitions <- function(toImport, concept){
   ## Load databases first ----
   dbs <- unique(toImport[, "origin", drop=FALSE])
   colnames(dbs) <- "name"
-  neoDODO:::load_db_names(toImport = dbs)
+  DODO:::load_db_names(toImport = dbs)
   
   ## Query ----
   cql <- c(
@@ -750,7 +750,7 @@ load_concept_definitions <- function(toImport, concept){
     'c.level=toInteger(row.level)',
     'MERGE (c)-[:is_in]->(db)'
   )
-   neoDODO:::import_in_dodo(neo2R::prepCql(cql), toImport)
+   DODO:::import_in_dodo(neo2R::prepCql(cql), toImport)
 }
 
 
@@ -784,14 +784,14 @@ load_concept_synonyms <- function(toImport, concept){
     "shortID",
     "value"
   )
-  check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   # toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   toImport$value_up <- toupper(toImport$value)
   toImport <- toImport
   
   ## Concepts ----
   cToImport <- unique(toImport[, c("database", "shortID")])
-  load_concept_names(cToImport, concept)
+  DODO:::load_concept_names(cToImport, concept)
   
   ## Query ----
   cql <- c(
@@ -799,7 +799,7 @@ load_concept_synonyms <- function(toImport, concept){
     'MERGE (s:Synonym {value:row.value, value_up:row.value_up})',
     'MERGE (c)-[:is_known_as]->(s)'
   )
-  import_in_dodo(
+  DODO:::import_in_dodo(
     neo2R::prepCql(cql),
     toImport[, c("name", "value", "value_up")]
   )
@@ -836,7 +836,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
     "DB2",
     "id2"
   )
-  check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   tlc <- c(
     "DB1"="character",
     "DB2"="character"
@@ -845,7 +845,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
     "DB1",
     "DB2"
   )
-  check_df_to_import(xrefDB, tlc, mandatory)
+  DODO:::check_df_to_import(xrefDB, tlc, mandatory)
   
   ## Split cross references ----
   # xdb <- apply(xrefDB, 1, function(x) paste(sort(x), collapse=".."))
@@ -871,7 +871,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
     cToImport2 <- toImport[, c("DB2", "id2")]
     colnames(cToImport1) <- colnames(cToImport2) <- c("database", "shortID")
     cToImport <- unique(rbind(cToImport1, cToImport2))
-    load_concept_names(cToImport, concept)
+    DODO:::load_concept_names(cToImport, concept)
     
     ## References ----
     toImport$f <- paste(toImport$DB1, toImport$id1, sep=":")
@@ -882,10 +882,10 @@ load_cross_references <- function(toImport, xrefDB, concept){
       sprintf('MERGE (f)-[:%s]->(t)', type),
       sprintf('MERGE (f)<-[:%s]-(t)', type)
     )
-    import_in_dodo(neo2R::prepCql(cql), toImport[,c("f", "t")])
+    DODO:::import_in_dodo(neo2R::prepCql(cql), toImport[,c("f", "t")])
     
     ## Update ambiguity ----
-    call_dodo(neo2R::cypher, query=prepCql(c(
+    DODO:::call_dodo(neo2R::cypher, query=prepCql(c(
       sprintf('MATCH (c)-[f:%s]->(r)-[b:%s]->(c)', type, type),
       'MATCH (r)-[:is_in]->(d:Database)',
       'WITH c.name AS cname, d.name AS refDB,',
@@ -894,7 +894,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
       'FOREACH(e in allf | set e.FA=rcount)',
       'FOREACH(e in allb | set e.BA=rcount)'
     )))
-    call_dodo(
+    DODO:::call_dodo(
       neo2R::cypher,
       query=prepCql(c(
         sprintf(
@@ -907,7 +907,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
     )
     ## when updating new resources, the ambiguity will be calculated on the fly
     ## the old _nba edge might be deprecated and needs to be deleted
-    call_dodo(
+    DODO:::call_dodo(
       neo2R::cypher,
       query=prepCql(c(
         sprintf(
@@ -958,7 +958,7 @@ load_alternative_identifiers <- function(toImport, concept){
     "altdb",
     "altid"
   )
-  check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   toImport$alt <- paste(toImport$altdb, toImport$altid, sep=":")
   
@@ -967,7 +967,7 @@ load_alternative_identifiers <- function(toImport, concept){
   cToImport2 <- toImport[, c("altdb", "altid")]
   colnames(cToImport1) <- colnames(cToImport2) <- c("database", "shortID")
   cToImport <- unique(rbind(cToImport1, cToImport2))
-  load_concept_names(cToImport, concept)
+  DODO:::load_concept_names(cToImport, concept)
   
   ## Query ----
   cql <- c(
@@ -975,7 +975,8 @@ load_alternative_identifiers <- function(toImport, concept){
     sprintf('MATCH (a:%s {name:row.alt})', concept),
     'MERGE (a)-[:is_alt]->(c)'
   )
-  import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "alt")])
+  DODO:::import_in_dodo(neo2R::prepCql(cql), 
+                        toImport[, c("name", "alt")])
 }
 
 #========================================================================================@
@@ -992,14 +993,14 @@ load_db_definitions <- function(toImport){
   ## Checks ----
   tlc <- c("name"="character", "idURL"="character")
   mandatory <- c("name")#, "idURL")
-  neoDODO:::check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   
   ## Query ----
   cql <- c(
     'MERGE (db:Database {name:row.name})',
     'SET db.idURL=row.idURL'
   )
-  import_in_dodo(neo2R::prepCql(cql), toImport)
+  DODO:::import_in_dodo(neo2R::prepCql(cql), toImport)
 }
 
 #========================================================================================@
@@ -1012,7 +1013,7 @@ set_labels <- function(concept, nodes){
   concept <- match.arg(concept, c("Phenotype", "Disease"), several.ok = FALSE)
   cql <- c('MATCH (p:Concept) WHERE p.name in $from',
            sprintf('SET p:%s', concept))
-  call_dodo(cypher,
+  DODO:::call_dodo(cypher,
             prepCql(cql),
             parameters = list(from = as.list(nodes)))
 }
@@ -1043,7 +1044,7 @@ load_has_phenotypes <- function(toImport){
     "phenoDB",
     "phenoID"
   )
-  neoDODO:::check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   toImport$disease <- paste(toImport$diseaseDB, toImport$diseaseID, sep=":")
   toImport$phenotype <- paste(toImport$phenoDB, toImport$phenoID, sep=":")
   
@@ -1060,7 +1061,7 @@ load_has_phenotypes <- function(toImport){
     'MATCH (p:Phenotype {name:row.phenotype})',
     'MERGE (d)-[:has_pheno]->(p)'
   )
-  import_in_dodo(neo2R::prepCql(cql), toImport[, c("disease", "phenotype")])
+  DODO:::import_in_dodo(neo2R::prepCql(cql), toImport[, c("disease", "phenotype")])
 }
 
 #========================================================================================@
@@ -1095,7 +1096,7 @@ load_parent_identifiers <- function(toImport, concept, origin){
     "parentid",
     "origin"
   )
-  check_df_to_import(toImport, tlc, mandatory)
+  DODO:::check_df_to_import(toImport, tlc, mandatory)
   toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   toImport$parent <- paste(toImport$parentdb, toImport$parentid, sep=":")
   
@@ -1104,7 +1105,7 @@ load_parent_identifiers <- function(toImport, concept, origin){
   cToImport2 <- toImport[, c("parentdb", "parentid")]
   colnames(cToImport1) <- colnames(cToImport2) <- c("database", "shortID")
   cToImport <- unique(rbind(cToImport1, cToImport2))
-  load_concept_names(cToImport, concept)
+  DODO:::load_concept_names(cToImport, concept)
   
   ## Query ----
   cql <- c(
@@ -1112,7 +1113,7 @@ load_parent_identifiers <- function(toImport, concept, origin){
     sprintf('MATCH (p:%s {name:row.parent})', concept),
     sprintf('MERGE (c)-[r:is_a]->(p) ON CREATE SET r.origin = row.origin')
   )
-  neoDODO:::import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "parent","origin")])
+  DODO:::import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "parent","origin")])
 }
 
 

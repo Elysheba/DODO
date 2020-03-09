@@ -5,13 +5,8 @@
 #' 
 #' @param disNet the disease network to cluster and split
 #' @param clusterOn clustering taking either or both descendants and cross-references (values = "children","xref)
-#' @param forwardAmbiguity level of forward ambiguity allowed
-#' (default: 10000 ==> ~no filter)
-#' @param backwardAmbiguity level of backward ambiguity allowed
-#' (default: 1 ==> no ambiguity allowed)
-#' @param blacklist a vector of databases to avoid when extending (default = NA)
-#' @param whitelist a vector of databases to trust when extending, only going through these database nodes (default = NA) 
-#' 
+#' @param ambiguity level of backward ambiguity allowed
+#' (default: 1 ==> no ambiguity allowed) 
 #' @return A list of normalized disease networks: setDisNet object
 #' 
 #' @details 

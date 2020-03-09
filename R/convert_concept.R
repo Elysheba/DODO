@@ -29,7 +29,7 @@ convert_concept <- function(from,
                             verbose = FALSE){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"))
    to.concept <- match.arg(to.concept, c("Disease", "Phenotype"))
-   to <- match.arg(to, c(NULL, list_db()$database))
+   db.to <- match.arg(to, c(NULL, list_db()$database))
    from <- setdiff(from, NA)
    stopifnot(is.character(from), length(from)>0)
    
@@ -75,6 +75,11 @@ convert_concept <- function(from,
       parameters = list(from = as.list(from)),
       result = "row")
    
+   if(nrow(b1) == 0){
+      b1 <- tibble::tibble(from = character(),
+                           to = character())
+   }
+   
    #############################################@
    ## Convert between concepts: B2
    if(from.concept != to.concept){
@@ -91,6 +96,9 @@ convert_concept <- function(from,
          parameters = list(from = as.list(from)),
          result = "row"
       )
+   }else{
+      b2 <- tibble::tibble(from = character(),
+                           to = character())
    }
    
    toRet <- dplyr::bind_rows(b1,
@@ -129,7 +137,10 @@ convert_concept <- function(from,
    toRet <- dplyr::bind_rows(toRet,
                              b3)
    
-
+   if(!is.null(to)){
+      toRet <- toRet %>% 
+         dplyr::filter(grepl(glue::glue("{db.to}"), to))
+   }
    
    return(toRet)
 }

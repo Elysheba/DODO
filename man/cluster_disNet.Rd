@@ -11,15 +11,8 @@ cluster_disNet(disNet, clusterOn = c("xref"), ambiguity = 1)
 
 \item{clusterOn}{clustering taking either or both descendants and cross-references (values = "children","xref)}
 
-\item{forwardAmbiguity}{level of forward ambiguity allowed
-(default: 10000 ==> ~no filter)}
-
-\item{backwardAmbiguity}{level of backward ambiguity allowed
+\item{ambiguity}{level of backward ambiguity allowed
 (default: 1 ==> no ambiguity allowed)}
-
-\item{blacklist}{a vector of databases to avoid when extending (default = NA)}
-
-\item{whitelist}{a vector of databases to trust when extending, only going through these database nodes (default = NA)}
 }
 \value{
 A list of normalized disease networks: setDisNet object

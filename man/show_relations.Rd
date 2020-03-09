@@ -4,20 +4,23 @@
 \alias{show_relations}
 \title{Identify and show all relationships}
 \usage{
-show_relations(dbid, step = NULL)
+show_relations(
+  dbid,
+  step = NULL,
+  transitive.ambiguity = transitive.ambiguity,
+  intransitive.ambiguity = intransitive.ambiguity
+)
 }
 \arguments{
 \item{dbid}{concept identifier formatted as db:id}
 
 \item{step}{the depth of the search (default: 10000 ==> ~exhaustive)}
 
+\item{transitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
+
+\item{intransitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: no filter)}
+
 \item{relations}{the kind of relationships to take into account -> xref}
-
-\item{forwardAmbiguity}{level of forward ambiguity allowed
-(default: 10000 ==> ~no filter)}
-
-\item{backwardAmbiguity}{level of backward ambiguity allowed
-(default: 1 ==> no ambiguity allowed)}
 
 \item{blacklist}{a vector of databases to avoid when extending (default = NA)}
 

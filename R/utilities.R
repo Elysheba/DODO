@@ -9,7 +9,7 @@
 #' @param connection the id of the connection already registered to use. By
 #' default the first registered connection is used.
 #' @param remember if TRUE the connection is registered. All the registered
-#' connections can be listed with [ls_dodo_connections] and any of
+#' connections can be listed with [list_dodo_connections] and any of
 #' them can be forgotten with [forget_dodo_connection].
 #' @param importPath the path to the import folder for loading information
 #' in DODO (used only when feeding the database ==> default: NA)
@@ -20,7 +20,7 @@
 #' @details Be carefull that you should reconnect to DODO database each time
 #' the environment is reloaded.
 #'
-#' @seealso [check_dodo_connection], [ls_dodo_connections],
+#' @seealso [check_dodo_connection], [list_dodo_connections],
 #' [forget_dodo_connection]
 #'
 #' @export
@@ -232,7 +232,7 @@ list_dodo_connections <- function(){
 #'
 #' @param connection the id of the connection to forget.
 #'
-#' @seealso [ls_dodo_connections],
+#' @seealso [list_dodo_connections],
 #' [connect_to_dodo], [check_dodo_connection]
 #'
 #' @export

@@ -12,7 +12,7 @@ shinyConcept <- function(){
   library(DT)
   library(shinythemes)
   
-  if(!neoDODO:::check_dodo_connection()){
+  if(!DODO:::check_dodo_connection()){
     stop("No connection to DODO instance")
   }
   
@@ -148,7 +148,7 @@ conceptSearchInput <- function(id,
 conceptSearch <- function(input, output, session, internal = TRUE){
   # Define UI for application that draws a histogram
   ## DODO dbs
-  db <- neoDODO::list_db()$database
+  db <- DODO::list_db()$database
   
   ## search fields
   output$fields <- renderUI({
@@ -202,7 +202,7 @@ conceptSearch <- function(input, output, session, internal = TRUE){
       type <- "term"
     }
     ##
-    tmp <- try(neoDODO:::searchDODO(searchTerm = term(),
+    tmp <- try(DODO:::searchDODO(searchTerm = term(),
                                    type =  type,
                                    fields = input$fields,
                                    database = database),
