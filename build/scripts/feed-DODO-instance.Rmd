@@ -198,7 +198,8 @@ datatable(toShow,
 There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges.
 
 ```{r db_xref_edge, echo = FALSE, include = TRUE}
-xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"))
+xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"),sheet = "Max_ambiguity_3_across_DBs"
+                            )
 datatable(xrefDB,
           rownames = FALSE)
 ```
@@ -636,7 +637,8 @@ DODO:::load_parent_identifiers(toImport=toImport, concept=concept)
 ## Cross-references
 
 ```{r}
-xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"))
+xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"),sheet = "Max_ambiguity_3_across_DBs"
+                            )
 datatable(xrefDB,
           rownames = FALSE)
 toImport <- DODO_crossId %>%
