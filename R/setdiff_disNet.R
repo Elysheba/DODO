@@ -18,7 +18,7 @@
 #' 
 #' @export
 #' 
-setdiffDisNet <- function(disNet1, 
+setdiff_disNet <- function(disNet1, 
                           disNet2
                           # keepAllNodes = FALSE, 
                           # keepAllSeed = TRUE

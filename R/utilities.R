@@ -284,7 +284,7 @@ dodoCall <- function(f, ..., dodoCheck=FALSE){
 #'
 #' @export
 #'
-list_db <- function(){
+list_database <- function(){
   ## Prepare query
   cql <- c('MATCH (n:Database)<-[r:is_in]-(d)',
            'RETURN n.name as database, count(r) as count')
@@ -427,7 +427,7 @@ get_version <- function(){
 #'
 #' @export
 #'
-get_schema <- function(){
+show_dodo_model <- function(){
   pkgname <- utils::packageName()
   htmlFile <- system.file(
     "documentation", "data-model", "DODO.html",
@@ -436,4 +436,32 @@ get_schema <- function(){
   utils::browseURL(paste0('file://', htmlFile))
 }
 
+#========================================================================================@
+#========================================================================================@
+#' Helper to build queries for multicypher
+#' 
+#' @param statements cypher query
+#' @param result the way to return results. "row" will return a data frame
+#' and "graph" will return a list of nodes, a list of relationships and 
+#' a list of paths (vectors of relationships identifiers).
+#' @param parameters parameters for the cypher query
+#' 
+build_multicypher <- function(statements,
+                              result = "row",
+                              parameters = NULL){
+  if(length(result) != length(statements)){
+    result <- rep(result, length(statements))
+  }
+  qs <- lapply(1:length(statements),
+               function(s){
+                 toRet <- list(statement = statements[[s]],
+                               resultDataContents = list(result[s]))
+                 if(!is.null(parameters)){
+                   toRet$parameters <- parameters
+                 }
+                 return(toRet)
+               })
+  names(qs) <- names(statements)
+  return(qs)
+}
 

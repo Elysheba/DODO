@@ -96,7 +96,9 @@ build_disNet <- function(id = NULL,
   #########################@
   ## Check ----
   fields <- match.arg(fields, c("label", "synonym"), several.ok = TRUE)
-  if(!is.null(avoidOrigin)){match.arg(avoidOrigin, list_db()$database, several.ok = T)}
+  if(!is.null(avoidOrigin)){match.arg(avoidOrigin, 
+                                      list_database()$database, 
+                                      several.ok = T)}
   
   stopifnot(is.null(ambiguity) || ambiguity == 1,
             xor(is.null(id), is.null(term)))
@@ -151,7 +153,7 @@ build_disNet <- function(id = NULL,
   
   ## Terms
   if(!is.null(term)){
-    id <- findTerm(term = term,
+    id <- find_term(term = term,
                    fields = fields)
   }
   
@@ -368,24 +370,24 @@ dim.disNet <- function(x, ...){
 
 #========================================================================================@
 #========================================================================================@
-#' Slice a disNet
-#' 
-#' Choose rows by their ordinal position in the disNet
-#' 
-#' @param x disNet object
-#' @param n Integer row values. Provide either positive values to keep, or 
-#' negative values to drop. The values provided must be either all positive 
-#' or all negative. Indices beyond the number of rows in the input are silently ignored.
-#' 
-#' @export
-#' 
-slice_disNet <- function(x,
-                         n){
-  x$nodes <- x$nodes %>%
-    dplyr::slice(n)
-  return(normalize_disNet(x))
-  
-}
+# Slice a disNet
+# 
+# Choose rows by their ordinal position in the disNet
+# 
+# @param x disNet object
+# @param n Integer row values. Provide either positive values to keep, or 
+# negative values to drop. The values provided must be either all positive 
+# or all negative. Indices beyond the number of rows in the input are silently ignored.
+# 
+# @export
+# 
+# slice_disNet <- function(x,
+#                          n){
+#   x$nodes <- x$nodes %>%
+#     dplyr::slice(n)
+#   return(normalize_disNet(x))
+#   
+# }
 
 #========================================================================================@
 #========================================================================================@
@@ -469,34 +471,5 @@ normalize_disNet <- function(x){
   return(x)
 }
 
-#========================================================================================@
-#========================================================================================@
-#' Helper to build queries for multicypher
-#' 
-#' @param statements cypher query
-#' @param result the way to return results. "row" will return a data frame
-#' and "graph" will return a list of nodes, a list of relationships and 
-#' a list of paths (vectors of relationships identifiers).
-#' @param parameters parameters for the cypher query
-#' 
-#' @export
-build_multicypher <- function(statements,
-                          result = "row",
-                          parameters = NULL){
-  if(length(result) != length(statements)){
-    result <- rep(result, length(statements))
-  }
-  qs <- lapply(1:length(statements),
-               function(s){
-                 toRet <- list(statement = statements[[s]],
-                               resultDataContents = list(result[s]))
-                 if(!is.null(parameters)){
-                   toRet$parameters <- parameters
-                 }
-                 return(toRet)
-               })
-  names(qs) <- names(statements)
-  return(qs)
-}
 
 

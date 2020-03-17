@@ -27,9 +27,9 @@ convert_concept <- function(from,
                             transitive_ambiguity = 1,
                             intransitive_ambiguity = NULL,
                             verbose = FALSE){
-   from.concept <- match.arg(from.concept, c("Disease", "Phenotype"))
-   to.concept <- match.arg(to.concept, c("Disease", "Phenotype"))
-   db.to <- match.arg(to, c(NULL, list_db()$database))
+   from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
+   to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
+   db.to <- match.arg(to, c(NULL, list_database()$database))
    from <- setdiff(from, NA)
    stopifnot(is.character(from), length(from)>0)
    
@@ -48,36 +48,57 @@ convert_concept <- function(from,
       relationship <- ":is_related_nba|is_xref_nba*0..1"
    }
    
-   #############################################@
-   ## To convert identifiers between concepts, first they are converted within the concept (d-d, p-p) = B1 
-   ## followed by a conversion between concepts (d-p, p-d) = B2
-   
-   ## Convert within concepts: B1
-   cql <- c(
-      sprintf('MATCH (f:%s) WHERE f.name IN $from',
-         from.concept),
-      'CALL apoc.path.expandConfig(',
-      sprintf('f, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s>"}',
-              transitivity),
-      ') YIELD path',
-      'WITH (nodes(path))[0] as s, last(nodes(path)) as e',
-      sprintf('MATCH (e)-[%s]->(e2)',
-              relationship),
-      'RETURN DISTINCT',
-      's.name as from, e2.name as to'
-      # '(nodes(path))[0].name AS from, ',
-      # 'last(nodes(path)).name AS to, ',
-      # 'size(relationships(path)) AS hops'
-   )
-   b1 <- call_dodo(
-      neo2R::cypher,
-      prepCql(cql),
-      parameters = list(from = as.list(from)),
-      result = "row")
-   
-   if(nrow(b1) == 0){
-      b1 <- tibble::tibble(from = character(),
-                           to = character())
+   if(!deprecated){
+      #############################################@
+      ## To convert identifiers between concepts, first they are converted within the concept (d-d, p-p) = B1 
+      ## followed by a conversion between concepts (d-p, p-d) = B2
+      
+      # cql <- c(
+      #    sprintf('MATCH (f:%s)-[%s]-(t:%s)',
+      #            from.concept,
+      #            relationship,
+      #            to.concept),
+      #    'WHERE f.name IN $from',
+      #    "RETURN DISTINCT f.name as from, t.name as to"
+      # )
+      # r1 <- call_dodo(
+      #    neo2R::cypher,
+      #    prepCql(cql),
+      #    parameters = list(from = as.list(from)),
+      #    result = "row")
+      
+      ## Convert within concepts: B1
+      cql <- c(
+         sprintf('MATCH (f:%s)-[%s]-(t:%s) WHERE f.name IN $from',
+            from.concept,
+            relationship,
+            to.concept),
+         'CALL apoc.path.expandConfig(',
+         sprintf('f, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s>"}',
+                 transitivity),
+         ') YIELD path',
+         'WITH f as f, (nodes(path))[0] as s, last(nodes(path)) as e',
+         sprintf('MATCH (e)-[%s]->(e2)',
+                 relationship),
+         'RETURN DISTINCT',
+         's.name as from, e2.name as to'
+         # '(nodes(path))[0].name AS from, ',
+         # 'last(nodes(path)).name AS to, ',
+         # 'size(relationships(path)) AS hops'
+      )
+      toRet <- call_dodo(
+            neo2R::cypher,
+            prepCql(cql),
+            parameters = list(from = as.list(from)),
+            result = "row") %>%
+         tibble::as_tibble()
+      
+      if(nrow(toRet) == 0){
+         b1 <- tibble::tibble(from = character(),
+                              to = character())
+      }else{
+         b1 <- toRet
+      }
    }
    
    #############################################@
@@ -96,9 +117,12 @@ convert_concept <- function(from,
          parameters = list(from = as.list(from)),
          result = "row"
       )
-   }else{
+   }
+   if(from.concept == to.concept || nrow(b2) == 0){
       b2 <- tibble::tibble(from = character(),
                            to = character())
+   }else{
+      b2 <- tibble::as_tibble(b2)
    }
    
    toRet <- dplyr::bind_rows(b1,

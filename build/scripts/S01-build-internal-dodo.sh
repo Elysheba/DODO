@@ -42,6 +42,7 @@ export NJ_APOC_LOC=/data/lfrancois/Development/DODO/build/plugins
 #################################
 ## RUN
 #################################
+cd $NJ_ROOT/scripts
 ./Create-New-DODO-Container.sh
 
 # docker stop $NAME

@@ -31,7 +31,7 @@ plot.disNet <- function(
   stopifnot(is.disNet(disNet))
   
   ## Colors
-  col <- DODO:::colorDatabase(disNet = disNet)
+  col <- DODO:::color_database(disNet = disNet)
   
   ## Edges
   edges <- tibble(from = character(),
@@ -165,30 +165,30 @@ plot.setDisNet <- function(
 #' 
 #' @export
 
-show_relations <- function(dbid,
-                          step = NULL,
-                          transitive.ambiguity = transitive.ambiguity, 
-                          intransitive.ambiguity = intransitive.ambiguity
-                          ){
-  if(length(dbid) > 1){
+show_relations <- function(id,
+                           step = NULL,
+                           transitive.ambiguity = 1, 
+                           intransitive.ambiguity = NULL
+                           ){
+  if(length(id) > 1){
     stop("Too many ids provided")
   }
-  
+  dbid <- id
   ## Extend
   xref <- extend_disNet(build_disNet(id = dbid), 
                         relations = "xref", 
                         step = step,
                         transitive.ambiguity = transitive.ambiguity, 
                         intransitive.ambiguity = intransitive.ambiguity)
-  col <- color_database(disNet = xref)
+  col <- DODO:::color_database(disNet = xref)
   
   ## network object
   nodes <- xref$nodes %>%
     dplyr::select(id, 
                   database,
                   label) %>%
-    dplyr::mutate(shape = case_when(id == dbid ~ "triangle",
-                                    TRUE ~ "dot"),
+    dplyr::mutate(shape = dplyr::case_when(id %in% dbid ~ "triangle",
+                                           TRUE ~ "dot"),
                   color = col[database],
                   title = paste(id, label, sep = " | "),
                   label = id) 
@@ -198,7 +198,7 @@ show_relations <- function(dbid,
                   ambiguity = forwardAmbiguity) %>%
     dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
                                            TRUE ~ "#7fcdbb"),
-                  title = paste("ambiguity = ", ambiguity),
+                  title = paste("Forward ambiguity = ", ambiguity),
                   arrows = "to")
   edges2 <- xref$xref %>%
     dplyr::select(to = from, 
@@ -206,7 +206,7 @@ show_relations <- function(dbid,
                   ambiguity = backwardAmbiguity) %>%
     dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
                                            TRUE ~ "#7fcdbb"),
-                  title = paste("ambiguity = ", ambiguity),
+                  title = paste("Forward ambiguity = ", ambiguity),
                   arrows = "to")
   edges <- dplyr::bind_rows(edges1,
                             edges2) %>%
@@ -249,9 +249,9 @@ color_database <- function(disNet){
                       RColorBrewer::brewer.pal(n = 8, name = "Pastel2"),
                       RColorBrewer::brewer.pal(n = 8, name = "Pastel1"),
                       RColorBrewer::brewer.pal(n = 8, name = "Paired")))
-      db <- listDB()
-      col <- col[1:nrow(db)]
-      names(col) <- pull(db, db)
+      db <- list_database()
+      col <- col[1:nrow(database)]
+      names(col) <- pull(database, database)
       save(col, file = colFile)
     }
   }else{
@@ -263,9 +263,9 @@ color_database <- function(disNet){
                     RColorBrewer::brewer.pal(n = 8, name = "Pastel2"),
                     RColorBrewer::brewer.pal(n = 8, name = "Pastel1"),
                     RColorBrewer::brewer.pal(n = 8, name = "Paired")))
-    db <- listDB()
+    db <- list_database()
     col <- col[1:nrow(db)]
-    names(col) <- pull(db, db)
+    names(col) <- pull(db, database)
     save(col, file = colFile)
   }
   return(col)

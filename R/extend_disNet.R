@@ -70,7 +70,7 @@ extend_disNet <- function(
     stop("Both phenotype and disease extension in relations, pick one...")}
   
   ## avoidOrigin 
-  # if(!is.null(avoidOrigin)){match.arg(avoidOrigin, list_db()$database, several.ok = T)}
+  # if(!is.null(avoidOrigin)){match.arg(avoidOrigin, list_database()$database, several.ok = T)}
   ## ambiguity
   stopifnot(is.null(transitive.ambiguity) || transitive.ambiguity == 1,
             is.null(intransitive.ambiguity) || intransitive.ambiguity == 1)

@@ -5,20 +5,20 @@
 \title{Identify and show all relationships}
 \usage{
 show_relations(
-  dbid,
+  id,
   step = NULL,
-  transitive.ambiguity = transitive.ambiguity,
-  intransitive.ambiguity = intransitive.ambiguity
+  transitive.ambiguity = 1,
+  intransitive.ambiguity = NULL
 )
 }
 \arguments{
-\item{dbid}{concept identifier formatted as db:id}
-
 \item{step}{the depth of the search (default: 10000 ==> ~exhaustive)}
 
 \item{transitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
 
 \item{intransitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: no filter)}
+
+\item{dbid}{concept identifier formatted as db:id}
 
 \item{relations}{the kind of relationships to take into account -> xref}
 

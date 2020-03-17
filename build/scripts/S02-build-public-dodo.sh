@@ -25,14 +25,14 @@ export NJ_HTTP_PORT=7476
 export NJ_BOLT_PORT=7689
 
 ## Change the location of the Neo4j directory
-export NJ_HOME=/data/lfrancois/Development/neoDODO/build/public-working
-export NJ_ROOT=/data/lfrancois/Development/neoDODO/build
+export NJ_HOME=/data/lfrancois/Development/DODO/build/working
+export NJ_ROOT=/data/lfrancois/Development/DODO/build
 
 ## Authorization
 NJ_AUTH=none # set to 'neo4j/1234' if you want to set the 'neo4j' user with the '1234' password.
 
 ## APOC download
-export NJ_APOC_LOC=/data/lfrancois/Development/neoDODO/build/plugins
+export NJ_APOC_LOC=/data/lfrancois/Development/DODO/build/plugins
 # export NJ_APOC_URL=https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.2/apoc-4.0.0.2-all.jar
 # export NJ_APOC=apoc-4.0.0.2-all.jar
 # export NJ_APOC_URL=https://github.com/neo4j-contrib/neo4j-apoc-procedures/releases/download/4.0.0.3/apoc-4.0.0.3-all.jar
@@ -42,4 +42,5 @@ export NJ_APOC_LOC=/data/lfrancois/Development/neoDODO/build/plugins
 #################################
 ## RUN
 #################################
+cd $NJ_ROOT/scripts
 ./Create-New-DODO-Container.sh

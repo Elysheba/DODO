@@ -63,8 +63,8 @@ cluster_disNet <- function(disNet,
     )
     ## Filter ambiguities
     xref <- igraph::delete_edges(xref, 
-                                 which(igraph::E(xref)$forwardAmbiguity > forwardAmbiguity | 
-                                         igraph::E(xref)$backwardAmbiguity > backwardAmbiguity))
+                                 which(#igraph::E(xref)$forwardAmbiguity > forwardAmbiguity | 
+                                         igraph::E(xref)$backwardAmbiguity > ambiguity))
     ## Filter blacklist
     # if(!all(is.na(avoidDB))){
     #   edgeList <- igraph::as_edgelist(xref) %>%

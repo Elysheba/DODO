@@ -180,7 +180,7 @@ benchmark_convert_concept <- function(from,
                             verbose = FALSE){
   from.concept <- match.arg(from.concept, c("Disease", "Phenotype"))
   to.concept <- match.arg(to.concept, c("Disease", "Phenotype"))
-  db.to <- match.arg(to, c(NULL, list_db()$database))
+  db.to <- match.arg(to, c(NULL, list_database()$database))
   from <- setdiff(from, NA)
   stopifnot(is.character(from), length(from)>0)
   

@@ -148,7 +148,7 @@ conceptSearchInput <- function(id,
 conceptSearch <- function(input, output, session, internal = TRUE){
   # Define UI for application that draws a histogram
   ## DODO dbs
-  db <- DODO::list_db()$database
+  db <- DODO::list_database()$database
   
   ## search fields
   output$fields <- renderUI({

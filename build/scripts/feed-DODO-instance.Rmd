@@ -14,7 +14,7 @@ output:
         toc_float: yes
 params:
   type: "internal"
-  name: "related-dodo"
+  name: "dodo"
 editor_options: 
   chunk_output_type: console
 ---
@@ -77,7 +77,7 @@ connect_to_dodo(
 
 # Data model
 
-!["The DODO data model"](../../inst/documentation/data-model/DODO.svg)
+!["The DODO data model"](/data/lfrancois/Development/DODO/inst/documentation/data-model/DODO.svg)
 
 # Load ontologies
 
@@ -198,7 +198,8 @@ datatable(toShow,
 There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges.
 
 ```{r db_xref_edge, echo = FALSE, include = TRUE}
-xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"),sheet = "Max_ambiguity_3_across_DBs"
+xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"),
+                            sheet = "Max_ambiguity_3_across_DBs"
                             )
 datatable(xrefDB,
           rownames = FALSE)
@@ -569,9 +570,7 @@ DODO:::load_dodo_model()
 # Importing Diseases nodes
 
 ```{r}
-# db <- "DOID"
 concept <- "Concept"
-# rdir <- file.path(oriDir, "DO", "data")
 ```
 
 ## Concepts
@@ -637,8 +636,9 @@ DODO:::load_parent_identifiers(toImport=toImport, concept=concept)
 ## Cross-references
 
 ```{r}
-xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"),sheet = "Max_ambiguity_3_across_DBs"
-                            )
+xrefDB <- readxl::read_xlsx(here::here("inst", "documentation",
+                                       "CrossreferencesEdges.xlsx"),
+                            sheet = "Max_ambiguity_3_across_DBs")
 datatable(xrefDB,
           rownames = FALSE)
 toImport <- DODO_crossId %>%

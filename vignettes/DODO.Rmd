@@ -21,9 +21,7 @@ knitr::opts_chunk$set(
 
 ```{r setup, warning=FALSE, echo=FALSE}
 library(DODO)
-connectToDODO(port = 8080, 
-              remember = T,
-              reconnect = F)
+connect_to_dodo(url = "http://localhost:7476")
 ```
 
 ```{r, echo = FALSE}
@@ -59,7 +57,7 @@ In this section, an overview is presented of the DODO graphQL+ database and the 
 
 ## Data model 
 
-!["The DODO data model"](../build/model/DODO_datamodel.svg)
+!["The DODO data model"](../inst/documentation/data-model/DODO.svg)
 
 Figure: (fig:dodo_data_model) The DODO graph model is shown as an Entity/Relationship (ER) diagram. It consist of three types of entities (disease, phenotype, database) corresponding to graph nodes. Several relationships between the nodes are described referring to graph edges. "ID" refers to a unique entity while "idx" indicates whether this entity is indexed.
 
@@ -86,7 +84,7 @@ The graph database has been implemented with Dgraph v1.0.16 [Dgraph2017] the DOD
 
 - dplyr [@Wickham2019]
 - tibble [@Muller2019]
-- DgraphR
+- neo2R
 - rlist [@Ren2016]
 - tidyr [@Wickham2019a]
 - stringr [@Wickham2019b]
@@ -98,7 +96,7 @@ The graph database has been implemented with Dgraph v1.0.16 [Dgraph2017] the DOD
 
 ## Feeding the database
 
-To construct a DODO instance, a set of script is available to load and feed a Dgraph instance. These are not exposed directly to the user instead, these scripts are available in the *build* folder with prefix *P0X*. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub:
+To construct a DODO instance, a set of script is available to load and feed a Dgraph instance. These are not exposed directly to the user instead, these scripts are available in the *build/scripts* folder. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub:
 
 Disease ontology                                | GitHub
 ------------------------------------------------|--------------
@@ -143,48 +141,46 @@ In the sections below, the presented results and use cases are obtained based on
 DODO R package provides function to allow four different scopes: building and interacting with a disNet of setDisNet object, visualizing a disNet, converting disease and phenotype concepts to different ontologies, and several utility functions to connect to DODO graphical database or obtain low level information on identifiers. The table belows briefly list all function available within the package, as well as a short description and identification of the scope. 
 
 ```{r, include = TRUE, echo = FALSE}
-ftie <- c("buildDisNet", 
-          "buildDisNetByID",
-          "buildDisNetByTerm", 
-          "extendDisNet", 
-          "filterByID", 
-          "filterByDatabase", 
-          "focusNet", 
-          "clusterDisNet", 
-          "mergeDisNet", 
-          "setdiffDisNet", 
-          "splitDisNet", 
-          "exploreDisNet",
-          "showRelations", 
+ftie <- c("build_disNet", 
+          "extend_disNet", 
+          "filter_by_id", 
+          "filter_by_database", 
+          "focus_disNet", 
+          "cluster_disNet", 
+          "setdiff_disNet", 
+          "split_disNet", 
+          "explore_disNet",
+          "show_relations", 
           "plot.disNet", 
-          "convertConcepts",
-          "checkDODOConn", 
-          "connectToDODO", 
-          "dodoCall", 
-          "getSchema", 
-          "getVersion", 
-          "getConceptUrl", 
-          "listDB", 
-          "listType", 
-          "collectOntology", 
-          "describeConcept")
+          "convert_concept",
+          "check_dodo_connection", 
+          "connect_to_dodo", 
+          "forget_dodo_connection",
+          "list_dodo_connections",
+          "call_dodo", 
+          "show_dodo_model", 
+          "get_version", 
+          "get_concept_url", 
+          "list_database", 
+          "list_node_type", 
+          "get_ontology", 
+          "describe_concept")
 descr <- c("Building a network of disease identifiers",
-           "Buildling a disNet based on provided ids",
-           "Buildings a disNet based on search term", 
            "Extending a disNet by different edges",
            "Filtering a disNet by id",
            "Filtering a disNet by database", 
            "Focus on identifiers of interest and its neighbors",
            "Clustering a disNet, generates a setDisNet",
-           "Merge a list of disNets",
            "Substract one disNet from another",
            "Split a disNet based on a list of identifiers into a setDisNet",
-           "Creates a datatable to explore a disNet",
+           "Visualizes a datatable to explore a disNet",
            "Visualizes cross-reference relationships for the provided identifier",
            "Visualizes a disNet using visNetwork",
            "Convert the provided set of identifiers to another ontology",
            "Check connection with DODO graphical database",
            "Establish connection with DODO graphical database",
+           "Forget a saved connection to DODO",
+           "List all saved connections to DODO",
            "Calls a function on the DODO graphical database",
            "Return DODO data model",
            "Return DODO database version", 
@@ -193,10 +189,10 @@ descr <- c("Building a network of disease identifiers",
            "Lists node type in DODO", 
            "Returns whole ontology", 
            "Returns concept description")
-scope <- c(rep("Build and interact", 11),
+scope <- c(rep("Build and interact", 8),
            rep("Visualize", 3),
            "Conversion",
-           rep("Utility", 10))
+           rep("Utility", 12))
 toShow <- tibble(Function = ftie,
                  Description = descr,
                  scope = scope)
@@ -205,7 +201,159 @@ toShow %>%
   kable_styling()
 ```
 
-## Transitivity
+# Transitivity mapping
+
+No ICD9 or ICD10 xref mapping except between them.
+
+For converting identifiers, the transtivity mapping between ontologies is used to return a full conversion. Always the entire graph is used to convert identifiers with no limitations to the number of steps. Due to the ambiguity of cross-reference edges, two type of such edges are created within the database. The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. The conversion is implemented in a two-step manner, where the *is_xref* reference edges are used in a transitive manner to obtain the entire network. Next, the resulting nodes functions as input to extend the network with one additional step using both *is_related* edges as well as *is_xref* edges. As can be seen, the *is_xref* edge is still used to gain one addition step and the reason lies with the ambiguity filtering that can be implemented on the edges.
+
+In addition to the type of the edge, the notion of ambiguity is implemented where filtering is possible both on the ambiguity starting from (forward ambiguity) or moving to a node (backward ambiguity). It is advised to use no filtering on the forward ambiguity as this is similar to moving from a more broadly defined concept to a narrower concept. The backward ambiguity resembles moving from a more narrow to broader concept which might result in jumping to higher levels identifiers. Depending on the question, a filterting might be required to control this behavior. For the first step of the conversion, the transitivity mapping, it is advised to consider only backward ambiguities of one for two reasons. The first is that the aim is to return a set of identifiers that are "equal" to each other or none ambiguous (backward ambiguity = 1). The second reason lies in the computation load of including all *is_xref* edges. 
+
+The final step of conversion aims to return all relationships (both *is_xref* and *is_related*) that lie one step beyond this returned disease network. As mentioned before, the filtering on backward ambiguity varies with each question. If the aim is to ensure that the returned relationships deal with concepts of the same network (the core network), a backward ambiguity of one should be used. Instead, if the aim is to return the extended network or to connect with external resources that deal with highly ambiguous concept (e.g. ICD10), no filtering should be used.
+
+```{r, eval = FALSE}
+# tmp <- DODO:::calculate_ambiguity(DODO_crossId)
+# 
+# a <- tmp %>% 
+#   filter(DB1 %in% c("EFO", "MONDO", "DOID", "ClinVar", "Cortellis_condition","Cortellis_indication", "ORPHA", "UMLS", "MedGen", "MeSH", "OMIM", "ICD10", "ICD9") & 
+#            DB2 %in% c("EFO", "MONDO", "DOID", "ClinVar", "Cortellis_condition","Cortellis_indication", "ORPHA", "UMLS", "MedGen", "MeSH", "OMIM", "ICD10", "ICD9")) %>%
+#   select(DB1, DB2, FA, BA) 
+# 
+# a1 <- sapply(unique(a$DB1),
+#              function(x){
+#                t <- a %>% filter(DB1 == x)
+#                b <- do.call(rbind,
+#                             by(data = t, INDICES = t$DB2, function(y) summary(y$FA)))
+#                nm <- rownames(b)
+#                toRet <- cbind(DB = nm, as.data.frame(b)) %>%
+#                  arrange(Max.)
+#                return(toRet)
+#              },
+#              simplify = FALSE,
+#              USE.NAMES = TRUE)
+# toShow <- do.call(rbind, 
+#                   sapply(names(a1),
+#                          function(x){
+#                     toRet <- a1[[x]] %>%
+#                       mutate(DB1 = x) %>%
+#                       rename(DB2 = DB) 
+#                     head(toRet)
+#                     return(toRet)
+#                   },
+#                   simplify = FALSE,
+#                   USE.NAMES = TRUE))
+# toShow <- toShow %>%
+#   mutate(DB1 = as.factor(DB1),
+#          DB2 = as.factor(DB2)) %>%
+#   select(DB1, DB2, Median, Mean, Third_Quantile = `3rd Qu.`, Max = Max.)
+```
+
+```{r, include = FALSE, eval = TRUE}
+# datatable(toShow,
+#           filter = "top",
+#           rownames = FALSE) %>%
+#   DT::formatRound(c("Mean"), digits = 2)
+```
+
+
+As the backward ambiguity is not a symmetric measure, the direction of the edge can be used to assess how different ontologies relate to each other or employ different level of concept definitions. 
+
+```{r, eval = FALSE}
+# max_amb <- do.call(rbind,sapply(names(a1),
+#                function(x){
+#                  toRet <- a1[[x]] %>%
+#                    mutate(DB1 = x) %>%
+#                    select(DB1, 
+#                           DB2 = DB,
+#                           Max.)
+#                  return(toRet)
+#                },
+#                simplify = FALSE,
+#                USE.NAMES = TRUE))  
+# oriAmb <- reshape2::acast(max_amb, formula = DB1 ~ DB2, value.var = "Max.")  %>%
+#   log10()
+# heatmaply(x = oriAmb)
+```
+
+To assess the general similarity between ontologies, the backward ambiguities between two ontologies (from either direction) are summed. This allows the visualization of ontologies that are more or less similar compared to those that are dissimilar based on the direction of the edge. 
+
+
+```{r, eval = FALSE}
+# symmAmb <- max_amb %>%
+#    mutate_if(is.factor,as.character) %>%
+#    mutate(db1_db2 = paste(pmin(DB1, DB2), pmax(DB1, DB2), sep = "|"))  %>%
+#    group_by(db1_db2) %>% 
+#    summarise(totalAmbiguity = sum(Max.)) %>%
+#    mutate(DB1 = stringr::str_remove(string = db1_db2, pattern = "\\|.*"),
+#           DB2 = stringr::str_remove(string = db1_db2, pattern = ".*\\|")) %>%
+#    select(-db1_db2) 
+# toShow <- bind_rows(symmAmb,
+#                      symmAmb %>% select(DB1 = DB2, DB2 = DB1, totalAmbiguity)) %>%
+#    distinct() %>%
+#    arrange(DB1, desc(DB2))
+# toShow <- reshape2::acast(toShow, drop = FALSE, formula = DB1 ~ DB2, value.var = "totalAmbiguity") %>%
+#   log10()
+# heatmaply(x = toShow) #, Rowv = NULL, Colv = NULL)
+```
+
+
+```{r, include = FALSE, eval = FALSE}
+# datatable(symmAmb %>% select(DB1, DB2, totalAmbiguity),
+#           filter = "top",
+#           rownames = FALSE)
+```
+
+
+Finally, a "benchmarking" is used based on different cutoffs ranging from 1 to 10 of maximum ambiguity between the ontologies based on the tables above. For DO, Monarch, Cortellis_indication, Cortellis_condition this comparison has been done. Specific edges are created (*is_xref_bm* and *is_related_bm*) and all identifiers from these resources are converted (Concept -> Concept, not specifying a resource to conver to). Finally, the distribution of the number of conversions per identifier is shown below by ontology. The aim is to identify a particular cutoff that shows a strong increase in the number of conversions. 
+
+```{r, eval = FALSE}
+# load(here("tmp/All_benchmark_ambiguities.rda"))
+# efo <- lapply(results_benchmark, function(x){x$EFO})
+# monarch <- lapply(results_benchmark, function(x){x$Monarch})
+# do <- lapply(results_benchmark, function(x){x$DO})
+# clinvar <- lapply(results_benchmark, function(x){x$ClinVar})
+# orphanet <- lapply(results_benchmark, function(x){x$Orphanet})
+# medgen <- lapply(results_benchmark, function(x){x$MedGen})
+# mesh <- lapply(results_benchmark, function(x){x$MeSH})
+# icd11 <- lapply(results_benchmark, function(x){x$ICD11})
+# load(here("tmp/Cortellis_condition_benchmark_ambiguities.rda"))
+# cort_cond <- results_benchmark
+# load(here("tmp/Cortellis_indication_benchmark_ambiguities.rda"))
+# cort_ind <- results_benchmark
+```
+
+--> put in 1 graph all databases, showing distribution + max conversions. Show the the problem case - > decision on FA = 3
+
+```{r, eval = FALSE}
+# lapply(cort_cond, function(x){x %>% arrange(desc(n))})
+# toShow_cortcond <- lapply(results_benchmark, function(x) x$n)
+# boxplot(toShow_cortcond,
+#         log = "y",
+#         xlab = "Maximum ambiguity allowed to define is_xref",
+#         ylab = "Number of converted IDs",
+#         main = "Ontology = Cortellis_condition" )
+```
+
+```{r, eval = FALSE}
+# max_conv <- do.call(rbind, sapply(1:length(cort_cond), function(x){
+#   tibble(amb = x,
+#          max = head(sort(cort_cond[[x]]$n, decreasing = T)))
+# },
+# simplify = FALSE))
+# plot(x = max_conv$amb,
+#      y = max_conv$max,
+#       # log = "y", 
+#       xlab = "Maximum ambiguity allowed to define is_xref", 
+#       ylab = "Number of converted IDs", 
+#       main = "Ontology = Cortellis_condition" )
+```
+
+
+==================================
+
+Each ontology provides mapping information to a set of other ontologies. Most of these mappings are non-ambiguous: for each concept in an ontology there is only one concept mapped in another ontology. However, it often happens that some concepts in an ontology are mapped to several similar concepts in another ontology (provide an example here), the number of which corresponds to what we call forward ambiguity. A forward ambiguity greater than 1 indicates that the original concept is probably more general than the concepts to which it is mapped. If the mapping is taken in the other direction this ambiguity value is considered as backward ambiguity. Thus, similarly, forward ambiguity greater than 1 indicates that the original concept is probably less general than the concepts to which it is mapped. Depending on ontologies and on diseases, the ambiguity values can be quite large (show values). These large values can lead to conversion tables between disease concepts quite important and inaccurate, especially when considering transitive mappings between concepts (a->b and b-> ==> a->c). For conversion purpose, we propose to limit mappings to those with a backward ambiguity equal to 1. Doing so allows to convert a general term in more specific ones but not the opposite. Thus it prevents large inaccurate mappings when allowing transitivity. Limiting mappings according to transitivity improves the quality of the conversion of concepts from one ontology to another. Nevertheless, some inaccurate conversions can still be achieved when considering transitive some mappings with forward ambiguity. This behavior highly depends on the ontologies tackled by the mappings (show values here). According to this result, we propose to divide mappings between ontologies into 2 categories: "xref" considered as transitive and "is_related" considered as non-transitive. The classification of mappings has been achieved as following...
+
+===================================
 
 In some cross-reference edges more trust is put than in other as a consequence of the different manner (disease) concepts are defined across ontologies. While some ontologies use a narrower definition than other, cross-reference edges between these may result in the return of distantly related concepts. Therefore, based on the ontology as different type of cross-reference edge is implemented to capture these differences. The *is_xref* edge is used to signify relations that defined similarly related concept, while the *is_related* edge is used between nodes where the relationship is less equivalent. All nodes originating from ICD10, ICD9, MedGen/UMLS, and Cortellis resources (when available) are defined as *is_related* edges.
 
@@ -261,10 +409,10 @@ The DODO R package combines several functions to construct, interact, and explor
 <!-- ============================================================= -->
 # Results
 
-The table below shows the number of nodes available through each disease ontology, in total there are `r sum(listDB()$count)` nodes in this DODO instance.
+The table below shows the number of nodes available through each disease ontology, in total there are `r sum(list_database()$count)` nodes in this DODO instance.
 
 ```{r, include = TRUE, echo = FALSE}
-toShow <- listDB()
+toShow <- list_database()
 DT::datatable(toShow,
           colnames = c("Disease ontology", "Number of identifiers"),
           rownames = FALSE,
@@ -281,23 +429,26 @@ One of the basic functionalities of DODO is the ability to convert disease and p
 
 ```{r, include = TRUE, echo = TRUE}
 ## Using short identifiers
-converted_ids <- convertConcepts(id = c("0005027", "0005180"), 
-                                 database = "MONDO", 
-                                 to = "EFO")
+converted_ids <- convert_concept(from = c("MONDO:0005027", "MONDO:0005180"),
+                                 to = "EFO",
+                                 from.concept = "Disease",
+                                 to.concept = "Disease")
 converted_ids
 
 ## Using full identifiers
-converted_ids <- convertConcepts(id = c("MONDO:0005027", "DOID:14330"), 
-                                 to = "EFO")
+converted_ids <- convert_concept(from = c("MONDO:0005027", "DOID:14330"), 
+                                 to = "EFO",
+                                 from.concept = "Disease",
+                                 to.concept = "Disease")
 converted_ids
 
-
-## Using dataframe
-df <- tibble(id = c("0005027", "14330"),
-             database = c("MONDO", "DOID"))
-converted_ids <- convertConcepts(df = df, 
-                                 to = "EFO")
-converted_ids
+# 
+# ## Using dataframe
+# df <- tibble(id = c("0005027", "14330"),
+#              database = c("MONDO", "DOID"))
+# converted_ids <- convert_concept(df = df, 
+#                                  to = "EFO")
+# converted_ids
 ```
 
 <!-- ##### -->
@@ -307,10 +458,10 @@ A core concept in DODO is the *disNet*, a S3 object containing all information o
 
 
 ```{r, include = TRUE, echo = TRUE}
-disNet <- buildDisNetByID(id = c("MONDO:0005144"))
+disNet <- build_disNet(id = c("MONDO:0005144"))
 
-disNet <- buildDisNetByTerm(searchTerm = "amyotrophic lateral sclerosis", 
-                            fields = c("label", "synonym"))
+disNet <- build_disNet(term = "amyotrophic lateral sclerosis", 
+                       fields = c("label", "synonym"))
 disNet
 ```
 
@@ -322,8 +473,8 @@ When building a *disNet* by either identifier or search term, the resulting *dis
 The most basic functionality is extending to all cross-references edges (default extension):
 
 ```{r, include = TRUE, echo = TRUE}
-disNet <- buildDisNetByID(id = c("MONDO:0004976"))
-disNet <- extendDisNet(disNet = disNet,
+disNet <- build_disNet(id = c("MONDO:0004976"))
+disNet <- extend_disNet(disNet = disNet,
                        relations = "xref")
 ```
 
@@ -337,10 +488,10 @@ Extending through child terms and cross-reference edges will extend the disease 
 
 ```{r, include = TRUE, echo = TRUE}
 ## Build a disNet for ALS (MONDO:0004976)
-disNet <- buildDisNetByID(id = "MONDO:0004976")
+disNet <- build_disNet(id = "MONDO:0004976")
 
 ## Extending disNet
-disNet <- extendDisNet(disNet = disNet, 
+disNet <- extend_disNet(disNet = disNet, 
                        relations = c("xref", "child"))
 ```
 
@@ -366,31 +517,33 @@ For a smaller-sized *disNet* the clustering step and exploring these clusters mi
 
 ```{r, include = TRUE, echo = TRUE}
 ## Cluster disNet on "xref"
-clDisNet <- clusterDisNet(disNet = disNet, 
+clDisNet <- cluster_disNet(disNet = disNet, 
                           clusterOn = "xref")
 
 ## Explore clusters
-exploreDisNet(disNet = clDisNet)
-disNet <- mergeDisNet(list = clDisNet[c(1:2, 5, 9)])
+explore_disNet(disNet = clDisNet)
+disNet <- c(list = clDisNet[c(1:2, 5, 9)])
 ```
 
 When establishing a *disNet* based on search terms, some returned nodes have no parent/child edges or cross-reference edges. These are considered as *singletons* and are treated separately as these can still be of interest when aiming to link to different external resources.
 
 ## Phenotypes
 
-Finally, it is also possible to extend to phenotype information with some limitations. The basis of *DODO* is the objective to travers the different disease ontologies efficiently and exhaustively. Information on phenotype is included into the database to enrich en broaden the scope; however, the primary aim of the tool is focussed on disease identifiers and their landscape. Therefore, the extendDisNet function allows annotated the set of diseases with phenotype information. The reverse, starting from phenotype identifiers to their listed diseases cannot directly be done using the extendDisNet. This choice was made as a particular phenotype may have many (otherwise) unrelated disease identifiers linked to it. Therefore, this particular question to extend from phenotype to disease should be addressed separately using the *convertConcept* function whereafter a disNet object can created and manipulated (please refer to the workflow).
+Finally, it is also possible to extend to phenotype information with some limitations. The basis of *DODO* is the objective to travers the different disease ontologies efficiently and exhaustively. Information on phenotype is included into the database to enrich en broaden the scope; however, the primary aim of the tool is focussed on disease identifiers and their landscape. Therefore, the extendDisNet function allows annotated the set of diseases with phenotype information. The reverse, starting from phenotype identifiers to their listed diseases cannot directly be done using the extendDisNet. This choice was made as a particular phenotype may have many (otherwise) unrelated disease identifiers linked to it. Therefore, this particular question to extend from phenotype to disease should be addressed separately using the *convert_concept* function whereafter a disNet object can created and manipulated (please refer to the workflow).
 
 ```{r, include = TRUE, echo = TRUE}
 hp <- c("HP:0003394", "HP:0002180", "HP:0002878")
 tibble(identifiers = hp,
-       label = describeConcept(id = hp))
+       label = describe_concept(id = hp))
 
 ## Obtain all diseases related to the phenotype identifiers
-hp_disease <- convertConcepts(id = hp)
+hp_disease <- convert_concept(from = hp,
+                              from.concept = "Phenotype",
+                              to.concept = "Disease")
 dim(hp_disease)
 
 ## Optionally converting to a disNet 
-hp_disease <- buildDisNetByID(id = c(hp_disease$to, hp_disease$from))
+hp_disease <- build_disNet(id = c(hp_disease$to, hp_disease$from))
 hp_disease
 ```
 
@@ -423,9 +576,9 @@ clinvarVariants <- clinvar$ClinVar_rcvaVariant %>%
 
 ############################@
 ## Use disNet
-disNet <- buildDisNetByTerm(searchTerm = "amyotrophic lateral sclerosis", 
+disNet <- build_disNet(term = "amyotrophic lateral sclerosis", 
                             fields = c("label", "synonym"))
-disNet <- extendDisNet(disNet, 
+disNet <- extend_disNet(disNet, 
                        relations = c("xref", "child"))
 
 chembl_disnet <- chembl$CHEMBL_drug_indication %>%
@@ -487,14 +640,14 @@ table(chembl_als$dbid)
 This disease is a child term identified through extending the disNet:
 
 ```{r, include = TRUE, echo = FALSE}
-toShow <- buildDisNetByID(id = unique(chembl_disnet$dbid))
+toShow <- build_disNet(id = unique(chembl_disnet$dbid))
 plot(toShow)
 ```
 
 The table below shows the disease labels:
 
 ```{r, include = TRUE, echo = FALSE}
-exploreDisNet(toShow)
+explore_disNet(toShow)
 ```
 
 **ClinVar**
@@ -544,7 +697,8 @@ toShow <- clinvar$ClinVar_traitCref %>%
   inner_join(sel, 
              by = c("dbid")) %>%
   mutate(disease = sprintf('<a target="_blank" href = "%s">%s</a>',
-                           getConceptUrl(id = paste(db, id, sep = ":")),
+                           get_concept_url(id = paste(db, id, sep = ":"), 
+                                           exact = TRUE)$url,
                            label),
          gene = getBeIdDescription(ids = as.character(entrez), 
                                be = "Gene", 
@@ -567,7 +721,7 @@ datatable(toShow %>% select(dbid, disease, variant),
 These terms from MedGen and OMIM are related to term "MONDO:0014178" (`r disNet$nodes %>% filter(id == "MONDO:0014178") %>% pull(label)`) itself a child term of "MONDO:0000507" (`r disNet$nodes %>% filter(id == "MONDO:0000507") %>% pull(label)`). This additional variant was identified through extending the disNet and obtaining al child terms and related cross-references.
 
 ```{r, include = TRUE, echo = TRUE, fig.width = 6, fig.height = 6}
-toShow <- focusNet(disNet, 
+toShow <- focus_disNet(disNet, 
                    diseaseID = "ClinVar:18286", 
                    relationship = c("xref", "parent"), 
                    steps = 3)
@@ -579,9 +733,9 @@ plot(toShow)
 A additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses.
 
 ```{r, include = TRUE, echo = TRUE, fig.height=10, fig.width=10}
-comp_disNet <- buildDisNetByID(id = c(unique(clinvar_disnet$dbid), 
+comp_disNet <- build_disNet(id = c(unique(clinvar_disnet$dbid), 
                                       unique(chembl_disnet$dbid)))
-comp_disNet <- extendDisNet(comp_disNet, 
+comp_disNet <- extend_disNet(comp_disNet, 
                             step = 1, 
                             relations = "xref")
 nodes <- comp_disNet$nodes %>%
@@ -635,7 +789,6 @@ Disease ontologies have allowed a more formal classification of diseases and cou
 - Currently no resource provides a flexible and complete mapping across the multitude of disease ontologies 
 - Availability of efficient and straightforward software on bioinformatics platform (R or python)
 
-The present resource and R package DODO combines information provided by nine different ontologies using Dgraph graphical database. Cross-reference information provided across the different resources is combined and used to create a more complete mapping between identifiers. Transitivity mapping is managed by defining the concept of ambiguity on cross-reference mappings and defining a blacklist of databases signifying a level of trust in the provided cross-reference edges. 
 
 DODO R package contains several functions to build and interact with a disNet or convert concept identifiers between ontologies. The workflow to construct a custom, local DODO graphical database is provided with the intent to allow adaptation to specific needs and additional resources can be easily added without adaptation to the data model or R package. 
 
