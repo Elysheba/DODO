@@ -3,7 +3,7 @@ doc
 .Rproj.user
 .Rhistory
 .RData
-tmp
+tmp/*.rda
 *.Rproj
 vignettes/*.html
 vignettes/DODO.R
