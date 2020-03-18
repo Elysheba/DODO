@@ -499,8 +499,9 @@ harmonize_HPO <- function(HPO_diseaseHP,
 load_ClinVar <- function(DODO_entryId,
                          path_name,
                          traitCref,
-                         traitName,
-                         MedGen_MGSTY = NULL){
+                         traitName
+                         # MedGen_MGSTY = NULL
+                         ){
   clinvar <- read.table(file.path(path_name, traitCref),
                         header = TRUE, 
                         sep = "\t", 
@@ -517,19 +518,19 @@ load_ClinVar <- function(DODO_entryId,
                                               "HP","SNOMEDCT","DECIPHER"),])
   
   ## Remove non-disease MedGen
-  if(!is.null(MedGen_MGSTY)){
-    mg <- read.table(MedGen_MGSTY,
-                     sep = "|", 
-                     header = TRUE, 
-                     comment.char = "", 
-                     quote = "",
-                     fill = TRUE, 
-                     colClasses = c("character"))
-    mg <- mg[grep(paste("Disease or Syndrome","Acquired Abnormality",
-                        "Anatomical Abnormality","Congenital Abnormality",
-                        sep = "|"),mg$STY,invert = T),]
-    clinvar <- unique(clinvar[!clinvar$id %in% mg$X.CUI,])
-  }
+  # if(!is.null(MedGen_MGSTY)){
+  #   mg <- read.table(MedGen_MGSTY,
+  #                    sep = "|", 
+  #                    header = TRUE, 
+  #                    comment.char = "", 
+  #                    quote = "",
+  #                    fill = TRUE, 
+  #                    colClasses = c("character"))
+  #   mg <- mg[grep(paste("Disease or Syndrome","Acquired Abnormality",
+  #                       "Anatomical Abnormality","Congenital Abnormality",
+  #                       sep = "|"),mg$STY,invert = T),]
+  #   clinvar <- unique(clinvar[!clinvar$id %in% mg$X.CUI,])
+  # }
   ## Only keep labels in clinvar
   cv_idNames <- read.table(file.path(path_name, 
                                      traitName),

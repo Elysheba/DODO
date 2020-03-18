@@ -4,13 +4,7 @@
 \alias{load_ClinVar}
 \title{Load Clinvar disease IDs}
 \usage{
-load_ClinVar(
-  DODO_entryId,
-  path_name,
-  traitCref,
-  traitName,
-  MedGen_MGSTY = NULL
-)
+load_ClinVar(DODO_entryId, path_name, traitCref, traitName)
 }
 \arguments{
 \item{DODO_entryId}{the object DODO_entryId to filter out existing identifiers}
@@ -18,11 +12,11 @@ load_ClinVar(
 \item{traitCref}{name of the file containing the dataframe with association ClinVar identifiers to external disease identifiers
 (columns t.id - ClinVar identifier, db - disease database, id - disease identifier, and type)}
 
-\item{MedGen_MGSTY}{if provided, file to filter MedGen disease identifiers}
-
 \item{path_clinvar}{path to ClinVar parsed files}
 
 \item{traitNames}{name of the file containing dataframe with columns t.id (ClinVar identifier) and label}
+
+\item{MedGen_MGSTY}{if provided, file to filter MedGen disease identifiers}
 }
 \value{
 list with harmonized files

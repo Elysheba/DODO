@@ -44,7 +44,7 @@ library(ReDaMoR)
 workingDirectory <- here("build/working")
 # setwd("~/Documents/Development/DODO/build/working/")
 ##
-opts_knit$set(root.dir=workingDirectory)
+# opts_knit$set(root.dir=workingDirectory)
 opts_chunk$set(
    eval=TRUE,
    message=FALSE,
@@ -195,11 +195,11 @@ datatable(toShow,
 
 ## Cross-reference edges
 
-There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges.
+There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
 
 ```{r db_xref_edge, echo = FALSE, include = TRUE}
 xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"),
-                            sheet = "Max_ambiguity_3_across_DBs"
+                            sheet = "Max_ambiguity_4_across_DBs"
                             )
 datatable(xrefDB,
           rownames = FALSE)
@@ -316,8 +316,8 @@ list2env(DODO:::load_ClinVar(
   DODO_entryId = DODO_entryId,
   path_name = "/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/ClinVar/data/",
   traitCref = "ClinVar_traitCref.txt", 
-  traitName = "ClinVar_traitNames.txt", 
-  MedGen_MGSTY = "/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/MedGen/sources/MGSTY.RFF"),
+  traitName = "ClinVar_traitNames.txt"),
+  # MedGen_MGSTY = "/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/MedGen/sources/MGSTY.RFF"),
   envir = .GlobalEnv)
 ```
 
@@ -370,6 +370,29 @@ DODO_crossId <- DODO_crossId %>%
 # table(DODO_parentId$pdbid %in% DODO_entryId$dbid)
 # table(DODO_crossId$dbid1 %in% DODO_entryId$dbid)
 # table(DODO_crossId$dbid2 %in% DODO_entryId$dbid)
+```
+
+## Medgen Disease concepts only
+
+```{r}
+mg <- read.table("/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/MedGen/sources/MGSTY.RFF",
+                 sep = "|", 
+                 header = TRUE, 
+                 comment.char = "", 
+                 quote = "",
+                 fill = TRUE, 
+                 colClasses = c("character"))
+## Some ideas have double designation
+toKeep <- mg %>% filter(grepl(paste("Disease or Syndrome","Acquired Abnormality",
+                                "Anatomical Abnormality","Congenital Abnormality",
+                                "Neoplastic Process",
+                                sep = "|"), STY)) 
+toRem <- mg %>% filter(!X.CUI %in% toKeep$X.CUI)
+DODO_crossId <- DODO_crossId %>% 
+  filter(!dbid2 %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":"))) %>%
+  distinct()
+dim(DODO_crossId)
 ```
 
 ## Modify database name
@@ -532,7 +555,7 @@ The workflow for importing information into the Neo4j instance by assigning all 
 
 Connect to Neo4j and specify import path to load data.
 
-```{r, message=FALSE, eval=FALSE}
+```{r, message=FALSE, eval=TRUE}
 connect_to_dodo(
    url=url,
    importPath = "/data/lfrancois/Development/DODO/build/working/neo4jImport"
@@ -638,7 +661,7 @@ DODO:::load_parent_identifiers(toImport=toImport, concept=concept)
 ```{r}
 xrefDB <- readxl::read_xlsx(here::here("inst", "documentation",
                                        "CrossreferencesEdges.xlsx"),
-                            sheet = "Max_ambiguity_3_across_DBs")
+                            sheet = "Max_ambiguity_4_across_DBs")
 datatable(xrefDB,
           rownames = FALSE)
 toImport <- DODO_crossId %>%

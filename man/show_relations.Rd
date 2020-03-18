@@ -33,6 +33,12 @@ For use of forward and backward ambiguity as well as black- and whitelist, see e
 \details{
 The initial identifier is represented by a triangle, each node is colored based on the database. The edges
 between nodes are colored based on the ambiguity equal to one or larger.
+
+The edges are formatted based on forward ambiguity and type of the edge.
+The colour of the edges is based on ambiguity equal to one or larger than one.
+This information is encoded when hovering over the edge.
+The solid lines are used for \emph{is_xref} edges, while dashed lines are
+used from \emph{is_related} edges.
 }
 \seealso{
 extendDisNet

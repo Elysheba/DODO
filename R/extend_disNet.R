@@ -133,7 +133,8 @@ extend_disNet <- function(
       sprintf('MATCH (n:Concept)-[r:%s]->(n1:Concept) WHERE n IN node AND n1 IN node',
               gsub(paste(">","<", sep = "|"), "", q)),
       'RETURN DISTINCT n.name as from, n1.name as to, Type(r) as relation,',
-      'r.origin as origin, r.BA as backwardAmbiguity, r.FA as forwardAmbiguity'
+      'r.origin as origin, r.BA as backwardAmbiguity, r.FA as forwardAmbiguity,',
+      'Type(r) as type'
     )
               
     
@@ -151,7 +152,8 @@ extend_disNet <- function(
         dplyr::select(from,
                       to, 
                       forwardAmbiguity,
-                      backwardAmbiguity)
+                      backwardAmbiguity, 
+                      type)
       children <- transitivity %>%
         dplyr::filter(grepl("^is_a$", relation)) %>%
         dplyr::select(child = from,
@@ -182,7 +184,8 @@ extend_disNet <- function(
               intransitive,
               ifelse(is.null(avoidNodes), "", "AND NOT e1.name IN $avoid AND NOT e2.name IN $avoid")),
       'RETURN DISTINCT',
-      'e1.name AS from, e2.name AS to, r.FA AS forwardAmbiguity, r.BA AS backwardAmbiguity'
+      'e1.name AS from, e2.name AS to, r.FA AS forwardAmbiguity, r.BA AS backwardAmbiguity,',
+      "Type(r) as type"
     )
   }
   ## **children ----

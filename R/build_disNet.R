@@ -53,12 +53,13 @@
 #'    \itemize{
 #'    \item from (character): disease 1 id
 #'    \item to (character): disease 2 id
-#'    \item ur (character): xref
 #'    identifier: \code{paste(sort(c(xref$from, xref$to)), collapse="<-->")}
 #'    \item forwardAmbiguity (numeric): number of cross-references
 #'    between disease 1 and database 2
 #'    \item backwardAmbiguity (numeric): number of cross-references
 #'    between disease 2 and database 1
+#'    \item type (character): type of the cross-reference edge
+#'    \item ur (character): unique xref-xref id
 #'    }
 #' \item alt: a data.frame with alternative identifiers
 #'    \itemize{
@@ -135,6 +136,7 @@ build_disNet <- function(id = NULL,
       to = character(),
       forwardAmbiguity = numeric(),
       backwardAmbiguity = numeric(),
+      type = character(),
       ur = character() 
     ),
     alt = tibble::tibble(
@@ -171,8 +173,9 @@ build_disNet <- function(id = NULL,
     cql.xref <- c(sprintf("MATCH (n:Concept)-[r:%s]->(x:Concept)",
                           relationship),
                   "WHERE n.name IN $from AND x.name IN $from",
-                  "RETURN DISTINCT n.name AS from, x.name AS to,",
-                  "r.FA AS forwardAmbiguity, r.BA AS backwardAmbiguity")
+                  "RETURN DISTINCT n.name AS from, x.name AS to, ",
+                  "r.FA AS forwardAmbiguity, r.BA AS backwardAmbiguity, ",
+                  "Type(r) as type")
     cql.child <- c('MATCH (c:Concept)-[r:is_a]->(p:Concept)',
                    sprintf('WHERE %s c.name IN $from AND p.name IN $from',
                            ifelse(is.null(avoidOrigin),

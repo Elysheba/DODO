@@ -168,3 +168,64 @@ convert_concept <- function(from,
    
    return(toRet)
 }
+
+####################################@
+#' Get related concepts
+#' 
+#' The specific conversion procedure is recommended for the ontologies that 
+#' consider disease concepts that are less connected through *is_xref* edges
+#' (e.g. ICD10, ICD9, ClinVar) and are mostly only related to other identifiers 
+#' using *is_related* edges. This limits or removes the effect of the transitive 
+#' mapping and not return all cross-references. Therefore, for these ontologies it 
+#' is recommend that in addition to the standard conversion, an additional step 
+#' of intransitive mapping is performed which is implemented in the function *get_related*.  
+#' 
+#' @param from a vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
+#' @param to database to convert to (default = NULL, no filtering)
+#' @param from.concept concept (disease or phenotype) of from
+#' @param to.concept concept (disease or phenotype) to convert to
+#' @param deprecated include deprecated identifiers (default: false)
+#' @param transitive_ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
+#' @param intransitive_ambiguity specification for backward ambiguity used in the final step of conversion (default: no filter)
+#' @param verbose show query input (default: FALSE)
+#' #' 
+#' @return a dataframe with three columns:
+#' - from: identifier to convert
+#' - to: returned conversion
+#' 
+#' @export
+#' 
+get_related <- function(from, 
+                        to = NULL,
+                        from.concept = c("Disease", "Phenotype"),
+                        to.concept = c("Disease", "Phenotype"),
+                        deprecated = FALSE,
+                        transitive_ambiguity = 1,
+                        intransitive_ambiguity = NULL,
+                        verbose = FALSE){
+   dodoConv <- convert_concept(from = from,
+                               to = to,
+                               from.concept = from.concept,
+                               to.concept = to.concept,
+                               deprecated = deprecated,
+                               transitive_ambiguity = transitive_ambiguity,
+                               intransitive_ambiguity = intransitive_ambiguity,
+                               verbose = verbose)
+   ## Additional step
+   cql <- c("MATCH (n:Disease)-[r:is_xref*0..1]-(n1:Disease)",
+            "WHERE n.name in $from",
+            "RETURN n.name as from2, n1.name as to2")
+   relConv <- call_dodo(cypher, 
+                        prepCql(cql),
+                        parameters = list(from = as.list(unique(dodoConv$to))),
+                        result = "row")
+   finConv <- dodoConv %>%
+      left_join(relConv,
+                by = c("to" = "from2")) %>%
+      select(from = from,
+             to = to2) %>%
+      distinct()
+   return(finConv)
+}
+
+

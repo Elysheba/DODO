@@ -203,13 +203,71 @@ toShow %>%
 
 # Transitivity mapping
 
-No ICD9 or ICD10 xref mapping except between them.
+As a consequence of the different way ontologies defines disease concepts, some cross-reference edges are trusted more than others. Some ontologies (e.g. MONDO, EFO) consider more narrow definition than others (eg. ICD10, ICD9). If cross-reference edges are considered equal without taking this information into account, it might result in the return of more distantly related concepts. Therefore, there are two types of cross-reference edges encoded in DODO: *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases to quantify the symmetry between them. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
 
-For converting identifiers, the transtivity mapping between ontologies is used to return a full conversion. Always the entire graph is used to convert identifiers with no limitations to the number of steps. Due to the ambiguity of cross-reference edges, two type of such edges are created within the database. The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. The conversion is implemented in a two-step manner, where the *is_xref* reference edges are used in a transitive manner to obtain the entire network. Next, the resulting nodes functions as input to extend the network with one additional step using both *is_related* edges as well as *is_xref* edges. As can be seen, the *is_xref* edge is still used to gain one addition step and the reason lies with the ambiguity filtering that can be implemented on the edges.
+In addition to the two types of edges, the concept of *ambiguity* is implemented to identify nodes with have many cross-references to the same database. Cross-reference edges are implemented in a directional manner in Neo4j, therefore both a forward (FA) and backward (BA) are calculated and encoded on every edge. As it is often desired to move from a broader concept to a more narrow one, no filtering on forward ambiguity is put in place. However, the opposite, namely moving from a more narrow and through a broader concept is not always desired. This can result in an exponential increase of converted/expanded identifiers that are only distantly related to the original identifier. 
 
-In addition to the type of the edge, the notion of ambiguity is implemented where filtering is possible both on the ambiguity starting from (forward ambiguity) or moving to a node (backward ambiguity). It is advised to use no filtering on the forward ambiguity as this is similar to moving from a more broadly defined concept to a narrower concept. The backward ambiguity resembles moving from a more narrow to broader concept which might result in jumping to higher levels identifiers. Depending on the question, a filterting might be required to control this behavior. For the first step of the conversion, the transitivity mapping, it is advised to consider only backward ambiguities of one for two reasons. The first is that the aim is to return a set of identifiers that are "equal" to each other or none ambiguous (backward ambiguity = 1). The second reason lies in the computation load of including all *is_xref* edges. 
+The conversion of identifiers and extension or a disNet is performed in two steps. First, transitivity mapping is used on *is_xref* edges only where it is strongly recommended to use the default filtering on ambiguity to limit backward ambiguity to one. The final step is a intransitive mapping where both *is_related* and *is_xref* cross-reference edges are traversed with only one step to get the directly related cross-references (see below). As it is likely you want to obtain a broader concept related to the original identifiers but not move through it, it is recommended to put not filter on the *intransitive_ambiguity*.
 
-The final step of conversion aims to return all relationships (both *is_xref* and *is_related*) that lie one step beyond this returned disease network. As mentioned before, the filtering on backward ambiguity varies with each question. If the aim is to ensure that the returned relationships deal with concepts of the same network (the core network), a backward ambiguity of one should be used. Instead, if the aim is to return the extended network or to connect with external resources that deal with highly ambiguous concept (e.g. ICD10), no filtering should be used.
+Finally, a specific conversion procedure is recommended for the ontologies that consider disease concepts that are less connected through *is_xref* edges(e.g. ICD10, ICD9, ClinVar) and are mostly only related to other identifiers using *is_related* edges. This limits or removes the effect of the transitive mapping and not return all cross-references. Therefore, for these ontologies it is recommend that in addition to the standard conversion, an additional step of intransitive mapping is performed which is implemented in the function *get_related*. 
+
+```{r}
+## Show heatmap ambiguities
+## show datatable sum ambiguities
+## Show example of cross-reference edge -> broad to narrow
+## example of conversion and the two steps (or three, convert_concept + get_related)
+
+# cql <- c("MATCH (n:Disease)-[r:is_xref|is_related]->(n1:Disease)", 
+#          "RETURN n.name, Type(r), n1.name, r.FA, r.BA LIMIT 100")
+# a1 <- sapply(unique(a$DB1),
+#              function(x){
+#                t <- a %>% filter(DB1 == x)
+#                b <- do.call(rbind,
+#                             by(data = t, 
+#                                INDICES = t$DB2, 
+#                                function(y) summary(y$ambiguity)))
+#                nm <- rownames(b)
+#                toRet <- cbind(DB = nm, as.data.frame(b)) %>%
+#                  arrange(Max.)
+#                return(toRet)
+#              },
+#              simplify = FALSE,
+#              USE.NAMES = TRUE)
+# toShow <- do.call(rbind, 
+#                   sapply(names(a1),
+#                          function(x){
+#                     toRet <- a1[[x]] %>%
+#                       mutate(DB1 = x) %>%
+#                       rename(DB2 = DB) 
+#                     head(toRet)
+#                     return(toRet)
+#                   },
+#                   simplify = FALSE,
+#                   USE.NAMES = TRUE))
+# toShow <- toShow %>%
+#   mutate(DB1 = as.factor(DB1),
+#          DB2 = as.factor(DB2)) %>%
+#   select(DB1, DB2, Median, Mean, Third_Quantile = `3rd Qu.`, Max = Max.)
+```
+
+```{r, include = TRUE}
+# max_amb <- do.call(rbind,sapply(names(a1),
+#                function(x){
+#                  toRet <- a1[[x]] %>%
+#                    mutate(DB1 = x) %>%
+#                    select(DB1, 
+#                           DB2 = DB,
+#                           Max.)
+#                  return(toRet)
+#                },
+#                simplify = FALSE,
+#                USE.NAMES = TRUE))  
+# oriAmb <- reshape2::acast(max_amb, formula = DB1 ~ DB2, value.var = "Max.")  %>%
+#   log10()
+# heatmaply(x = oriAmb)
+```
+
+
 
 ```{r, eval = FALSE}
 # tmp <- DODO:::calculate_ambiguity(DODO_crossId)
@@ -686,36 +744,36 @@ datatable(toShow %>% select(t.id, disease, variant),
 Similarly, there is `r sum(!unique(clinvar_disnet$entrez) %in% unique(clinvar_als$entrez))` Entrez gene identifier that were identified additionally using the disNet approach compared to using the ClinVar resource directly. 
 
 ```{r, include = TRUE, echo = TRUE}
-sel <- clinvar_disnet %>% 
-  filter(!entrez %in% clinvar_als$entrez) %>% 
-  select(dbid, entrez) %>% 
-  distinct() %>%
-  inner_join(disNet$nodes %>% select(id, label),
-             by = c("dbid" = "id"))
-toShow <- clinvar$ClinVar_traitCref %>%
-  mutate(dbid = paste("ClinVar", t.id, sep = ":")) %>%
-  inner_join(sel, 
-             by = c("dbid")) %>%
-  mutate(disease = sprintf('<a target="_blank" href = "%s">%s</a>',
-                           get_concept_url(id = paste(db, id, sep = ":"), 
-                                           exact = TRUE)$url,
-                           label),
-         gene = getBeIdDescription(ids = as.character(entrez), 
-                               be = "Gene", 
-                               source = "EntrezGene", 
-                               organism = "human")$symbol,
-         variant = sprintf('<a target="_blank" href = "https://www.ncbi.nlm.nih.gov/gene/%s">%s</a>',
-                           entrez,
-                           gene))
-```
-
-The table below shows the gene for which the additional variant was identified and the associated disorder.
-
-```{r, include = TRUE, echo = FALSE}
-datatable(toShow %>% select(dbid, disease, variant),
-          colnames = c("ClinVar trait identifier", "Disease cross-reference", "Gene variant"),
-          rownames = FALSE,
-          escape = FALSE)
+# # sel <- clinvar_disnet %>% 
+# #   filter(!entrez %in% clinvar_als$entrez) %>% 
+# #   select(dbid, entrez) %>% 
+# #   distinct() %>%
+# #   inner_join(disNet$nodes %>% select(id, label),
+# #              by = c("dbid" = "id"))
+# # toShow <- clinvar$ClinVar_traitCref %>%
+# #   mutate(dbid = paste("ClinVar", t.id, sep = ":")) %>%
+# #   inner_join(sel, 
+# #              by = c("dbid")) %>%
+# #   mutate(disease = sprintf('<a target="_blank" href = "%s">%s</a>',
+# #                            get_concept_url(id = paste(db, id, sep = ":"), 
+# #                                            exact = TRUE)$url,
+# #                            label),
+# #          gene = getBeIdDescription(ids = as.character(entrez), 
+# #                                be = "Gene", 
+# #                                source = "EntrezGene", 
+# #                                organism = "human")$symbol,
+# #          variant = sprintf('<a target="_blank" href = "https://www.ncbi.nlm.nih.gov/gene/%s">%s</a>',
+# #                            entrez,
+# #                            gene))
+# ```
+# 
+# The table below shows the gene for which the additional variant was identified and the associated disorder.
+# 
+# ```{r, include = TRUE, echo = FALSE}
+# datatable(toShow %>% select(dbid, disease, variant),
+#           colnames = c("ClinVar trait identifier", "Disease cross-reference", "Gene variant"),
+#           rownames = FALSE,
+#           escape = FALSE)
 ```
 
 These terms from MedGen and OMIM are related to term "MONDO:0014178" (`r disNet$nodes %>% filter(id == "MONDO:0014178") %>% pull(label)`) itself a child term of "MONDO:0000507" (`r disNet$nodes %>% filter(id == "MONDO:0000507") %>% pull(label)`). This additional variant was identified through extending the disNet and obtaining al child terms and related cross-references.

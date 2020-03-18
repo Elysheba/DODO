@@ -57,12 +57,13 @@ A disease network is a list with the following elements
 \itemize{
 \item from (character): disease 1 id
 \item to (character): disease 2 id
-\item ur (character): xref
 identifier: \code{paste(sort(c(xref$from, xref$to)), collapse="<-->")}
 \item forwardAmbiguity (numeric): number of cross-references
 between disease 1 and database 2
 \item backwardAmbiguity (numeric): number of cross-references
 between disease 2 and database 1
+\item type (character): type of the cross-reference edge
+\item ur (character): unique xref-xref id
 }
 \item alt: a data.frame with alternative identifiers
 \itemize{

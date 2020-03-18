@@ -161,6 +161,13 @@ plot.setDisNet <- function(
 #' @param blacklist a vector of databases to avoid when extending (default = NA)
 #' @param whitelist a vector of databases to trust when extending, only going through these database nodes (default = NA) 
 #' 
+#' @details 
+#' The edges are formatted based on forward ambiguity and type of the edge. 
+#' The colour of the edges is based on ambiguity equal to one or larger than one.
+#' This information is encoded when hovering over the edge.
+#' The solid lines are used for *is_xref* edges, while dashed lines are
+#' used from *is_related* edges.
+#' 
 #' @seealso extendDisNet
 #' 
 #' @export
@@ -195,19 +202,29 @@ show_relations <- function(id,
   edges1 <- xref$xref %>%
     dplyr::select(to, 
                   from,
-                  ambiguity = forwardAmbiguity) %>%
+                  ambiguity = forwardAmbiguity, 
+                  type) %>%
     dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
                                            TRUE ~ "#7fcdbb"),
                   title = paste("Forward ambiguity = ", ambiguity),
-                  arrows = "to")
+                  type = gsub("_nba", "", type),
+                  dashes = case_when(type == "is_xref" ~ FALSE,
+                                     TRUE ~ TRUE),
+                  arrows = "to") %>%
+    distinct()
   edges2 <- xref$xref %>%
     dplyr::select(to = from, 
                   from = to,
-                  ambiguity = backwardAmbiguity) %>%
+                  ambiguity = backwardAmbiguity,
+                  type) %>%
     dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
                                            TRUE ~ "#7fcdbb"),
                   title = paste("Forward ambiguity = ", ambiguity),
-                  arrows = "to")
+                  type = gsub("_nba", "", type),
+                  dashes = case_when(type == "is_xref" ~ FALSE,
+                                     TRUE ~ TRUE),
+                  arrows = "to") %>%
+    distinct()
   edges <- dplyr::bind_rows(edges1,
                             edges2) %>%
     dplyr::distinct()
