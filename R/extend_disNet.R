@@ -88,7 +88,7 @@ extend_disNet <- function(
   children = tibble(child = character(),
                     parent = character(),
                     origin = character())
-
+  
   ##############################################@
   ## ids ----
   nodes <- disNet$nodes
@@ -110,10 +110,10 @@ extend_disNet <- function(
     }
     q <- c(q, transitive)
   }
-  if("parent" %in% relations){q <- c(q, "|is_a>")}
-  if("child" %in% relations){q <- c(q, "|<is_a")}
-  if("alt" %in% relations){q <- c(q, "|<is_alt")}
-  q <- paste0(q, collapse = "")
+  if("parent" %in% relations){q <- c(q, "is_a>")}
+  if("child" %in% relations){q <- c(q, "<is_a")}
+  if("alt" %in% relations){q <- c(q, "is_alt")}
+  q <- paste0(q, collapse = "|")
   
   ##############@
   ## steps ----
@@ -167,7 +167,7 @@ extend_disNet <- function(
     }
     rm(cql.trans)
   }else{
-    ids
+    ids <- ids
   }
   
   ##############@
@@ -207,24 +207,26 @@ extend_disNet <- function(
   }
   
   ## Gather queries ----
-  s <- grep("cql", ls(), value = TRUE)
-  statements <- sapply(s,
-                       function(x){
-                         prepCql(get(x))
-                       },
-                       USE.NAMES = FALSE,
-                       simplify = FALSE)
-  names(statements) <- gsub("cql.", "", s)
-  
-  ## Call query ----
-  toRet <- call_dodo(
-    neo2R::multicypher,
-    queries = statements,
-    parameters = list(from = as.list(ids),
-                      avoid = as.list(avoidNodes)),
-                      # origin = as.list(avoidOrigin)),
-    result = "row"
-  )
+  if(any(c("disease", "phenotype", "child", "parent", "xref") %in% relations)){
+    s <- grep("cql", ls(), value = TRUE)
+    statements <- sapply(s,
+                         function(x){
+                           prepCql(get(x))
+                         },
+                         USE.NAMES = FALSE,
+                         simplify = FALSE)
+    names(statements) <- gsub("cql.", "", s)
+    
+    ## Call query ----
+    toRet <- call_dodo(
+      neo2R::multicypher,
+      queries = statements,
+      parameters = list(from = as.list(ids),
+                        avoid = as.list(avoidNodes)),
+                        # origin = as.list(avoidOrigin)),
+      result = "row"
+    )
+  }
   
   ###############@
   ## Gather ----

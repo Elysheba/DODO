@@ -42,11 +42,11 @@ tkcon <- chTKCat()
 <!-- ============================================================= -->
 # Introduction
 
-Disease ontologies have been developed to meet the need to structure, classify, and describe diseases [@Gruber1993; @Haendel2018; @Hoehndorf2013]. As a result of the diversity in their usage, a multitude of disease ontologies exist aiming to facilitate the integration with drug information, transcriptomics and genomics information, etc. and to support development of novel treatments [@Haendel2018; @Hoehndorf2013; @Rappaport2013]. Disease ontologies allow a more formal description of disease; however, each often defines an independent identifier and only link to a subset of independent biological databases [@Hasnain2014; @Hoehndorf2013; @Kibbe2015; @Livingston2015; @Malone2010; @Rappaport2013]. This stimulated the construction of integrated biological knowledge bases; however, the use independent, ontology-specific identifiers, heterogeneous decisions on disease definitions, and the inherent presence of errors, complicates integrating disease ontologies [@Livingston2015; @Rappaport2013]. In addition, navigating this large integrated knowledgebase with often an inheritely complicated data model, is difficult for most, non-expert users [@Hasnain2014; @Hu2017; @Livingston2015]. 
+Disease ontologies have been developed to meet the need to structure, classify, and describe diseases [@Gruber1993; @Haendel2018; @Hoehndorf2013]. As a result of the diversity in their usage a multitude of disease ontologies exist,  aiming to facilitate the integration with drug information, transcriptomics and genomics information, etc. as well as to support development of novel treatments [@Haendel2018; @Hoehndorf2013; @Rappaport2013]. Disease ontologies allow a more formal description of disease; however, each often defines an independent identifier and will only link to a subset of independent biological databases [@Hasnain2014; @Hoehndorf2013; @Kibbe2015; @Livingston2015; @Malone2010; @Rappaport2013]. While this stimulated the construction of integrated biological knowledge bases, the use of independent, ontology-specific identifiers, heterogeneous decisions on disease definitions, and the inherent presence of errors complicates integrating disease ontologies [@Livingston2015; @Rappaport2013]. In addition, the navigation of these large integrated knowledgebase with often an inheritely complicated data model, is difficult for most, non-expert users [@Hasnain2014; @Hu2017; @Livingston2015]. 
 
-Several efforts have been made to connect the different disease ontologies themselves by generating of a single new integrative ontology [@Mungall2017; @Shefchek2019; @Rappaport2013]. Using semantic similarity the Monarch Disease Ontology (MonDO) aggregates different sources including OMIM, Orphanet, NCiT, GARD, DO, and MF [@Mungall2017; @Shefchek2019]. Other examples is the Disease Ontology (DO) which aims to standardize disease descriptions and classification from a clinical perspective using equivalence mappings [@Cheng2013; @Schriml2015; @Yu2015]. The Experimental Factor Ontology (EFO) also establishes an unified ontology (not limited to diseases) by re-using several reference ontologies that lies within its scope and enriches these classess with additional axioms when needed [@Malone2010]. Currently, it combines information from OMIM, Orphanet, ICD9/10 and SNOMEDCT, HPO, UBERON, and MonDO [@EFO2019].
+Several efforts have been made to connect the different disease ontologies themselves by generating of a single new integrative ontology [@Mungall2017; @Shefchek2019; @Rappaport2013]. Using semantic similarity the Monarch Disease Ontology (MonDO) aggregates different sources including OMIM, Orphanet, NCiT, GARD, DO, and MF [@Mungall2017; @Shefchek2019]. Other examples is the Disease Ontology (DO) resource which aims to standardize disease descriptions and classification from a clinical perspective using equivalence mappings [@Cheng2013; @Schriml2015; @Yu2015]. The Experimental Factor Ontology (EFO) also establishes an unified ontology (not limited to diseases) by re-using several reference ontologies that lie within its scope and enriches these classess with additional axioms when needed [@Malone2010]. Currently, it combines information from OMIM, Orphanet, ICD9/10 and SNOMEDCT, HPO, UBERON, and MonDO [@EFO2019].
 
-Despite ongoing efforts, two issues remain in relation using disease ontologies efficiently: the issue of completeness and ease of access. To this end, the Dictionary of Disease Ontologies (DODO) was developed to deal with these two main issues. The first issue concerns the completeness of disease cross-reference mappings [@Hu2017; @Rappaport2013]. While efforts such as the Monarch Initiative and EFO try to integrate different disease ontologies through semantic learning and manual curation, these resources, like the different disease ontologies themselves, are currently not providing a complete mapping across different disease ontologies. By combining the information provided by the different ontologies, these cross-reference mappings can be enriched. It also allows connecting ontologies to each other that have no direct cross-reference mapping between them by indirectly inferring this connecting through another resource. In addition, the existing efforts for integration are not flexible to extend easily to include proprietary ontologies. Another challenge is the availability of an efficient and straightforward manner to access disease information through well established bioinformatics platforms (R or python) [@Rappaport2013; @Saqi2018]. This will facilitate a more flexible connection to the different life science resources to create a more complete disease landscape. Currently, the programmatic access provided by many ontologies often requires expertise in creating SPARQL queries and a high level of understanding of the underlying databases or data model to be able to generate more complex queries [@Hasnain2014; @Hu2017; @Rappaport2013]. DODO's graphical database is accompagnied by an R package that allows easy access, exploration, and definition of disease concepts of interest. It can work as the intermediate player to facilitate access and exhaustive extraction of information from other life science databases without the need to harmonize these up front. In this paper we will present DODO graphical database and R package, present some use cases as well as benchmark its usage to other available tools.
+Despite ongoing efforts, two issues remain to use disease ontologies efficiently: the issue of completeness and ease of access. To this end, the Dictionary of Disease Ontologies (DODO) was developed. The first issue of completeness concerns the exhaustiveness of disease cross-reference mappings [@Hu2017; @Rappaport2013]. While efforts such as the Monarch Initiative and EFO try to integrate different disease ontologies through semantic learning and manual curation, these resources, like the different disease ontologies themselves, are currently not providing a complete mapping across different disease ontologies. By combining the information provided by the different ontologies, these cross-reference mappings can be enriched. It also allows connecting ontologies to each other that have no direct cross-reference mapping between them by indirectly inferring relationships. In addition, the existing efforts for integration are not flexible to extend easily to  proprietary disease ontologies. Another challenge is the availability of an efficient and straightforward manner to access disease information through well established bioinformatics platforms (R or python) [@Rappaport2013; @Saqi2018]. If avialble, this will facilitate a more flexible connection to the different life science resources to create a more complete disease landscape. Currently, the programmatic access provided by many ontologies often requires expertise in creating SPARQL queries and a high level of understanding of the underlying databases or data model to be able to generate more complex queries [@Hasnain2014; @Hu2017; @Rappaport2013]. The presented graph database is accompagnied by a R package that allows easy access, exploration, and definition of disease concepts of interest. It can work as the intermediate player to facilitate access and exhaustive extraction of information from other life science databases without the need to harmonize these up front. In this paper we will present DODO graphical database and R package with use cases.
 
 
 <!-- ============================================================= -->
@@ -59,20 +59,32 @@ In this section, an overview is presented of the DODO graphQL+ database and the 
 
 !["The DODO data model"](../inst/documentation/data-model/DODO.svg)
 
-Figure: (fig:dodo_data_model) The DODO graph model is shown as an Entity/Relationship (ER) diagram. It consist of three types of entities (disease, phenotype, database) corresponding to graph nodes. Several relationships between the nodes are described referring to graph edges. "ID" refers to a unique entity while "idx" indicates whether this entity is indexed.
+Figure (fig:dodo_data_model): The DODO graph model is shown as an Entity/Relationship (ER) diagram. It consist of four types of entities (concept, disease, phenotype, database) corresponding to graph nodes. Several relationships between the nodes are described referring to graph edges. "ID" refers to an unique entity while "idx" indicates whether this entity is indexed.
 
-The data model underlying DODO aims to capture the relationship between disease and phenotypes as described across different databases [Figure1]. It relies on three types of nodes (disease, phenotype, and database) each with specific proporties. A disease or phenotype nodes have the same properties with *name* as their primary property. *Name* is the full length identifier of a disease or phenotype, namely a concatenation of database and identifier, e.g. "MONDO:0005027". Additional properties are (when available) a unique (canonical) *label*, a set of *synonyms*, disease *definition*, *database* of origin, hierarchical *level* and node *type*. The *level* of a disease is the highest position a node has in the ontological tree. A database node has only two property values, its *name* (the name of the database) and url link (*idURL*).
+The data model underlying DODO aims to capture the relationship between disease and phenotypes as described across different databases [fig:dodo_data_model]. It relies on four types of nodes (concept, disease, phenotype, and database) each with specific proporties. A disease or phenotype nodes have the same properties with *name* as their primary property. *Name* is the full length identifier of a disease or phenotype, namely a concatenation of database and identifier, e.g. "MONDO:0005027". Additional properties are (when available) a unique (canonical) *label*, disease *definition*, *database*, and node *type*. In addition, *label_up* and *definition_up* are the uppercase version of *label* and *definition* respectively. Each node with class disease or phenotype is also encoded witht the class "Concept". Synonyms of the nodes are available through the *is_known_as* relationship with *value* and *value_up* containing the (uppercase) synonyms. A database node has only two property values, its *name* (the name of the database) and url link (*idURL*).  
 
 Nodes can be related to each other through different relations based on information provided by the 
-resources. A disease node can be related to another node belonging to a different database by the *is_xref* relationship. This relationship indicates nodes relating to the same or highly similar disease concepts (as defined by the original resources). The *is_xref* relationship is directional and has the property *FA* (forward ambiguity) and *BA* (backward ambiguity). As disease definitions can be implemented in a broad or narrow sense by each disease ontology, *is_xref* relationships across ontologies are not always unambiguous. The concept of forward and backward ambiguity is implemented to handle transitivity mapping (see below). The *is_xref* relationship is dependent on the direction one is traversing through and is therefore encoded twice between each node. Each of these directions has its subsequent forward and backward ambiguity information provided as properties.
+resources. A disease/phenotype/concept node can be related to another node belonging to a different database by the *is_xref* or *is_related* relationship. This relationship indicates nodes relating to the same or highly similar disease concepts (as defined by the original resources). The relationship is directional and has the property *FA* (forward ambiguity) and *BA* (backward ambiguity). As disease definitions can be implemented in a broad or narrow sense by each disease ontology, *is_xref* and *is_related* relationships across ontologies are not always unambiguous. The concept of forward and backward ambiguity is implemented to handle transitivity mapping (see below). The *is_xref* and *is_related* relationship is dependent on the direction one is traversing through and is therefore encoded twice between each node. Each of these directions has its subsequent forward and backward ambiguity information provided as properties (Figure [fig:ambiguities]).
 
-Phenotype and disease nodes may also be related through *is_a* non-directional relationship identifying parent/child nodes based on an ontological tree. This relationship is only available between nodes of the same database with the exception of diseases defined by EFO. EFO combines the re-use of identifiers from external resources and enriches this information with additional internal disease classifiers to construct its ontology [@Malone2010]. To distinguish the origin of the *is_a* relationship, the property *origin* is a added.
+```{r, include = TRUE}
+disNet <- build_disNet(id = c("MONDO:0005027", "EFO:0000474", "ICD10:G40"))
+plot(disNet)
+```
+Figure (fig:ambiguities): Example of the small disease network between 3 nodes defining "epilepsy" in MonDO, EFO, and ICD10. The edges between them can be either an *is_xref* or *is_related* relationship with the forward and backward ambiguity encoded directionally as properties. The relationship edge is duplicated and reversed between each set of nodes. 
 
-Phenotypes are highly detailed descriptions of clinical abnormalities which are used to describe disease through *has_pheno* non-directional relationship. And finally, each disease or phenotype node belongs to a database as encoded by the *is_in* relationship. This relationship is assigned the property *id* capturing the short identifier of the disease or phenotype node.
+Phenotype/disease/concept nodes may also be related through *is_a* directional hierarchical relationship identifying parent/child nodes based on an ontological tree. This relationship is only available between nodes of the same database with the exception of diseases defined by EFO. EFO combines the re-use of identifiers from external resources and enriches this information with additional internal disease classifiers to construct its ontology [@Malone2010]. To distinguish the origin of the *is_a* relationship, the property *origin* is a added [Figure (fig:parent_child)].
+
+```{r, include = TRUE}
+disNet <- build_disNet(id = c("ORPHA:166463", "EFO:0000474", "EFO:0004263"))
+plot(disNet)
+```
+Figure (fig:parent_child): Example of the small disease network between 3 nodes defining "epilepsy" in MonDO, EFO showing the *is_a* relationship. The property *origin* is encoded on the edge.
+
+Phenotypes are highly detailed descriptions of clinical abnormalities which are used to describe disease through *has_pheno* non-directional relationship. And finally, each disease or phenotype node belongs to a database as encoded by the *is_in* relationship. This relationship is assigned the property (hierarchical) *level* capturing the highest position a node has in the ontology tree. 
 
 ## Implementation
 
-The data model is implemented using the Dgraph graph database which using the GraphQL query language [@Dgraph2017]. Two accompagnying R packages were developed to connect and query the resource [@R2019]. *DgraphR* provides low level function to connect and interact with the Dgraph instance. The second package, *DODO*, provides higher level functions to query the Dgraph graphical database based on the described data model. 
+The data model is implemented using the Neo4j graph database which using the Cypher query language [@Neo4j2020]. One accompagnying R package *DODO* was developed to connect and query the resource. It provides higher level functions to query the Neo4j graph database based on the described data model (above) [@R2019].
 
 The minimal system requirements are: 
 
@@ -80,7 +92,7 @@ The minimal system requirements are:
 - Operating system: Linux, macOS, Windows
 - Memory ≥ 4GB RAM
 
-The graph database has been implemented with Dgraph v1.0.16 [Dgraph2017] the DODO R package depends on the following packages available:
+The graph database has been implemented with Neo4j 3.4.9 [@Neo4j2020], the DODO R package depends on the following packages available:
 
 - dplyr [@Wickham2019]
 - tibble [@Muller2019]
@@ -96,7 +108,7 @@ The graph database has been implemented with Dgraph v1.0.16 [Dgraph2017] the DOD
 
 ## Feeding the database
 
-To construct a DODO instance, a set of script is available to load and feed a Dgraph instance. These are not exposed directly to the user instead, these scripts are available in the *build/scripts* folder. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub:
+To construct a DODO instance, a set of script is available to load and feed a Neo4j instance. These are not exposed directly to the user instead, these scripts are available in the *build/scripts* folder. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub:
 
 Disease ontology                                | GitHub
 ------------------------------------------------|--------------
@@ -115,11 +127,10 @@ Table: (tab:github_ontology) Different disease ontologies included into DODO dat
 
 The different steps are briefly described below: 
 
- 1. Creating the relationship tables based on the information from the different ontologies
+ 1. Creating the relationship tables based on the information from the different resources
  2. Creating a new DODO instance and importing the relationship tables 
- 3. Comparing the information on the new instance to the former (generates a html report)
- 4. Compiling the instance into a Dgraph image
- 5. Start the new instance
+ 3. Compiling the instance into a Dgraph image
+ 4. Start the new instance
 
 ## Availability
 
@@ -136,9 +147,17 @@ This instance is build on information from the following disease ontologies:
  - ClinVar
 
 In the sections below, the presented results and use cases are obtained based on this instance of the DODO database. 
+
 ## Querying the database
 
-DODO R package provides function to allow four different scopes: building and interacting with a disNet of setDisNet object, visualizing a disNet, converting disease and phenotype concepts to different ontologies, and several utility functions to connect to DODO graphical database or obtain low level information on identifiers. The table belows briefly list all function available within the package, as well as a short description and identification of the scope. 
+The DODO R package defines new S3 object called *disNet* (or *setDisNet*) contained all information on the nodes and the relationships between them. This object is generated when querying the database using the R package and can be modified or extended with the function described below. In general, the *disNet* object consists of seven components: **nodes** containing general information about the nodes, **syn** containing all synonyms available for the nodes, **xref** listing any *is_xref* or *is_related* relations between the nodes, **child** listing any *is_a* between the nodes, **pheno** listing phenotype/disease relations that exist, **alt** listing which identifiers might be deprecated, and **seed** the identifiers on which the *disNet* was originally constructed. A *setDisNet* object is a list of *disNet*. 
+
+```{r, include = TRUE}
+disNet <- build_disNet(id = c("MONDO:0005027", "EFO:0000474", "ICD10:G40"))
+disNet
+```
+
+DODO R package provides function to allow four different scopes: building and interacting with a disNet of setDisNet object, visualizing a disNet, converting disease and phenotype concepts to different ontologies, and several utility functions to connect to DODO graph database or obtain low level information on identifiers. The table belows briefly list all function available within the package, as well as a short description and identification of the scope. 
 
 ```{r, include = TRUE, echo = FALSE}
 ftie <- c("build_disNet", 
@@ -203,13 +222,40 @@ toShow %>%
 
 # Transitivity mapping
 
-As a consequence of the different way ontologies defines disease concepts, some cross-reference edges are trusted more than others. Some ontologies (e.g. MONDO, EFO) consider more narrow definition than others (eg. ICD10, ICD9). If cross-reference edges are considered equal without taking this information into account, it might result in the return of more distantly related concepts. Therefore, there are two types of cross-reference edges encoded in DODO: *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases to quantify the symmetry between them. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
+As a consequence of the different way ontologies define disease (or phenotype) concepts, some cross-reference edges connect identifiers that are not exactly equal and therefore, some cross-reference edges are trusted more than others. Some ontologies (e.g. MONDO, EFO) use more narrow definition than others (eg. ICD10, ICD9). If cross-reference edges are considered equal without taking this information into account, it might result in the return of more distantly related concepts (Figure [fig:example_amb]). 
 
-In addition to the two types of edges, the concept of *ambiguity* is implemented to identify nodes with have many cross-references to the same database. Cross-reference edges are implemented in a directional manner in Neo4j, therefore both a forward (FA) and backward (BA) are calculated and encoded on every edge. As it is often desired to move from a broader concept to a more narrow one, no filtering on forward ambiguity is put in place. However, the opposite, namely moving from a more narrow and through a broader concept is not always desired. This can result in an exponential increase of converted/expanded identifiers that are only distantly related to the original identifier. 
+```{r, include = TRUE}
+disNet <- build_disNet(id = "ORPHA:192")
+disNet <- extend_disNet(disNet)
+explore_disNet(disNet)
+``` 
+Figure (fig:example_amb): The EFO (and Orphanet) identifier for Coffin-Lowry syndrome (ORPHA:192) is cross-referenced to 21 different identifiers. Many of these cross-references are more or less equivalent to the original identifier. However, among its cross-references it also links to an ICD10 identifier (Q87.0) which is a broad term of "Congenital malformation syndromes predominantly affecting facial appearance". This identifier is highly ambiguous and links directly to 284 disease concepts. 
 
-The conversion of identifiers and extension or a disNet is performed in two steps. First, transitivity mapping is used on *is_xref* edges only where it is strongly recommended to use the default filtering on ambiguity to limit backward ambiguity to one. The final step is a intransitive mapping where both *is_related* and *is_xref* cross-reference edges are traversed with only one step to get the directly related cross-references (see below). As it is likely you want to obtain a broader concept related to the original identifiers but not move through it, it is recommended to put not filter on the *intransitive_ambiguity*.
+Therefore, there are two types of cross-reference edges encoded in DODO: *is_xref* and *is_related*. The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases to quantify the symmetry between them (included ontologies for this quantification are: MoNDO, EFO, Orphanet, Orphanet, OMIM, MedGen, UMLS, MeSH, ICD10, ICD9, DOID, ClinVar, MEDDRA, GARD, SNOMEDct, andNCIt). Ontologies with an ambiguity equal or lower than four are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between themselves. 
 
-Finally, a specific conversion procedure is recommended for the ontologies that consider disease concepts that are less connected through *is_xref* edges(e.g. ICD10, ICD9, ClinVar) and are mostly only related to other identifiers using *is_related* edges. This limits or removes the effect of the transitive mapping and not return all cross-references. Therefore, for these ontologies it is recommend that in addition to the standard conversion, an additional step of intransitive mapping is performed which is implemented in the function *get_related*. 
+In addition to the two types of edges, the concept of *ambiguity* is implemented to identify nodes with have many cross-references to the same database. Cross-reference edges are implemented in a directional manner in Neo4j, therefore both a forward (FA) and backward (BA) ambiguity is calculated and encoded on every direction. As it is often desired to move from a broader concept to a more narrow one, no filtering on forward ambiguity is put in place. However, the opposite, namely moving from a more narrow and through a broader concept is not always desired. This can result in an exponential increase of converted/expanded identifiers that are only distantly related to the original identifier. 
+
+The conversion of identifiers and extension of a disNet is performed in two steps. First, transitivity mapping is used on *is_xref* edges only where it is strongly recommended to use the default filtering on ambiguity and limit backward ambiguity to one. The final step is a intransitive mapping where both *is_related* and *is_xref* cross-reference edges are traversed with only one step to get the directly related cross-references (see below). As it is likely you want to obtain a broader concept related to the original identifiers but not move through it, it is recommended to put not filter on the *intransitive_ambiguity*. In Figure [fig:extension] an example is presented of the extension starting from the MonDO identifier "MONDO:0005027" encoding "Epilepsy". The transitive mapping with filtering on ambiguity moves between the *is_xref* mapping only in which a higher trust is placed (blue edges). Next, the final intransitive mapping step will return all nodes related through either an *is_related* (brown edges) or *is_xref* edge with no filtering as all ambigious relations want to be returned but not used when extending. 
+
+
+```{r, include = TRUE}
+disNet <- build_disNet(id = "MONDO:0005027")
+disNet <- extend_disNet(disNet = disNet, 
+                        transitive.ambiguity = 1, 
+                        intransitive.ambiguity = NULL, 
+                        relations = "xref")
+plot(disNet)
+```
+Figure (fig:extension): Using the MonDO identifier for "Epilepsy" ("MONDO:0005027") as an example, a disNet is constructed and subsequently extended using only cross-reference relations. This extension is performed in two phases. First, the transitive mapping uses the *is_xref* edges wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (blue edges). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending. This final intransitive mapping step will return all nodes related through either an *is_related* (brown edges) or *is_xref* edge with no filtering as all. 
+
+Finally, a specific conversion procedure is recommended for the ontologies that consider disease concepts that are less connected through *is_xref* edges. Ontologies of ICD10, ICD9, ClinVar frequently report only those ontologies that are mapped using *is_related* cross-reference edges. When converting from these identifiers as a starting point, the conversion will not be able to return cross-reference relationship to all other database (even when they are avialable, Figure [fig:get_related]). It limits or removes the effect of the transitive mapping. Therefore, for these ontologies it is recommend that in addition to the standard conversion, an additional step of intransitive mapping is performed afterwards which is implemented in the function *get_related*. 
+
+```{r, include = TRUE}
+disNet <- build_disNet(id = "ClinVar:2")
+disNet <- extend_disNet(disNet = disNet, 
+                        relations = "xref")
+plot(disNet)
+```
 
 ```{r}
 ## Show heatmap ambiguities

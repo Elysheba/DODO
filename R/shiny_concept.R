@@ -47,8 +47,13 @@ shinyConcept <- function(){
                       "Concept database" = database,
                       "Concept" = label,
                       "Level in hierarchy" = level,
-                      "Synonyms" = synonym,
-                      "Definition" = definition)
+                      # "Synonyms" = synonym,
+                      "Definition" = definition) %>%
+        dplyr::distinct()
+      # toShow <- outputSearch()
+      # Actions = shinyInput(actionButton, 5, 'button_', 
+      #                      label = "Fire", 
+      #                      onclick = 'Shiny.onInputChange(\"select_button\",  this.id)' )
       
       DT::datatable(
         toShow,
@@ -214,15 +219,32 @@ conceptSearch <- function(input, output, session, internal = TRUE){
       tmp <- NULL
       showNotification("No results", session = session)
     }else{
-      showNotification(paste0(nrow(tmp), " results"),
+      showNotification(paste0(length(unique(tmp$id)), " results"),
                        session = session)
     }
-    if(type == "term" & !is.null(tmp)){
-      tmp %>% dplyr::mutate(label = DODO:::highlightText(text = label, value = term()),
-                            synonym = DODO:::highlightText(text = synonym, value = term()),
-                            definition = DODO:::highlightText(text = definition, value = term()))
+    if(type == "term" & !is.null(tmp) & nrow(tmp) != 0){
+      tmp %>% 
+        dplyr::mutate(label = DODO:::highlightText(text = label, value = term()),
+                      synonym = DODO:::highlightText(text = synonym, value = term()),
+                      definition = DODO:::highlightText(text = definition, value = term())) %>%
+        dplyr::select(id, 
+                      label, 
+                      database, 
+                      definition, 
+                      synonym,
+                      level
+                      )  %>%
+        dplyr::distinct()
     }else{
-      tmp
+      tmp %>%
+        dplyr::select(id, 
+                      label, 
+                      database, 
+                      definition, 
+                      synonym,
+                      level
+                      ) %>%
+        dplyr::distinct()
     }
   })
   return(toRet)
@@ -267,16 +289,25 @@ searchDODO <- function(searchTerm,
     seed <- find_id(id = searchTerm)
     
     ## query to get name, definition, label, synonym, level
-    cql <- c('MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
-             sprintf('WHERE n.name IN $from %s',
-                     ifelse(is.null(database), "", "AND n.database IN $database")),
-             'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
-             'n.definition AS definition, ',
-             's.value AS synonym, n.level AS level ORDER BY level DESC')
+    if(is.null(database)){
+      cql <- c('MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
+               'WHERE n.name IN $from',
+               'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
+               'n.definition AS definition, ',
+               's.value AS synonym, n.level AS level ORDER BY level DESC')
+    }else{
+      match.arg(database, list_database()$database, several.ok = FALSE)
+      cql <- c('MATCH (d:Database)<-[:is_in]-(n:Concept)-[:is_known_as]->(s:Synonym)',
+               'WHERE n.name IN $from AND d.name IN $database',
+               'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
+               'n.definition AS definition, ',
+               's.value AS synonym, n.level AS level ORDER BY level DESC')
+    }
     toRet <- call_dodo(cypher,
                        prepCql(cql),
                        result = "row",
-                       parameters = list(from = as.list(seed))) %>%
+                       parameters = list(from = as.list(seed),
+                                         database = as.list(database))) %>%
       dplyr::arrange(level)
     return(toRet)
   }
@@ -295,18 +326,37 @@ searchDODO <- function(searchTerm,
     seed <- find_term(term = searchTerm, fields = fields)
     
     ## query to get name, definition, label, synonym, level
-    cql <- c('MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
-             sprintf('WHERE n.name IN $from %s',
-                     ifelse(is.null(database), "", "AND n.database IN $database")),
-             'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
-             'n.definition AS definition, ',
-             's.value AS synonym, n.level AS level ORDER BY level DESC')
+    if(is.null(database)){
+      cql <- c('MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
+               'WHERE n.name IN $from',
+               'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
+               'n.definition AS definition, ',
+               's.value AS synonym, n.level AS level ORDER BY level DESC')
+    }else{
+      match.arg(database, list_database()$database, several.ok = FALSE)
+      cql <- c('MATCH (d:Database)<-[:is_in]-(n:Concept)-[:is_known_as]->(s:Synonym)',
+               'WHERE n.name IN $from AND d.name IN $database',
+               'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
+               'n.definition AS definition, ',
+               's.value AS synonym, n.level AS level ORDER BY level DESC')
+    }
     toRet <- call_dodo(cypher,
                        prepCql(cql),
                        result = "row",
                        parameters = list(from = as.list(seed),
                                          database = as.list(database))) %>%
-      dplyr::arrange(level)
+      tibble::as_tibble()
+    if(nrow(toRet) == 0){
+      toRet <- tibble(id = character(),
+                      label = character(),
+                      database = character(),
+                      definition = character(),
+                      synonym = character(),
+                      level = integer())
+    }else{
+      toRet <- toRet %>% 
+        dplyr::arrange(level)
+    }
     return(toRet)
   }
 }

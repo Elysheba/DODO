@@ -3,7 +3,7 @@
 #' @export
 #' 
 get_ontology <- function(database){
-   match.arg(database, list_db()$database, several.ok = FALSE)
+   match.arg(database, list_database()$database, several.ok = FALSE)
    
    ## Get concepts ----
    cql <- c(

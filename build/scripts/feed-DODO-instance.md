@@ -1,7 +1,7 @@
 ---
 title: "Building DODO database"
 author: "Liesbeth François"
-date: "`r format(Sys.time(), '%B %d %Y')`"
+date: "March 18 2020"
 abstract: "This report records the process the load the different disease ontologies into a single DODO instance and return an RDF table as well as RData objects with all parsed information."
 output:
     html_document:
@@ -28,9 +28,31 @@ This document shows how to build a Dictionary of Disease Ontologies (DODO). It c
 
 In this example several publically available disease ontologies are integrated into DODO. These ontologies have been parse beforehand and these scripts are made available through a GitHub repository (as described in the paper).
 
-```{r config, message=FALSE}
+
+```r
 ##
 library(DODO)
+```
+
+```
+## Warning in check_dodo_connection(verbose = TRUE): DODO DB is empty !
+```
+
+```
+## Warning in check_dodo_connection(): DODO DB is empty !
+
+## Warning in check_dodo_connection(): DODO DB is empty !
+```
+
+```
+## Warning in check_dodo_cache(newCon = TRUE): Clearing cache
+```
+
+```
+## Warning in check_dodo_connection(verbose = FALSE): DODO DB is empty !
+```
+
+```r
 library(knitr)
 library(here)
 library(dplyr)
@@ -69,7 +91,24 @@ connect_to_dodo(
    importPath = "/data/lfrancois/Development/DODO/build/working/neo4jImport"
    # importPath = "neo4jImport"
 )
+```
 
+```
+## Warning in check_dodo_connection(verbose = TRUE): DODO DB is empty !
+```
+
+```
+## Warning in check_dodo_connection(): DODO DB is empty !
+
+## Warning in check_dodo_connection(): DODO DB is empty !
+```
+
+```
+## Warning in check_dodo_cache(newCon = TRUE): Clearing cache
+```
+
+```
+## Warning in check_dodo_connection(verbose = FALSE): DODO DB is empty !
 ```
 
 <!----------------------------------------------------------------->
@@ -83,7 +122,8 @@ connect_to_dodo(
 
 The different ontologies included are MonDO, EFO, DO, Orphanet, MedGen, MeSH, HPO, ICD10CM, ICD11 (only ICD10 ids), Cortellis (if available) and ICD10CM. These files were parsed with the source scripts provided in the respective GitHub repositories. 
 
-```{r load_onto, include = TRUE}
+
+```r
 path_name <- "/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository"
 src <- c("Monarch","EFO","DO","Orphanet","MedGen","MeSH","HPO", "ICD11", "CortellisONT","ICD10CM")
 for(s in src){
@@ -130,129 +170,87 @@ The URL provides a link to its respective GitHub repository where you can find t
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *def* (character, definition of the concept), and *level* (integer, in the ontology hierarchy).
 
-```{r ex_entryId, include = TRUE, echo = FALSE}
-DT::datatable(Monarch_entryId %>% head(n = 2))
-```
+<!--html_preserve--><div id="htmlwidget-8ae7579387e9114d84e1" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8ae7579387e9114d84e1">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0001642"],["A primary or metastatic malignant neoplasm involving the cervix.","A hordeolum that results from obstruction and infection of an eyelash follicle and adjacent glands of Zeis or Moll glands. Follicle obstruction may be associated with blepharitis."],["9","10"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>def<\/th>\n      <th>level<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **idNames**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *syn* (character, synonym and label), and canonical (boolean, whether *syn* is the canonical concept label).
 
-```{r ex_idNames, include = TRUE, echo = FALSE}
-DT::datatable(Monarch_idNames %>% head(n = 2))
-```
+<!--html_preserve--><div id="htmlwidget-8c2b6656436b9a78b399" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-8c2b6656436b9a78b399">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0001642"],["cervical cancer","hordeolum externum"],["TRUE","TRUE"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>syn<\/th>\n      <th>canonical<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **parentId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *pDB* (character, database or ontology of the parent term), *parent* (character, identifiers of the parent), origin (character, database or ontology where this relationship originates from).
 
-```{r ex_parentId, include = TRUE, echo = FALSE}
-DT::datatable(Monarch_parentId %>% head(n = 2))
-```
+<!--html_preserve--><div id="htmlwidget-51779f4f39120407a615" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-51779f4f39120407a615">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0016629","0007779"],["MONDO","MONDO"],["0002243","0000426"],["MONDO","MONDO"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>pDB<\/th>\n      <th>parent<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **crossId**
 
 Dataframe with columns *DB1* (character, database or ontology of the first identifier), *id1* (character, first identifier without the database prefex), *DB2* (character, database or ontology of the second identifier), *id2* (character, second identifier also called cross-referenced identifier without database prefix).
 
-```{r ex_crossId, include = TRUE, echo = FALSE}
-DT::datatable(Monarch_crossId %>% head(n = 2))
-```
+<!--html_preserve--><div id="htmlwidget-41a76ff202f807563d12" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-41a76ff202f807563d12">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0002974"],["ICD9","ICD9"],["180.8","180"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB1<\/th>\n      <th>id1<\/th>\n      <th>DB2<\/th>\n      <th>id2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **altId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *alt* (character, database or ontology of the alternative identifier), *altDB* (character, alternative identifier).
 
-```{r ex_hp, include = TRUE, echo = FALSE}
-toShow <- HPO_altId %>%
-  mutate(altDB = "HP",
-         DB = "HP")
-DT::datatable(toShow %>% head(n = 2))
-```
+<!--html_preserve--><div id="htmlwidget-6e000ff98095d883b128" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6e000ff98095d883b128">{"x":{"filter":"none","data":[["1","2"],["0000003","0000005"],["0004715","0001453"],["HP","HP"],["HP","HP"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>id<\/th>\n      <th>alt<\/th>\n      <th>altDB<\/th>\n      <th>DB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **pheno2dis**
 
 Dataframe with columns *phenoDB* (character, database or ontology of the phenotype), *phenoID* (character, phenotype identifier without the database prefex), *disDB* (character, database or ontology of the disease identifier), *disID* (character, disease identifier).
 
-```{r ex_hpdis, include = TRUE, echo = FALSE}
-toShow <- HPO_diseaseHP %>%
-  mutate(phenoDB = "HP") %>%
-  select(phenoDB, 
-         phenoID = hp,
-         disDB = db,
-         disID = id)
-DT::datatable(toShow %>% head(n = 2))
-```
+<!--html_preserve--><div id="htmlwidget-7599755f71292b4cb78c" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-7599755f71292b4cb78c">{"x":{"filter":"none","data":[[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>phenoDB<\/th>\n      <th>phenoID<\/th>\n      <th>disDB<\/th>\n      <th>disID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 ## Database convention
 
 There are often different abbreviations available for different ontology database. Here, we adopt a naming convention to harmonize the different inputs.
 
-```{r db_convention, echo = FALSE, include = TRUE}
-toShow <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseDocumentation.xlsx"))
-datatable(toShow,
-          rownames = FALSE)
-```
+<!--html_preserve--><div id="htmlwidget-b2ff93e0aa9e7c8c714f" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b2ff93e0aa9e7c8c714f">{"x":{"filter":"none","data":[["MeSH","MONDO","EFO","OMIMPS","OMIM","Orphanet","SNOMEDCT","SCTID","DOID","NCIt","UMLS","ICD9","ICD10","GARD","MedGen","Human Phenotype Ontology"],["Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease",null,"Trait"],["MeSH","MONDO","EFO","OMIMPS","OMIM","ORPHA","SNOMEDCT","SNOMEDCT","DOID","NCIt","MedGen","ICD9","ICD10","GARD","MedGen","HP"],["D001368","0000001","0000408","602483","613339 ","377788","702443003","702443003","1","C84570","C0003803","255.4","Q04.3","0007446","C0003803","0001272"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Database<\/th>\n      <th>Type<\/th>\n      <th>DB<\/th>\n      <th>ID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 ## Cross-reference edges
 
 There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
 
-```{r db_xref_edge, echo = FALSE, include = TRUE}
-xrefDB <- readxl::read_xlsx(here::here("inst", "documentation", "CrossreferencesEdges.xlsx"),
-                            sheet = "Max_ambiguity_4_across_DBs"
-                            )
-datatable(xrefDB,
-          rownames = FALSE)
-```
+<!--html_preserve--><div id="htmlwidget-0cb85fdf5eecbaf8ecef" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-0cb85fdf5eecbaf8ecef">{"x":{"filter":"none","data":[["DOID","DOID","DOID","ORPHA","ORPHA","ORPHA","ORPHA","ORPHA","EFO","EFO","EFO","EFO","MONDO","MONDO","MONDO","MONDO","MedGen","MedGen","MedGen","ClinVar","ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","Cortellis_indication","UMLS","ICD10","Cortellis_condition"],["SNOMEDCT","GARD","MONDO","EFO","NCIt","ORPHA","SNOMEDCT","MONDO","ClinVar","EFO","GARD","MONDO","MONDO","NCIt","SNOMEDCT","MeSH","UMLS","ClinVar","NCIt","NCIt","MeSH","UMLS","SNOMEDCT","MetaBase_disease","MEDDRA","MeSH","MetaBase_disease","NCIt","ICD9","Cortellis_indication"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 ## Harmonize HPO
 
 HPO captures phenotype information, the information in the HPO parsed files needs to be harmonized before joining.
 
-```{r harm_hpo, echo = TRUE, results = "hide", prompt = TRUE}
-list2env(DODO:::harmonize_HPO(
-  HPO_diseaseHP,
-  HPO_synonyms,
-  HPO_hp,
-  HPO_altId,
-  HPO_diseases,
-  HPO_parents,
-  Monarch_hp),
-  envir = .GlobalEnv)
+
+```r
+> list2env(DODO:::harmonize_HPO(
++   HPO_diseaseHP,
++   HPO_synonyms,
++   HPO_hp,
++   HPO_altId,
++   HPO_diseases,
++   HPO_parents,
++   Monarch_hp),
++   envir = .GlobalEnv)
 ```
 
 ## Harmonize CortellisONT
 
 Harmonize information from CortellisONT when available.
 
-```{r harm_cort, include = FALSE, echo = FALSE}
-if(params$type == "internal"){
-  ## Identify missing IDs from other Cortellis APIs
-  cortDD <- read.table("/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/CortellisDD/data/CortellisDD_conditions.txt",
-                       header = TRUE, 
-                       sep = "\t", 
-                       quote = '"', 
-                       comment.char = "", 
-                       colClasses= c("character")) %>%
-    dplyr::mutate(conditionId = paste("Cortellis_condition", conditionId, sep = ":")) %>%
-    dplyr::distinct(conditionId, .keep_all = T) 
-   list2env(DODO:::harmonize_Cortellis(
-     CortellisONT_siConditions = CortellisONT_siConditions,
-     CortellisONT_siConditionXref = CortellisONT_siConditionXref,
-     CortellisONT_siConditionParents = CortellisONT_siConditionParents,
-     CortellisONT_ciIndications = CortellisONT_ciIndications,
-     CortellisONT_ciIndicationXref = CortellisONT_ciIndicationXref,
-     CortellisONT_ciIndicationParents = CortellisONT_ciIndicationParents,
-     checkMissing = cortDD),
-     envir = .GlobalEnv)
-}
-```
+
 
 # Integrate resources
 
 The input tables from the different ontologies are integrated and checked for consistency.
 
-```{r integrate}
+
+```r
 ##################################################################@
 ## Bind all datasets----
 obj <- c("entryId","crossId","idNames","parentId","pheno2dis","altId")
@@ -268,7 +266,55 @@ for(i in obj){
   fn <- paste0("DODO_",i)
   assign(value = sobj,x = fn)
 }
+```
 
+```
+## [1] "entryId"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "DB"    "id"    "def"   "level"
+## [1] "crossId"
+## [1] "DB1" "id1" "DB2" "id2"
+## [1] "DB1" "id1" "DB2" "id2"
+## [1] "DB1" "id1" "DB2" "id2"
+## [1] "DB1" "id1" "DB2" "id2"
+## [1] "DB1" "id1" "DB2" "id2"
+## [1] "idNames"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "parentId"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "pheno2dis"
+## [1] "phenoDB" "phenoID" "disDB"   "disID"  
+## [1] "altId"
+## [1] "DB"    "id"    "altDB" "alt"  
+## [1] "DB"    "id"    "altDB" "alt"  
+## [1] "id"    "alt"   "altDB" "DB"
+```
+
+```r
 # table(DODO_crossId$DB1)
 # table(DODO_crossId$DB2)
 # table(DODO_entryId$DB)
@@ -311,7 +357,8 @@ DODO_idNames <- DODO_idNames %>%
 
 ClinVar uses an internal clinvar disease identifier (t.id) that cross-references to different ontology. To complete the information and facilitate integration with ClinVar resource, this information is added in DODO.
 
-```{r load_cv}
+
+```r
 list2env(DODO:::load_ClinVar(
   DODO_entryId = DODO_entryId,
   path_name = "/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/ClinVar/data/",
@@ -321,9 +368,14 @@ list2env(DODO:::load_ClinVar(
   envir = .GlobalEnv)
 ```
 
+```
+## <environment: R_GlobalEnv>
+```
+
 The parsed dataframes are appended to their respective DODO counterparts.
 
-```{r bind_dodo}
+
+```r
 ## Add to DODO
 DODO_entryId <- rbind(DODO_entryId, cv_entryId)
 DODO_idNames <- rbind(DODO_idNames, cv_idNames)
@@ -374,7 +426,8 @@ DODO_crossId <- DODO_crossId %>%
 
 ## Medgen Disease concepts only
 
-```{r}
+
+```r
 mg <- read.table("/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/MedGen/sources/MGSTY.RFF",
                  sep = "|", 
                  header = TRUE, 
@@ -395,12 +448,17 @@ DODO_crossId <- DODO_crossId %>%
 dim(DODO_crossId)
 ```
 
+```
+## [1] 333634      6
+```
+
 ## Modify database name
 
 Some resources use either "MedGen" or "UMLS" as database name for NCI Metathesaurus Links. Identifiers from either will therefore be encoded twice into DODO. Similarly, ICD10CM identifiers are also considered as ICD10 identifiers.
 
 
-```{r modify_db}
+
+```r
 ##################################################################@
 ## Modify DB names and entries ----
 ## Add UMLS entries as MedGen entries (double entry)
@@ -488,65 +546,7 @@ DODO_parentId <- mutate(DODO_parentId,
 
 Duplicated entries are removed from the different DODO tables. 
 
-```{r rm_dupl, echo = TRUE, include = FALSE}
-##################################################################@
-sum(duplicated(DODO_entryId))
-sum(duplicated(DODO_entryId[,c("dbid")]))
-dim(DODO_entryId)
-dim(unique(DODO_entryId))
-DODO_entryId <- DODO_entryId[order(DODO_entryId$def,decreasing = T),]
-d <- which(duplicated(DODO_entryId[,c("dbid")]))
-DODO_entryId <- DODO_entryId[-d,]
-dim(DODO_entryId)
-sum(duplicated(DODO_entryId))
-sum(duplicated(DODO_entryId[,c("dbid")]))
 
-sum(duplicated(DODO_crossId))
-dim(DODO_crossId)
-dim(unique(DODO_crossId))
-DODO_crossId <- unique(DODO_crossId)
-sum(duplicated(DODO_crossId))
-dim(DODO_crossId)
-## no duplicates id1 -> id2, id2 -> id1
-# d <- DODO_crossId[,c("dbid2","dbid1")]
-# dd <- duplicated(paste(DODO_crossId$dbid1,DODO_crossId$dbid2,sep = "_") %in% paste(d$dbid2,d$dbid1,sep = "_"))
-# length(dd)
-# a <- DODO_crossId[-dd,]
-dim(DODO_crossId)
-
-sum(duplicated(DODO_idNames))
-dim(DODO_idNames)
-dim(unique(DODO_idNames))
-DODO_idNames <- DODO_idNames[order(DODO_idNames$canonical,decreasing = T),]
-DODO_idNames <- DODO_idNames %>% distinct(DB, id, syn, canonical, .keep_all = TRUE) 
-dim(DODO_idNames)
-dim(unique(DODO_idNames))
-sum(duplicated(DODO_idNames))
-
-sum(duplicated(DODO_pheno2dis))
-dim(DODO_pheno2dis)
-dim(unique(DODO_pheno2dis))
-
-## all entries in entryID -- (OK)
-table(DODO_crossId$dbid1 %in% DODO_entryId$dbid)
-table(DODO_parentId$dbid %in% DODO_entryId$dbid)
-table(DODO_idNames$dbid %in% DODO_entryId$dbid)
-table(DODO_pheno2dis$pdbid %in% DODO_entryId$dbid)
-
-## ASCII characters
-DODO_idNames$syn <- iconv(x = DODO_idNames$syn,to="ASCII//TRANSLIT")
-DODO_idNames$syn <- gsub(paste("\n","\t","\r","\\{", "\\}", sep = "|"),
-                                " ",
-                                DODO_idNames$syn)
-DODO_idNames$syn <- gsub("\"","'",DODO_idNames$syn)
-#
-DODO_entryId$def <- iconv(x = DODO_entryId$def,to="ASCII//TRANSLIT")
-DODO_entryId$def <- gsub(paste("\n","\t","\r","\\{", "\\}", sep = "|"),
-                                " ",
-                                DODO_entryId$def)
-DODO_entryId$def <- gsub("\"","'",DODO_entryId$def)
-# table(unlist(sapply(DODO_entryId$def, strsplit, split = "")))
-```
 
 
 # Load into Neo4j
@@ -555,7 +555,8 @@ The workflow for importing information into the Neo4j instance by assigning all 
 
 Connect to Neo4j and specify import path to load data.
 
-```{r, message=FALSE, eval=TRUE}
+
+```r
 connect_to_dodo(
    url=url,
    importPath = "/data/lfrancois/Development/DODO/build/working/neo4jImport"
@@ -563,11 +564,30 @@ connect_to_dodo(
 )
 ```
 
+```
+## Warning in check_dodo_connection(verbose = TRUE): DODO DB is empty !
+```
+
+```
+## Warning in check_dodo_connection(): DODO DB is empty !
+
+## Warning in check_dodo_connection(): DODO DB is empty !
+```
+
+```
+## Warning in check_dodo_cache(newCon = TRUE): Clearing cache
+```
+
+```
+## Warning in check_dodo_connection(verbose = FALSE): DODO DB is empty !
+```
+
 ## Check empty DB
 
 Do not go further if your DODO DB is not empty.
 
-```{r, message=FALSE}
+
+```r
 dbSize <- call_dodo(cypher, 'MATCH (n) RETURN count(n)')[,1]
 # if(dbSize!=0){
 #     stop("DODO DB is not empty ==> clean it before loading the content below")
@@ -576,15 +596,31 @@ dbSize <- call_dodo(cypher, 'MATCH (n) RETURN count(n)')[,1]
 
 ## Set DODO instance and version
 
-```{r, message=FALSE}
+
+```r
 print(dodoInstance)
+```
+
+```
+## [1] "UCB-Public"
+```
+
+```r
 print(dodoVersion)
+```
+
+```
+## [1] "2020.03.18"
+```
+
+```r
 DODO:::set_dodo_version(dodoInstance=dodoInstance, dodoVersion=dodoVersion)
 ```
 
 ## Load Data model
 
-```{r, message=FALSE}
+
+```r
 DODO:::load_dodo_model()
 ```
 
@@ -592,13 +628,15 @@ DODO:::load_dodo_model()
 <!----------------------------------------------------------------->
 # Importing Diseases nodes
 
-```{r}
+
+```r
 concept <- "Concept"
 ```
 
 ## Concepts
 
-```{r}
+
+```r
 toImport <- DODO_entryId %>%
   left_join(
     DODO_idNames %>% 
@@ -623,7 +661,8 @@ DODO:::load_concept_definitions(toImport=toImport, concept=concept)
 
 ## Synonyms
 
-```{r}
+
+```r
 toImport <- DODO_idNames %>%
   select("database"=DB, 
          "shortID"=id, 
@@ -635,7 +674,8 @@ DODO:::load_concept_synonyms(toImport=toImport, concept=concept)
 
 ## Alternative identifiers
 
-```{r}
+
+```r
 toImport <- DODO_altId %>%
   select("database"="DB", 
          "shortID"="id", 
@@ -646,7 +686,8 @@ DODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
 
 ## Parents
 
-```{r}
+
+```r
 toImport <- DODO_parentId %>%
   select("database"=DB, 
          "shortID"=id, 
@@ -658,12 +699,19 @@ DODO:::load_parent_identifiers(toImport=toImport, concept=concept)
 
 ## Cross-references
 
-```{r}
+
+```r
 xrefDB <- readxl::read_xlsx(here::here("inst", "documentation",
                                        "CrossreferencesEdges.xlsx"),
                             sheet = "Max_ambiguity_4_across_DBs")
 datatable(xrefDB,
           rownames = FALSE)
+```
+
+<!--html_preserve--><div id="htmlwidget-0b7d19df2c7d942f5c80" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-0b7d19df2c7d942f5c80">{"x":{"filter":"none","data":[["DOID","DOID","DOID","ORPHA","ORPHA","ORPHA","ORPHA","ORPHA","EFO","EFO","EFO","EFO","MONDO","MONDO","MONDO","MONDO","MedGen","MedGen","MedGen","ClinVar","ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","Cortellis_indication","UMLS","ICD10","Cortellis_condition"],["SNOMEDCT","GARD","MONDO","EFO","NCIt","ORPHA","SNOMEDCT","MONDO","ClinVar","EFO","GARD","MONDO","MONDO","NCIt","SNOMEDCT","MeSH","UMLS","ClinVar","NCIt","NCIt","MeSH","UMLS","SNOMEDCT","MetaBase_disease","MEDDRA","MeSH","MetaBase_disease","NCIt","ICD9","Cortellis_indication"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+
+```r
 toImport <- DODO_crossId %>%
   select(DB1, id1, DB2, id2)
 DODO:::load_cross_references(
@@ -675,7 +723,8 @@ DODO:::load_cross_references(
 
 ## Diseases - Phenotypes
 
-```{r}
+
+```r
 nodes <- DODO_entryId %>% filter(DB == "HP") %>% pull(dbid)
 DODO:::set_labels(concept = "Phenotype", nodes = nodes)
 
@@ -694,7 +743,8 @@ DODO:::load_has_phenotypes(toImport=toImport)
 
 Some identifiers are recorded across multiple database, e.g. EFO incorporates identifiers from Monarch, Orphanet, etc. These receive additional *is_in* edge.
 
-```{r}
+
+```r
 toImport <- bind_rows(DODO_parentId %>% select(DB,
                                                id, 
                                                origin),
@@ -710,18 +760,14 @@ DODO:::load_concept_names(toImport = toImport, concept = concept)
 
 # Database URL templates
 
-```{r db_url, echo = FALSE, include = TRUE}
-databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"), col_names = c("name", "idURL"))
-# datatable(databases,
-#           rownames = FALSE)
-DODO:::load_db_definitions(toImport=databases)
-```
+
 
 ## Write files
 
 Files are writting to the specified location both as rdf and rda files.
 
-```{r write_files}
+
+```r
 ############################@
 ## Save .rda ----
 ############################@
