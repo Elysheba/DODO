@@ -903,7 +903,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
           concept, type, concept
         ),
         sprintf('MERGE (f)-[r2:%s]->(t)', paste0(type, "_nba")),
-        'ON CREATE SET r2.BA = r1.BA ON CREATE SET r2.FA = r1.BA'
+        'ON CREATE SET r2.BA = r1.BA ON CREATE SET r2.FA = r1.FA'
       ))
     )
     ## when updating new resources, the ambiguity will be calculated on the fly

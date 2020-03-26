@@ -203,6 +203,15 @@ get_related <- function(from,
                         transitive_ambiguity = 1,
                         intransitive_ambiguity = NULL,
                         verbose = FALSE){
+   ## Additional step
+   cql <- c("MATCH (n:Disease)-[r:is_xref*0..1]-(n1:Disease)",
+            "WHERE n.name in $from",
+            "RETURN n.name as from2, n1.name as to2")
+   relConv <- call_dodo(cypher, 
+                        prepCql(cql),
+                        parameters = list(from = as.list(unique(from))),
+                        result = "row")
+   ## normal conversion to end
    dodoConv <- convert_concept(from = from,
                                to = to,
                                from.concept = from.concept,
@@ -211,19 +220,12 @@ get_related <- function(from,
                                transitive_ambiguity = transitive_ambiguity,
                                intransitive_ambiguity = intransitive_ambiguity,
                                verbose = verbose)
-   ## Additional step
-   cql <- c("MATCH (n:Disease)-[r:is_xref*0..1]-(n1:Disease)",
-            "WHERE n.name in $from",
-            "RETURN n.name as from2, n1.name as to2")
-   relConv <- call_dodo(cypher, 
-                        prepCql(cql),
-                        parameters = list(from = as.list(unique(dodoConv$to))),
-                        result = "row")
+
    finConv <- dodoConv %>%
       left_join(relConv,
-                by = c("to" = "from2")) %>%
-      select(from = from,
-             to = to2) %>%
+                by = c("from" = "to2")) %>%
+      select(from = from2,
+             to = to) %>%
       distinct()
    return(finConv)
 }

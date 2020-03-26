@@ -231,7 +231,7 @@ explore_disNet(disNet)
 ``` 
 Figure (fig:example_amb): The EFO (and Orphanet) identifier for Coffin-Lowry syndrome (ORPHA:192) is cross-referenced to 21 different identifiers. Many of these cross-references are more or less equivalent to the original identifier. However, among its cross-references it also links to an ICD10 identifier (Q87.0) which is a broad term of "Congenital malformation syndromes predominantly affecting facial appearance". This identifier is highly ambiguous and links directly to 284 disease concepts. 
 
-Therefore, there are two types of cross-reference edges encoded in DODO: *is_xref* and *is_related*. The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases to quantify the symmetry between them (included ontologies for this quantification are: MoNDO, EFO, Orphanet, Orphanet, OMIM, MedGen, UMLS, MeSH, ICD10, ICD9, DOID, ClinVar, MEDDRA, GARD, SNOMEDct, andNCIt). Ontologies with an ambiguity equal or lower than four are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between themselves. 
+Therefore, there are two types of cross-reference edges encoded in DODO: *is_xref* and *is_related*. The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases to quantify the symmetry between them (included ontologies for this quantification are: MoNDO, EFO, Orphanet, Orphanet, OMIM, MedGen, UMLS, MeSH, ICD10, ICD9, DOID, ClinVar, MEDDRA, GARD, SNOMEDct, andNCIt). Ontologies with an ambiguity equal or lower than four are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between themselves. An additional exception is put in place for OMIM and Orphanet, which often defines very narrow subtypes of disease that are linked to a variant and therefore encoded as *is_xref* edge.
 
 In addition to the two types of edges, the concept of *ambiguity* is implemented to identify nodes with have many cross-references to the same database. Cross-reference edges are implemented in a directional manner in Neo4j, therefore both a forward (FA) and backward (BA) ambiguity is calculated and encoded on every direction. As it is often desired to move from a broader concept to a more narrow one, no filtering on forward ambiguity is put in place. However, the opposite, namely moving from a more narrow and through a broader concept is not always desired. This can result in an exponential increase of converted/expanded identifiers that are only distantly related to the original identifier. 
 
@@ -248,7 +248,9 @@ plot(disNet)
 ```
 Figure (fig:extension): Using the MonDO identifier for "Epilepsy" ("MONDO:0005027") as an example, a disNet is constructed and subsequently extended using only cross-reference relations. This extension is performed in two phases. First, the transitive mapping uses the *is_xref* edges wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (blue edges). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending. This final intransitive mapping step will return all nodes related through either an *is_related* (brown edges) or *is_xref* edge with no filtering as all. 
 
-Finally, a specific conversion procedure is recommended for the ontologies that consider disease concepts that are less connected through *is_xref* edges. Ontologies of ICD10, ICD9, ClinVar frequently report only those ontologies that are mapped using *is_related* cross-reference edges. When converting from these identifiers as a starting point, the conversion will not be able to return cross-reference relationship to all other database (even when they are avialable, Figure [fig:get_related]). It limits or removes the effect of the transitive mapping. Therefore, for these ontologies it is recommend that in addition to the standard conversion, an additional step of intransitive mapping is performed afterwards which is implemented in the function *get_related*. 
+Finally, a specific conversion procedure is recommended for the ontologies that consider disease concepts that are less connected through *is_xref* edges to the "core" ontologies in DODO (e.g. MonDO, EFO, MedGen, etc.). Ontologies of ICD10, ICD9, ClinVar frequently report only those ontologies that are mapped using *is_related* cross-reference edges. When converting from these identifiers as a starting point, the conversion will not be able to return cross-reference relationship to all other database (even when they are avialable, Figure [fig:get_related]). It limits or removes the effect of the transitive mapping. Therefore, for these ontologies it is recommend that in addition to the standard conversion, an additional step of intransitive mapping is performed afterwards which is implemented in the function *get_related*. 
+
+
 
 ```{r, include = TRUE}
 disNet <- build_disNet(id = "ClinVar:2")
@@ -256,6 +258,35 @@ disNet <- extend_disNet(disNet = disNet,
                         relations = "xref")
 plot(disNet)
 ```
+
+
+4 cases:
+1. step = 1 in conversion -> to only get the direct cross-reference and not use the transitivity mappings
+2. step = NULL, intransitive.ambiguity = NULL -> to extend the conversion using indirect mappings by transitivity means. This particular case were ambiguity is not filtered can be used when you want to get all identifiers around a disease concept whether broad or narrowly related. Or when wanting to convert/extend from a more narrow concept to a broader concept. The example below (Figure []) shows the mapping from epilepsy term in MonDO ("MONDO:0005027") and re
+
+```{r, include = TRUE}
+conversion <- convert_concept(from = "MONDO:0005027",
+                          from.concept = "Disease",
+                          to.concept = "Disease",
+                          intransitive_ambiguity = NULL)
+datatable(build_disNet(c(conversion$to,conversion$from))$xref,
+          rownames = FALSE,
+          filter = "top")
+```
+
+3. step = NULL, intransitive_ambiguity = 1 -> to extend or convert using transitivitity to return indirect mappings while using a filter on the final intransitive step. This setting can be used when you want to focuss on concepts that are equivalent to each other and not return broader defined terms. This can be a good practise when converting between ontologies that define concept similarly.
+
+```{r, include = TRUE}
+conversion <- convert_concept(from = "MONDO:0005027",
+                          from.concept = "Disease",
+                          to.concept = "Disease",
+                          intransitive_ambiguity = 1)
+datatable(build_disNet(c(conversion$to,conversion$from))$xref,
+          rownames = FALSE,
+          filter = "top")
+```
+
+4. get_related: ontologies such as ICD9 and ICD10 are only related through *is_related* edges to other ontologies. Using the standard conversion or extension would only result in the direct cross-references of these identifiers, withouth being able to benefit from transitivity mappings to get indirect cross-references. (add the image from Patrice). Therefore, a particular workflow (*get_related*) is developed when wanting to take advantage of transitivity. First all direct cross-references are obtained with a filter on ambiguity (=1). Next, the normal workflow of transitivity mapping followed by intransitive step is performed. As you are moving from a broader term to a narrow term, the intransitive_ambiguity is also put to one. 
 
 ```{r}
 ## Show heatmap ambiguities
