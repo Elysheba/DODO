@@ -27,6 +27,20 @@ get_ontology <- function(database){
 
    ## Get parents ----
    toRet <- build_disNet(id = ont$n.name, avoidOrigin = avoid)
+   
+   ## Update levels if necessary 
+   cql <- c("MATCH (n:Concept)-[r:is_in]->(d:Database)",
+            "WHERE n.name in $from AND d.name in $database",
+            "RETURN n.name as id, r.level as level")
+   l <- call_dodo(
+      cypher,
+      prepCql(cql),
+      result = "row",
+      parameters = list(from = as.list(toRet$nodes$id),
+                        database = as.list(database)))
+   toRet$nodes <- toRet$nodes %>%
+      mutate(level = l$level[match(id, l$id)])
+
    ## Return all results ----
    return(toRet)
 }

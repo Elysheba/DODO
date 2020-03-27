@@ -119,10 +119,12 @@ harmonize_Cortellis <- function(CortellisONT_siConditions,
   
   CortellisONT_entryId <- dplyr::bind_rows(dplyr::mutate(CortellisONT_siConditions %>% 
                                                            dplyr::rename(def = name),
-                                                         DB = "Cortellis_condition"),
+                                                         DB = "Cortellis_condition",
+                                                         origin = "Cortellis_condition"),
                                            dplyr::mutate(CortellisONT_ciIndications %>% 
                                                            dplyr::rename(def = name),
-                                                         DB = "Cortellis_indication"))  
+                                                         DB = "Cortellis_indication",
+                                                         origin = "Cortellis_indication"))  
   # entryId <- mutate(CortellisONT_entryId,
   #                   dbid = str_c(DB, id, sep = ":"))
   
@@ -226,11 +228,14 @@ harmonize_Cortellis <- function(CortellisONT_siConditions,
     toAdd <- checkMissing %>% 
       dplyr::mutate(id = stringr::str_remove(conditionId, ".*:"),
                     def = conditionName,
-                    DB = "Cortellis_condition") %>%
-      dplyr::select(id, def, DB)
+                    DB = "Cortellis_condition",
+                    origin = "Cortellis_condition") %>%
+      dplyr::select(id, def, DB, origin)
     CortellisONT_entryId <- dplyr::bind_rows(CortellisONT_entryId,
                                              toAdd) %>%
-      dplyr::distinct()
+      dplyr::mutate(dbid = paste(DB, id, sep = ":")) %>%
+      dplyr::distinct(dbid, .keep_all = TRUE) %>% 
+      dplyr::select(-dbid)
   }
   ##
   # crossId <- crossId[-which(crossId$id1 == crossId$id2),]
@@ -286,7 +291,7 @@ harmonize_Cortellis <- function(CortellisONT_siConditions,
   CortellisONT_entryId <- CortellisONT_entryId %>%
     dplyr::mutate(dbid = stringr::str_c(DB,id, sep = ":")) %>%
     dplyr::mutate(level = tmp$level[match(dbid, tmp$dbid)]) %>%
-    dplyr::select(DB, id, def, level)
+    dplyr::select(DB, id, def, level, origin)
   
   ## synonyms and labels
   lbl <- dplyr::bind_rows(dplyr::mutate(CortellisONT_siConditions %>% 
@@ -383,7 +388,8 @@ harmonize_HPO <- function(HPO_diseaseHP,
     tibble::as_tibble() %>%
     dplyr::filter(!grepl("obsolete", name)) %>%
     dplyr::select(id, def = description, level) %>%
-    dplyr::mutate(DB = "HP") %>%
+    dplyr::mutate(DB = "HP",
+                  origin = "HP") %>%
     dplyr::bind_rows(tibble::tibble(DB = "HP",                  ## Alternative Ids
                                     id = HPO_altId %>% 
                                       dplyr::select(alt) %>% 
@@ -465,7 +471,8 @@ harmonize_HPO <- function(HPO_diseaseHP,
     dplyr::select(DB, 
                   id, 
                   def, 
-                  level) 
+                  level,
+                  origin) 
   HPO_idNames <- HPO_idNames %>%
     dplyr::filter(id %in% HPO_entryId$id) %>%
     dplyr::select(DB, id, syn, canonical)
@@ -560,17 +567,20 @@ load_ClinVar <- function(DODO_entryId,
     dplyr::mutate(DB = "ClinVar",
                   id = as.character(t.id),
                   level = NA,
+                  origin = "ClinVar",
                   dbid = paste(DB, id, sep = ":")) %>%
     dplyr::select(DB,
                   id, 
                   def,
                   level,
+                  origin,
                   dbid) 
   toAdd <- clinvar %>%
     dplyr::select(DB = db,
                   id,
                   def) %>%
     dplyr::mutate(level = NA,
+                  origin = DB,
                   dbid = paste(DB, id, sep = ":")) 
   cv_entryId <- dplyr::bind_rows(cv_entryId,
                                  toAdd) %>%
@@ -660,12 +670,19 @@ load_concept_names <- function(toImport, concept){
   if(!"name" %in% colnames(toImport)){
     toImport$name <- paste(toImport$database, toImport$shortID, sep=":")
   }
+  if(!"level" %in% colnames(toImport)){
+    toImport$level <- NA_integer_
+    level = FALSE
+  }else{
+    level = TRUE
+  }
   ## Checks ----
   tlc <- c(
     "database"="character",
     "origin"="character",
     "shortID"="character",
-    "name"="character"
+    "name"="character",
+    "level" = "integer"
   )
   mandatory <- c(
     "database",
@@ -686,7 +703,9 @@ load_concept_names <- function(toImport, concept){
     'MATCH (db:Database {name:row.origin})',
     sprintf('MERGE (c:%s {name:row.name})', concept),
     'SET c.shortID=row.shortID, c.database=row.database',
-    'MERGE (c)-[:is_in]->(db)'
+    sprintf('MERGE (c)-[r:is_in]->(db) %s',
+            ifelse(!level, "", 
+                   'ON CREATE SET r.level = toInteger(row.level)'))
   )
   DODO:::import_in_dodo(neo2R::prepCql(cql), toImport)
 }
@@ -749,7 +768,7 @@ load_concept_definitions <- function(toImport, concept){
     'c.label=row.label, c.label_up=row.label_up, ',
     'c.definition=row.definition, c.definition_up=row.definition_up, ',
     'c.level=toInteger(row.level)',
-    'MERGE (c)-[:is_in]->(db)'
+    'MERGE (c)-[r:is_in]->(db) ON CREATE SET r.level = toInteger(row.level)'
   )
    DODO:::import_in_dodo(neo2R::prepCql(cql), toImport)
 }
@@ -1114,7 +1133,8 @@ load_parent_identifiers <- function(toImport, concept, origin){
     sprintf('MATCH (p:%s {name:row.parent})', concept),
     sprintf('MERGE (c)-[r:is_a]->(p) ON CREATE SET r.origin = row.origin')
   )
-  DODO:::import_in_dodo(neo2R::prepCql(cql), toImport[, c("name", "parent","origin")])
+  DODO:::import_in_dodo(neo2R::prepCql(cql), 
+                        toImport[, c("name", "parent","origin")])
 }
 
 

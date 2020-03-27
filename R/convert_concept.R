@@ -11,7 +11,20 @@
 #' @param deprecated include deprecated identifiers (default: false)
 #' @param transitive_ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
 #' @param intransitive_ambiguity specification for backward ambiguity used in the final step of conversion (default: no filter)
+#' @param step number of steps to traverse when converting within concepts (default: NULL) (see details)
 #' @param verbose show query input (default: FALSE)
+#' 
+#' @details Conversion is performed in different steps, first identifiers are converted (if requested) within a concept, 
+#' otherwise stated, their cross-references are returned depending on the provided parameters of transitive_ambiguity and
+#' intransitive_ambiguity. Next, these identifiers are converted between concepts (Disease -> Phenotype or Phenotype -> Disease).
+#' 
+#' If deprecated = TRUE, only the deprecated identifiers of the original input (from) are returned. 
+#' 
+#' The step parameters allows the user to specify the number of steps to take when converting within a concept (e.g. Disease 
+#' or Phenotype). If step = NA, no conversion within concepts is performed (skipping the first step). If step = NULL
+#' the full transitivity mappings are used to return cross-references edges. If step = 1, only direct cross-references are returned.
+#' When step = NULL, the transitive_ambiguity and intransitive_ambiguity can be used to speficy how/which cross-reference identifiers 
+#' should be returned. For step = 1, only the intransitive_ambiguity can be used as only direct cross-reference edges are returned. 
 #' 
 #' @return a dataframe with three columns:
 #' - from: identifier to convert
@@ -26,15 +39,16 @@ convert_concept <- function(from,
                             deprecated = FALSE,
                             transitive_ambiguity = 1,
                             intransitive_ambiguity = NULL,
+                            step = NULL,
                             verbose = FALSE){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    db.to <- match.arg(to, c(NULL, list_database()$database))
    from <- setdiff(from, NA)
-   stopifnot(is.character(from), length(from)>0)
-   
-   stopifnot(is.null(transitive_ambiguity) || transitive_ambiguity == 1,
-             is.null(intransitive_ambiguity) || intransitive_ambiguity == 1)
+   stopifnot(is.character(from), length(from)>0,
+             is.null(transitive_ambiguity) || transitive_ambiguity == 1,
+             is.null(intransitive_ambiguity) || intransitive_ambiguity == 1,
+             is.null(step) || step == 1 || is.na(step))
    
    if(is.null(transitive_ambiguity)){
       transitivity <- "is_xref>"
@@ -48,57 +62,64 @@ convert_concept <- function(from,
       relationship <- ":is_related_nba|is_xref_nba*0..1"
    }
    
-   if(!deprecated){
+   b1 <- b2 <- b3 <- toRet <- tibble::tibble(from = character(),
+                                             to = character())
+   
+   if(!deprecated & !isTRUE(is.na(step))){
       #############################################@
       ## To convert identifiers between concepts, first they are converted within the concept (d-d, p-p) = B1 
       ## followed by a conversion between concepts (d-p, p-d) = B2
       
-      # cql <- c(
-      #    sprintf('MATCH (f:%s)-[%s]-(t:%s)',
-      #            from.concept,
-      #            relationship,
-      #            to.concept),
-      #    'WHERE f.name IN $from',
-      #    "RETURN DISTINCT f.name as from, t.name as to"
-      # )
-      # r1 <- call_dodo(
-      #    neo2R::cypher,
-      #    prepCql(cql),
-      #    parameters = list(from = as.list(from)),
-      #    result = "row")
-      
-      ## Convert within concepts: B1
-      cql <- c(
-         sprintf('MATCH (f:%s)-[%s]-(t:%s) WHERE f.name IN $from',
-            from.concept,
-            relationship,
-            to.concept),
-         'CALL apoc.path.expandConfig(',
-         sprintf('f, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s>"}',
-                 transitivity),
-         ') YIELD path',
-         'WITH f as f, (nodes(path))[0] as s, last(nodes(path)) as e',
-         sprintf('MATCH (e)-[%s]->(e2)',
-                 relationship),
-         'RETURN DISTINCT',
-         's.name as from, e2.name as to'
-         # '(nodes(path))[0].name AS from, ',
-         # 'last(nodes(path)).name AS to, ',
-         # 'size(relationships(path)) AS hops'
-      )
-      toRet <- call_dodo(
-            neo2R::cypher,
-            prepCql(cql),
-            parameters = list(from = as.list(from)),
-            result = "row") %>%
-         tibble::as_tibble()
-      
-      if(nrow(toRet) == 0){
-         b1 <- tibble::tibble(from = character(),
-                              to = character())
+      if(isTRUE(step == 1)){
+         cql <- c(
+            sprintf('MATCH (f:%s)-[%s]-(t:%s)',
+                    from.concept,
+                    relationship,
+                    from.concept),
+            'WHERE f.name IN $from',
+            "RETURN DISTINCT f.name as from, t.name as to"
+         )
+         toRet <- call_dodo(
+               neo2R::cypher,
+               prepCql(cql),
+               parameters = list(from = as.list(from)),
+               result = "row") %>%
+            tibble::as_tibble()
+         
       }else{
+         ## Convert within concepts: B1
+         cql <- c(
+            sprintf('MATCH (f:%s)-[%s]-(t:%s) WHERE f.name IN $from',
+               from.concept,
+               relationship,
+               from.concept),
+            'CALL apoc.path.expandConfig(',
+            sprintf('f, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s>"}',
+                    transitivity),
+            ') YIELD path',
+            'WITH f as f, (nodes(path))[0] as s, last(nodes(path)) as e',
+            sprintf('MATCH (e)-[%s]->(e2)',
+                    relationship),
+            'RETURN DISTINCT',
+            's.name as from, e2.name as to'
+            # '(nodes(path))[0].name AS from, ',
+            # 'last(nodes(path)).name AS to, ',
+            # 'size(relationships(path)) AS hops'
+         )
+         toRet <- call_dodo(
+               neo2R::cypher,
+               prepCql(cql),
+               parameters = list(from = as.list(from)),
+               result = "row") %>%
+            tibble::as_tibble()
+      }
+      
+      if(nrow(toRet) != 0){
          b1 <- toRet
       }
+   }else{
+      b1 <- tibble(from = from,
+                   to = from)
    }
    
    #############################################@
@@ -114,22 +135,22 @@ convert_concept <- function(from,
       b2 <- call_dodo(
          neo2R::cypher,
          prepCql(cql),
-         parameters = list(from = as.list(from)),
+         parameters = list(from = as.list(unique(b1$to))),
          result = "row"
-      )
-   }
-   if(from.concept == to.concept || nrow(b2) == 0){
-      b2 <- tibble::tibble(from = character(),
-                           to = character())
-   }else{
-      b2 <- tibble::as_tibble(b2)
+      ) %>% tibble::as_tibble()
    }
    
-   toRet <- dplyr::bind_rows(b1,
-                             b2) %>%
-      tibble::as_tibble() %>%
-      dplyr::distinct() %>%
-      dplyr::mutate(deprecated = FALSE)
+   if(nrow(b2) != 0){
+    toRet <- dplyr::bind_rows(b1,
+             dplyr::inner_join(b1,
+                               b2,
+                               by = c("to" = "from")) %>%
+             dplyr::select(from,
+                           to = to.y)) %>%
+       tibble::as_tibble() %>%
+       dplyr::distinct() %>%
+       dplyr::mutate(deprecated = FALSE)
+   }
    
    #############################################@
    ## Return deprecated identifiers
@@ -147,17 +168,13 @@ convert_concept <- function(from,
          result = "row"
       ) %>%
          tibble::as_tibble()
+      if(nrow(b3) != 0){
+         b3 <- b3 %>%
+            dplyr::distinct() %>%
+            dplyr::mutate(deprecated = TRUE)
+      }
    }
-   if(!deprecated || nrow(b3) == 0){
-      b3 <- tibble::tibble(from = character(),
-                           to = character(),
-                           deprecated = logical())
-   }else{
-      b3 <- b3 %>%
-         dplyr::distinct() %>%
-         dplyr::mutate(deprecated = TRUE)
-   }
-   
+
    toRet <- dplyr::bind_rows(toRet,
                              b3)
    
@@ -166,7 +183,7 @@ convert_concept <- function(from,
          dplyr::filter(grepl(glue::glue("{db.to}"), to))
    }
    
-   return(toRet)
+   return(toRet %>% dplyr::distinct())
 }
 
 ####################################@

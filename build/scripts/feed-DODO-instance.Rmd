@@ -91,21 +91,26 @@ for(s in src){
   dbfiles <- grep("txt",list.files(ddir),value =T)
   for(i in dbfiles){
     x <- read.table(file.path(ddir,i),header = TRUE, sep = "\t", 
-                    quote = '"', comment.char = "", colClasses= c("character"))
-    # if(grepl("entryId",i)){
-    #   x$resource <- s
-    # }
+                    quote = '"', comment.char = "", 
+                    colClasses= c("character"))
+    if(grepl("entryId",i)){
+      if(grepl("OMIM", i)){
+        x$origin <- "OMIM"
+      }else{
+        x$origin <- s
+      }
+    }
     assign(gsub(".txt","",i), x) 
   }
 }
 
 ## Some issues in the first lines of HPO files
-toRem <- grep("disease-db", HPO_diseaseHP$db)
-HPO_diseaseHP <- HPO_diseaseHP[-toRem,]
-toRem <- grep("disease-db", HPO_diseases$db)
-HPO_diseases <- HPO_diseases[-toRem,]
-toRem <- grep("disease-db", HPO_diseaseSynonyms$db)
-HPO_diseaseSynonyms <- HPO_diseaseSynonyms[-toRem,]
+# toRem <- grep("disease-db", HPO_diseaseHP$db)
+# HPO_diseaseHP <- HPO_diseaseHP[-toRem,]
+# toRem <- grep("disease-db", HPO_diseases$db)
+# HPO_diseases <- HPO_diseases[-toRem,]
+# toRem <- grep("disease-db", HPO_diseaseSynonyms$db)
+# HPO_diseaseSynonyms <- HPO_diseaseSynonyms[-toRem,]
 ```
 
 
@@ -262,6 +267,7 @@ for(i in obj){
   print(i)
   sapply(dbobj,
            function(x){
+             print(x)
              print(names(get(x)))
            })
   sobj <- unique(do.call(rbind,lapply(dbobj,function(x) get(x))))
@@ -285,7 +291,12 @@ for(i in obj){
 ## create dbid
 DODO_entryId <- DODO_entryId %>%
   distinct() %>%
-  mutate(dbid = str_c(DB, id, sep = ":"))
+  mutate(dbid = str_c(DB, id, sep = ":"),
+         origin = case_when(origin == "Monarch" ~ "MONDO",
+                            origin == "Orphanet" ~ "ORPHA",
+                            TRUE ~ origin)) %>%
+  mutate(origin = case_when(is.na(origin) ~ DB,
+                            TRUE ~ origin))
 
 DODO_pheno2dis <- DODO_pheno2dis %>%
   mutate(ddbid = str_c(disDB, disID, sep = ":"),
@@ -325,7 +336,7 @@ The parsed dataframes are appended to their respective DODO counterparts.
 
 ```{r bind_dodo}
 ## Add to DODO
-DODO_entryId <- rbind(DODO_entryId, cv_entryId)
+DODO_entryId <- rbind(DODO_entryId, cv_entryId) 
 DODO_idNames <- rbind(DODO_idNames, cv_idNames)
 DODO_crossId <- rbind(DODO_crossId, cv_crossId)
 
@@ -406,8 +417,9 @@ Some resources use either "MedGen" or "UMLS" as database name for NCI Metathesau
 ## Add UMLS entries as MedGen entries (double entry)
 DODO_entryId <- filter(DODO_entryId,DB == "UMLS") %>% 
   mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
+         origin =  str_replace_all(origin, "UMLS","MedGen"),
          dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
-  bind_rows(DODO_entryId)
+  bind_rows(DODO_entryId) 
 tmp <- DODO_entryId %>%
   filter(grepl("UMLS", dbid)) %>%
   mutate(DB1 = DB,
@@ -491,16 +503,21 @@ Duplicated entries are removed from the different DODO tables.
 ```{r rm_dupl, echo = TRUE, include = FALSE}
 ##################################################################@
 sum(duplicated(DODO_entryId))
-sum(duplicated(DODO_entryId[,c("dbid")]))
+sum(duplicated(DODO_entryId[,c("dbid", "origin")]))
 dim(DODO_entryId)
 dim(unique(DODO_entryId))
-DODO_entryId <- DODO_entryId[order(DODO_entryId$def,decreasing = T),]
-d <- which(duplicated(DODO_entryId[,c("dbid")]))
+DODO_entryId <- DODO_entryId %>%
+  mutate(level = as.integer(level),
+         origin = case_when(is.na(origin) ~ DB,
+                            TRUE ~ origin)) %>%
+  arrange(desc(level), desc(def))
+d <- which(duplicated(DODO_entryId[,c("dbid", "origin")]))
 DODO_entryId <- DODO_entryId[-d,]
 dim(DODO_entryId)
 sum(duplicated(DODO_entryId))
 sum(duplicated(DODO_entryId[,c("dbid")]))
 
+# 
 sum(duplicated(DODO_crossId))
 dim(DODO_crossId)
 dim(unique(DODO_crossId))
@@ -546,6 +563,16 @@ DODO_entryId$def <- gsub(paste("\n","\t","\r","\\{", "\\}", sep = "|"),
                                 DODO_entryId$def)
 DODO_entryId$def <- gsub("\"","'",DODO_entryId$def)
 # table(unlist(sapply(DODO_entryId$def, strsplit, split = "")))
+DODO_entryId <- DODO_entryId %>%
+  left_join(
+    DODO_idNames %>% 
+      filter(as.logical(canonical)) %>% 
+      select(-canonical, -dbid) %>% 
+      distinct(DB, id, .keep_all = TRUE),
+    by=c("DB", "id")) %>%
+  mutate(origin = case_when(is.na(origin) ~ DB,
+                            TRUE ~ origin)) %>%
+  mutate(level = as.integer(level))
 ```
 
 
@@ -600,21 +627,18 @@ concept <- "Concept"
 
 ```{r}
 toImport <- DODO_entryId %>%
-  left_join(
-    DODO_idNames %>% 
-      filter(as.logical(canonical)) %>% 
-      select(-canonical, -dbid) %>% 
-      distinct(DB, id, .keep_all = TRUE),
-    by=c("DB", "id")
+  select(
+    database = DB,
+    shortID = id,
+    definition= def,
+    label = syn,
+    name = dbid,
+    level,
+    origin
   ) %>%
-  rename(
-    "database"="DB",
-    "shortID"="id",
-    "definition"="def",
-    "label"="syn",
-    "name" = "dbid"
-  ) %>%
-  mutate(level = as.integer(level))
+  arrange(desc(level)) %>%
+  filter(database == origin) %>% ## First only DB = origin, to add original DBs, later add additional databases
+  distinct(name, .keep_all = T)
 # toImport$origin <- db
 concept <- "Concept"
 stopifnot(nrow(distinct(toImport, name))==nrow(toImport))
@@ -690,21 +714,31 @@ toImport <- DODO_pheno2dis %>%
 DODO:::load_has_phenotypes(toImport=toImport)
 ```
 
-## Additional databases
+## Connect nodes to databases
 
 Some identifiers are recorded across multiple database, e.g. EFO incorporates identifiers from Monarch, Orphanet, etc. These receive additional *is_in* edge.
 
 ```{r}
-toImport <- bind_rows(DODO_parentId %>% select(DB,
-                                               id, 
-                                               origin),
-                      DODO_parentId %>% select(DB = pDB,
-                                               id = parent,
-                                               origin)) %>%
-  distinct() %>%
-  select(database = DB,
-         shortID = id,
-         origin)
+# toImport <- bind_rows(DODO_parentId %>% select(DB,
+#                                                id, 
+#                                                origin),
+#                       DODO_parentId %>% select(DB = pDB,
+#                                                id = parent,
+#                                                origin)) %>%
+#   distinct() %>%
+#   select(database = DB,
+#          shortID = id,
+#          origin)
+toImport <- DODO_entryId %>%
+  select(
+    database = DB,
+    shortID = id,
+    name = dbid,
+    level,
+    origin
+  ) %>%
+  arrange(desc(level)) %>%
+  distinct(name, origin, .keep_all = T)
 DODO:::load_concept_names(toImport = toImport, concept = concept)
 ```
 
