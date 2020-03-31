@@ -9,22 +9,36 @@
 #' @param from.concept concept (disease or phenotype) of from
 #' @param to.concept concept (disease or phenotype) to convert to
 #' @param deprecated include deprecated identifiers (default: false)
-#' @param transitive_ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
-#' @param intransitive_ambiguity specification for backward ambiguity used in the final step of conversion (default: no filter)
-#' @param step number of steps to traverse when converting within concepts (default: NULL) (see details)
+#' @param transitive_ambiguity backward ambiguity while using transitivity to identify 
+#' cross-references (default: 1)
+#' @param intransitive_ambiguity specification for backward ambiguity used in the final 
+#' step of conversion (default: no filter)
+#' @param step number of steps to traverse when converting within concepts (default: NULL) 
+#' (see details)
 #' @param verbose show query input (default: FALSE)
 #' 
-#' @details Conversion is performed in different steps, first identifiers are converted (if requested) within a concept, 
-#' otherwise stated, their cross-references are returned depending on the provided parameters of transitive_ambiguity and
-#' intransitive_ambiguity. Next, these identifiers are converted between concepts (Disease -> Phenotype or Phenotype -> Disease).
+#' @details Conversion is performed in different steps, first identifiers are converted 
+#' (if requested) within a concept, otherwise stated, their cross-references are 
+#' returned depending on the provided parameters of transitive_ambiguity and
+#' intransitive_ambiguity. The manner of converting within concepts is defined by the *step*
+#' parameters (see below). Next, these identifiers are converted between concepts 
+#' (Disease -> Phenotype or Phenotype -> Disease).
 #' 
-#' If deprecated = TRUE, only the deprecated identifiers of the original input (from) are returned. 
+#' If deprecated = TRUE, only the deprecated identifiers of the original input 
+#' (from) are returned. 
 #' 
-#' The step parameters allows the user to specify the number of steps to take when converting within a concept (e.g. Disease 
-#' or Phenotype). If step = NA, no conversion within concepts is performed (skipping the first step). If step = NULL
-#' the full transitivity mappings are used to return cross-references edges. If step = 1, only direct cross-references are returned.
-#' When step = NULL, the transitive_ambiguity and intransitive_ambiguity can be used to speficy how/which cross-reference identifiers 
-#' should be returned. For step = 1, only the intransitive_ambiguity can be used as only direct cross-reference edges are returned. 
+#' The step parameters allows the user to specify the number of steps to take when 
+#' onverting within a concept (e.g. Disease or Phenotype). If step = NA, 
+#' no conversion within concepts is performed (skipping the first step). If step = NULL
+#' the full transitivity mappings are used to return cross-references edges. This means that all
+#' identifiers are converted using the transitivity between *is_xref* mappings. This is followed
+#' by another step where all cross-references one step removed are returned using both *is_xref*
+#' and *is_related* edges. The transitive_ambiguity and intransitive_ambiguity 
+#' can be used to specify how/which cross-reference identifiers should be returned by 
+#' selecting edges below the ambiguity thresholds to traverse.
+#' If step = 1, only direct cross-references are returned using both *is_xref* and *is_related* edges. 
+#' This is similar to the final step of the full conversion (step = NULL) and the intransitive_ambiguity 
+#' can be used to specify the threshold on the backward ambiguity. 
 #' 
 #' @return a dataframe with three columns:
 #' - from: identifier to convert
@@ -63,7 +77,8 @@ convert_concept <- function(from,
    }
    
    b1 <- b2 <- b3 <- toRet <- tibble::tibble(from = character(),
-                                             to = character())
+                                             to = character(),
+                                             deprecated = logical())
    
    if(!deprecated & !isTRUE(is.na(step))){
       #############################################@
@@ -190,25 +205,39 @@ convert_concept <- function(from,
 #' Get related concepts
 #' 
 #' The specific conversion procedure is recommended for the ontologies that 
-#' consider disease concepts that are less connected through *is_xref* edges
-#' (e.g. ICD10, ICD9, ClinVar) and are mostly only related to other identifiers 
-#' using *is_related* edges. This limits or removes the effect of the transitive 
-#' mapping and not return all cross-references. Therefore, for these ontologies it 
-#' is recommend that in addition to the standard conversion, an additional step 
-#' of intransitive mapping is performed which is implemented in the function *get_related*.  
+#' consider disease concepts that are (only) connected through *is_related* edges
+#' (e.g. ICD10, ICD9).
 #' 
 #' @param from a vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
 #' @param to database to convert to (default = NULL, no filtering)
 #' @param from.concept concept (disease or phenotype) of from
 #' @param to.concept concept (disease or phenotype) to convert to
 #' @param deprecated include deprecated identifiers (default: false)
-#' @param transitive_ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
-#' @param intransitive_ambiguity specification for backward ambiguity used in the final step of conversion (default: no filter)
+#' @param transitive_ambiguity backward ambiguity while using transitivity 
+#' to identify cross-references (default: 1)
+#' @param intransitive_ambiguity specification for backward ambiguity used 
+#' in the final step of conversion (default: no filter)
 #' @param verbose show query input (default: FALSE)
-#' #' 
+#' 
+#' @details The specific conversion procedure is recommended for the ontologies that 
+#' consider disease concepts that are (only) connected through *is_related* edges
+#' (e.g. ICD10, ICD9). This limits or removes the effect of the transitive 
+#' mapping and not return all cross-references. Therefore, for these ontologies it 
+#' is recommend that in addition to the standard conversion, an additional step 
+#' of intransitive mapping is performed which is implemented in the function *get_related*.
+#' This is implemented in a symmetric way, where first the intransitive mapping
+#' is returned (identical to the final step of a normal conversion with step = NULL
+#' where the same ambiguity specifications defined by 
+#' *intransitive_ambiguity*). Next the standard conversion is applied with a
+#' transitive mapping and final step where all cross-references one step removed 
+#' are returned using both *is_xref* and *is_related* edges.
+#' 
 #' @return a dataframe with three columns:
 #' - from: identifier to convert
 #' - to: returned conversion
+#' - deprecated: indicating whether the returned "to" identifier is a deprecated ID
+#' 
+#' @seealso convert_concept
 #' 
 #' @export
 #' 
@@ -219,17 +248,32 @@ get_related <- function(from,
                         deprecated = FALSE,
                         transitive_ambiguity = 1,
                         intransitive_ambiguity = NULL,
+                        step = NULL,
                         verbose = FALSE){
+   from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
+   to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
+   db.to <- match.arg(to, c(NULL, list_database()$database))
+   from <- setdiff(from, NA)
+   stopifnot(is.character(from), length(from)>0,
+             is.null(transitive_ambiguity) || transitive_ambiguity == 1,
+             is.null(intransitive_ambiguity) || intransitive_ambiguity == 1,
+             is.null(step) || step == 1 || is.na(step))
+   
+   if(is.null(intransitive_ambiguity)){
+      relationship <- ":is_related|is_xref*0..1"
+   }else{
+      relationship <- ":is_related_nba|is_xref_nba*0..1"
+   }
    ## Additional step
-   cql <- c("MATCH (n:Disease)-[r:is_xref*0..1]-(n1:Disease)",
+   cql <- c(sprintf("MATCH (n:Disease)-[%s]-(n1:Disease)", relationship),
             "WHERE n.name in $from",
             "RETURN n.name as from2, n1.name as to2")
-   relConv <- call_dodo(cypher, 
-                        prepCql(cql),
+   relConv <- call_dodo(neo2R::cypher, 
+                        neo2R::prepCql(cql),
                         parameters = list(from = as.list(unique(from))),
                         result = "row")
    ## normal conversion to end
-   dodoConv <- convert_concept(from = from,
+   dodoConv <- convert_concept(from = relConv$to2,
                                to = to,
                                from.concept = from.concept,
                                to.concept = to.concept,
@@ -239,11 +283,12 @@ get_related <- function(from,
                                verbose = verbose)
 
    finConv <- dodoConv %>%
-      left_join(relConv,
+      dplyr::left_join(relConv,
                 by = c("from" = "to2")) %>%
-      select(from = from2,
+      dplyr::select(from = from2,
              to = to) %>%
-      distinct()
+      dplyr::mutate(deprecated = FALSE) %>%
+      dplyr::distinct()
    return(finConv)
 }
 

@@ -42,18 +42,20 @@ plot.disNet <- function(
     edges1 <- disNet$xref %>%
       dplyr::select(to, 
                     from,
-                    ambiguity = forwardAmbiguity) %>%
-      dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
+                    FA = forwardAmbiguity,
+                    BA = backwardAmbiguity) %>%
+      dplyr::mutate(color = dplyr::case_when(BA > 1 ~ "#fdbb84",
                                              TRUE ~ "#7fcdbb"),
-                    title = paste("ambiguity = ", ambiguity),
+                    title = paste("FA = ", FA, ", BA = ", BA),
                     arrows = "to")
     edges2 <- disNet$xref %>%
       dplyr::select(to = from, 
                     from = to,
-                    ambiguity = backwardAmbiguity) %>%
-      dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
+                    BA = forwardAmbiguity,
+                    FA = backwardAmbiguity) %>%
+      dplyr::mutate(color = dplyr::case_when(BA > 1 ~ "#fdbb84",
                                              TRUE ~ "#7fcdbb"),
-                    title = paste("ambiguity = ", ambiguity),
+                    title = paste("FA = ", FA, ", BA = ", BA),
                     arrows = "to")
     edges <- dplyr::bind_rows(edges1,
                               edges2) %>%
@@ -62,8 +64,9 @@ plot.disNet <- function(
   if(any(c("child","parent") %in% relations) && !is.null(disNet$children)){
     edges <- disNet$children %>%
       dplyr::select(from = parent, 
-                    to = child) %>%
-      dplyr::mutate(title = "is_a",
+                    to = child,
+                    origin) %>%
+      dplyr::mutate(title = paste("is_a, origin = ", origin),
                     arrows = "to;from",
                     color = "#3288bd") %>%
       dplyr::bind_rows(edges)
@@ -89,7 +92,7 @@ plot.disNet <- function(
                            edges = edges) %>%
       visNetwork::visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE),
                              collapse = list(enabled = TRUE)) %>%
-      visNetwork::visIgraphLayout()
+      visNetwork::visIgraphLayout(smooth = TRUE)
   }else{
     message(paste("Plotting", nrow(nodes),"nodes"))
     visNetwork::visNetwork(nodes = nodes, edges = edges) %>%
@@ -308,7 +311,8 @@ color_database <- function(disNet){
 #' 
 explore_disNet <- function(disNet, 
                           show = "label",
-                          terms = NULL){
+                          terms = NULL,
+                          ...){
   show <- match.arg(show,c("label","synonym","definition"),several.ok = F)
   stopifnot(is.disNet(disNet) || is.setDisNet(disNet))
   
@@ -343,7 +347,8 @@ explore_disNet <- function(disNet,
                         colnames = c("Disease ID",show),
                         rownames = TRUE,
                         options = list(order = list(0,'asc')),
-                        escape=FALSE))
+                        escape=FALSE,
+                        ...))
   }else{
     counter <- 1
     toShow <- do.call(rbind,
@@ -381,7 +386,8 @@ explore_disNet <- function(disNet,
                         # colnames = c("cluster","id",show),
                         rownames = FALSE,
                         escape=FALSE,
-                        filter = "top"))
+                        filter = "top",
+                        ...))
   }
 }
 

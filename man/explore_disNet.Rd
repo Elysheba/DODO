@@ -4,7 +4,7 @@
 \alias{explore_disNet}
 \title{Explore diseases in a disease network}
 \usage{
-explore_disNet(disNet, show = "label", terms = NULL)
+explore_disNet(disNet, show = "label", terms = NULL, ...)
 }
 \arguments{
 \item{disNet}{a disease network}

@@ -3,6 +3,7 @@ Type: Package
 Title: Dictionary of Disease Ontologies (DODO)
 Version: 1.0.0
 Author: Liesbeth François, Patrice Godard
+Year: 2020
 Maintainer: Liesbeth François <francois.liesbeth@gmail.com>
 Description: DODO is a Neo4j database that collects the information of 
     different disease ontologies. This package aims to provide 
@@ -20,7 +21,11 @@ Imports:
 Suggests:
     knitr,
     rmarkdown,
+    BiocStyle,
     dplyr,
+    shinythemes,
+    shiny,
+    stringr,
     readr
 Encoding: UTF-8
 VignetteBuilder: knitr

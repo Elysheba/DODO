@@ -84,7 +84,8 @@ extend_disNet <- function(
   xref <- tibble(from = character(),
                  to = character(),
                  forwardAmbiguity = integer(),
-                 backwardAmbiguity = integer())
+                 backwardAmbiguity = integer(),
+                 ur = character())
   children = tibble(child = character(),
                     parent = character(),
                     origin = character())
@@ -117,7 +118,7 @@ extend_disNet <- function(
   
   ##############@
   ## steps ----
-  if(is.null(step)){
+  if(is.null(step) & length(q) != 1){
     cql.trans <- c(
       'MATCH (f)',
       ifelse(is.null(avoidNodes), 

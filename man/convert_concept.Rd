@@ -27,11 +27,14 @@ convert_concept(
 
 \item{deprecated}{include deprecated identifiers (default: false)}
 
-\item{transitive_ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
+\item{transitive_ambiguity}{backward ambiguity while using transitivity to identify
+cross-references (default: 1)}
 
-\item{intransitive_ambiguity}{specification for backward ambiguity used in the final step of conversion (default: no filter)}
+\item{intransitive_ambiguity}{specification for backward ambiguity used in the final
+step of conversion (default: no filter)}
 
-\item{step}{number of steps to traverse when converting within concepts (default: NULL) (see details)}
+\item{step}{number of steps to traverse when converting within concepts (default: NULL)
+(see details)}
 
 \item{verbose}{show query input (default: FALSE)}
 }
@@ -48,15 +51,26 @@ databases and types (disease or phenotype). By default a backward ambiguity of o
 with no limitation on forward ambiguity.
 }
 \details{
-Conversion is performed in different steps, first identifiers are converted (if requested) within a concept,
-otherwise stated, their cross-references are returned depending on the provided parameters of transitive_ambiguity and
-intransitive_ambiguity. Next, these identifiers are converted between concepts (Disease -> Phenotype or Phenotype -> Disease).
+Conversion is performed in different steps, first identifiers are converted
+(if requested) within a concept, otherwise stated, their cross-references are
+returned depending on the provided parameters of transitive_ambiguity and
+intransitive_ambiguity. The manner of converting within concepts is defined by the \emph{step}
+parameters (see below). Next, these identifiers are converted between concepts
+(Disease -> Phenotype or Phenotype -> Disease).
 
-If deprecated = TRUE, only the deprecated identifiers of the original input (from) are returned.
+If deprecated = TRUE, only the deprecated identifiers of the original input
+(from) are returned.
 
-The step parameters allows the user to specify the number of steps to take when converting within a concept (e.g. Disease
-or Phenotype). If step = NA, no conversion within concepts is performed (skipping the first step). If step = NULL
-the full transitivity mappings are used to return cross-references edges. If step = 1, only direct cross-references are returned.
-When step = NULL, the transitive_ambiguity and intransitive_ambiguity can be used to speficy how/which cross-reference identifiers
-should be returned. For step = 1, only the intransitive_ambiguity can be used as only direct cross-reference edges are returned.
+The step parameters allows the user to specify the number of steps to take when
+onverting within a concept (e.g. Disease or Phenotype). If step = NA,
+no conversion within concepts is performed (skipping the first step). If step = NULL
+the full transitivity mappings are used to return cross-references edges. This means that all
+identifiers are converted using the transitivity between \emph{is_xref} mappings. This is followed
+by another step where all cross-references one step removed are returned using both \emph{is_xref}
+and \emph{is_related} edges. The transitive_ambiguity and intransitive_ambiguity
+can be used to specify how/which cross-reference identifiers should be returned by
+selecting edges below the ambiguity thresholds to traverse.
+If step = 1, only direct cross-references are returned using both \emph{is_xref} and \emph{is_related} edges.
+This is similar to the final step of the full conversion (step = NULL) and the intransitive_ambiguity
+can be used to specify the threshold on the backward ambiguity.
 }

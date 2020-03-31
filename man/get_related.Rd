@@ -12,6 +12,7 @@ get_related(
   deprecated = FALSE,
   transitive_ambiguity = 1,
   intransitive_ambiguity = NULL,
+  step = NULL,
   verbose = FALSE
 )
 }
@@ -26,26 +27,41 @@ get_related(
 
 \item{deprecated}{include deprecated identifiers (default: false)}
 
-\item{transitive_ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
+\item{transitive_ambiguity}{backward ambiguity while using transitivity
+to identify cross-references (default: 1)}
 
-\item{intransitive_ambiguity}{specification for backward ambiguity used in the final step of conversion (default: no filter)}
+\item{intransitive_ambiguity}{specification for backward ambiguity used
+in the final step of conversion (default: no filter)}
 
-\item{verbose}{show query input (default: FALSE)
-#'}
+\item{verbose}{show query input (default: FALSE)}
 }
 \value{
 a dataframe with three columns:
 \itemize{
 \item from: identifier to convert
 \item to: returned conversion
+\item deprecated: indicating whether the returned "to" identifier is a deprecated ID
 }
 }
 \description{
 The specific conversion procedure is recommended for the ontologies that
-consider disease concepts that are less connected through \emph{is_xref} edges
-(e.g. ICD10, ICD9, ClinVar) and are mostly only related to other identifiers
-using \emph{is_related} edges. This limits or removes the effect of the transitive
+consider disease concepts that are (only) connected through \emph{is_related} edges
+(e.g. ICD10, ICD9).
+}
+\details{
+The specific conversion procedure is recommended for the ontologies that
+consider disease concepts that are (only) connected through \emph{is_related} edges
+(e.g. ICD10, ICD9). This limits or removes the effect of the transitive
 mapping and not return all cross-references. Therefore, for these ontologies it
 is recommend that in addition to the standard conversion, an additional step
 of intransitive mapping is performed which is implemented in the function \emph{get_related}.
+This is implemented in a symmetric way, where first the intransitive mapping
+is returned (identical to the final step of a normal conversion with step = NULL
+where the same ambiguity specifications defined by
+\emph{intransitive_ambiguity}). Next the standard conversion is applied with a
+transitive mapping and final step where all cross-references one step removed
+are returned using both \emph{is_xref} and \emph{is_related} edges.
+}
+\seealso{
+convert_concept
 }
