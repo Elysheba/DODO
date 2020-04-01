@@ -164,7 +164,9 @@ extend_disNet <- function(
         dplyr::filter(grepl("is_alt", relation)) %>%
         dplyr::select(id = to, 
                       alt = from) 
-      ids <- unique(c(transitivity$from, transitivity$to))
+      ids <- unique(ids, c(transitivity$from, transitivity$to))
+    }else{
+      ids <- ids
     }
     rm(cql.trans)
   }else{
@@ -258,7 +260,8 @@ extend_disNet <- function(
 
   ###########################################@
   ## get additional step of alt id ----
-  ids <- unique(c(xref$from, xref$to, 
+  ids <- unique(c(ids,
+                  xref$from, xref$to, 
                   children$child, children$parent, 
                   pheno$disease, pheno$phenotype,
                   alt$id, alt$alt))

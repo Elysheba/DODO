@@ -2,13 +2,17 @@
 #========================================================================================@
 #' Visualize a disease network
 #' 
-#' Visualize a disNet or setDisNet object as a visNetwork plot. It can be specified to show only a particular edge type 
+#' Visualize a disNet or setDisNet object as a visNetwork plot. It can be specified to 
+#' show only a particular edge type 
 #' and by default only 500 disease nodes are plotted.
 #' 
 #' @param disNet a disease network
 #' @param relations relationships to plot, can take "xref","child" and/or "parent" as values
-#' @param number Number of nodes to plot without igraph. If the number of nodes exceeds, igraph will be used (integer)
+#' @param number Number of nodes to plot without igraph. If the number of nodes exceeds, 
+#' igraph will be used (integer)
 #' @param igraph use visIgraphLayout() (default = TRUE)
+#' @param labelling use either disease identifier or both disease identifier and label 
+#' to label nodes (default = FALSE)
 #'  
 #' @return A \code{\link{visNetwork}} object.
 #' 
@@ -23,11 +27,13 @@ plot.disNet <- function(
   relations = c("xref","child","parent"),
   number = 500,
   igraph = T,
+  labelling = FALSE,
   ...
 ){
   match.arg(relations, 
             c("xref","child","parent"),
             several.ok = T)
+  match.arg(label, c("id", "label"), several.ok = FALSE)
   stopifnot(is.disNet(disNet))
   
   ## Colors
@@ -39,27 +45,19 @@ plot.disNet <- function(
                   title = character(),
                   arrows = character())
   if("xref" %in% relations && !is.null(disNet$xref)){
-    edges1 <- disNet$xref %>%
-      dplyr::select(to, 
-                    from,
+    edges <- disNet$xref %>%
+      dplyr::select(from, 
+                    to,
+                    type,
                     FA = forwardAmbiguity,
                     BA = backwardAmbiguity) %>%
-      dplyr::mutate(color = dplyr::case_when(BA > 1 ~ "#fdbb84",
-                                             TRUE ~ "#7fcdbb"),
-                    title = paste("FA = ", FA, ", BA = ", BA),
-                    arrows = "to")
-    edges2 <- disNet$xref %>%
-      dplyr::select(to = from, 
-                    from = to,
-                    BA = forwardAmbiguity,
-                    FA = backwardAmbiguity) %>%
-      dplyr::mutate(color = dplyr::case_when(BA > 1 ~ "#fdbb84",
-                                             TRUE ~ "#7fcdbb"),
-                    title = paste("FA = ", FA, ", BA = ", BA),
-                    arrows = "to")
-    edges <- dplyr::bind_rows(edges1,
-                              edges2) %>%
-      dplyr::distinct()
+      dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
+                                             TRUE ~ "#8da0cb"),
+                    title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
+                    arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                                       BA == 1 ~ "from",
+                                       FA == 1 ~ "to",
+                                       TRUE ~ "FALSE"))
   }
   if(any(c("child","parent") %in% relations) && !is.null(disNet$children)){
     edges <- disNet$children %>%
@@ -67,8 +65,8 @@ plot.disNet <- function(
                     to = child,
                     origin) %>%
       dplyr::mutate(title = paste("is_a, origin = ", origin),
-                    arrows = "to;from",
-                    color = "#3288bd") %>%
+                    arrows = "to",
+                    color = "#66c2a5") %>%
       dplyr::bind_rows(edges)
   }
   
@@ -81,7 +79,8 @@ plot.disNet <- function(
                   shape = case_when(id %in% disNet$seed ~ "triangle",
                                     TRUE ~ "dot"),
                   lbl = label,
-                  label = id,
+                  label = case_when(labelling ~ paste(id, lbl, sep = " | "),
+                                    TRUE ~ id),
                   title = paste(id, lbl, sep = " | ")) 
   
   
@@ -115,7 +114,9 @@ plot.disNet <- function(
 #' @param cluster cluster to plot
 #' @param number Number of nodes to plot without igraph. If the number of nodes exceeds, igraph will be used (integer)
 #' @param igraph use visIgraphLayout() (default = TRUE)
-#'  
+#' @param labelling use either disease identifier or both disease identifier and label 
+#' to label nodes (default = FALSE)
+#' 
 #' @return A \code{\link{visNetwork}} object.
 #' 
 #' @examples 
@@ -130,6 +131,7 @@ plot.setDisNet <- function(
   cluster = NULL,
   number = 500,
   igraph = T,
+  labelling = FALSE,
   ...
 ){
   match.arg(relations, 
@@ -142,7 +144,8 @@ plot.setDisNet <- function(
   plot.disNet(disNet = disNet, 
               relations = relations, 
               number = number, 
-              igraph  = igraph)
+              igraph  = igraph,
+              labelling = labelling)
 }
 
 #========================================================================================@

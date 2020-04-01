@@ -14,3 +14,4 @@ build/ARCHIVE
 build/data
 build/plugins
 bck/
+test/

@@ -92,7 +92,7 @@
 build_disNet <- function(id = NULL, 
                         term = NULL,
                         fields = c("label", "synonym"),
-                        ambiguity = 1, 
+                        ambiguity = NULL, 
                         avoidOrigin = NULL){
   #########################@
   ## Check ----

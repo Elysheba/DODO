@@ -8,7 +8,7 @@ build_disNet(
   id = NULL,
   term = NULL,
   fields = c("label", "synonym"),
-  ambiguity = 1,
+  ambiguity = NULL,
   avoidOrigin = NULL
 )
 }

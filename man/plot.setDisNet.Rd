@@ -10,6 +10,7 @@
   cluster = NULL,
   number = 500,
   igraph = T,
+  labelling = FALSE,
   ...
 )
 }
@@ -23,6 +24,9 @@
 \item{number}{Number of nodes to plot without igraph. If the number of nodes exceeds, igraph will be used (integer)}
 
 \item{igraph}{use visIgraphLayout() (default = TRUE)}
+
+\item{labelling}{use either disease identifier or both disease identifier and label
+to label nodes (default = FALSE)}
 }
 \value{
 A \code{\link{visNetwork}} object.

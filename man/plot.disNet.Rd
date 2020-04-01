@@ -9,6 +9,7 @@
   relations = c("xref", "child", "parent"),
   number = 500,
   igraph = T,
+  labelling = FALSE,
   ...
 )
 }
@@ -17,15 +18,20 @@
 
 \item{relations}{relationships to plot, can take "xref","child" and/or "parent" as values}
 
-\item{number}{Number of nodes to plot without igraph. If the number of nodes exceeds, igraph will be used (integer)}
+\item{number}{Number of nodes to plot without igraph. If the number of nodes exceeds,
+igraph will be used (integer)}
 
 \item{igraph}{use visIgraphLayout() (default = TRUE)}
+
+\item{labelling}{use either disease identifier or both disease identifier and label
+to label nodes (default = FALSE)}
 }
 \value{
 A \code{\link{visNetwork}} object.
 }
 \description{
-Visualize a disNet or setDisNet object as a visNetwork plot. It can be specified to show only a particular edge type
+Visualize a disNet or setDisNet object as a visNetwork plot. It can be specified to
+show only a particular edge type
 and by default only 500 disease nodes are plotted.
 }
 \examples{
