@@ -14,9 +14,9 @@ devtools::install_github("patzaw/BED")
 
 The minimal system requirements are: 
 
-- R $\geq$ 3.6
+- R ≥ 3.6
 - Operating system: Linux, macOS, Windows
-- Memory $\geq$ 4GB RAM
+- Memory ≥ 4GB RAM
 
 The graph database has been implemented with Neo4j 3.4.9 [@Neo4j2020], the DODO R package depends on the following packages:
 
@@ -35,7 +35,7 @@ The graph database has been implemented with Neo4j 3.4.9 [@Neo4j2020], the DODO 
 
 ## Availability
 
-The DODO instance build using the workflow described above is provided as a Docker image [@Docker2017] here.
+The DODO instance build using the workflow described above is provided as a Docker image here.
 
 ## Implementation and usage
 
@@ -43,19 +43,19 @@ Please refer to the (DODO paper)[https://github.com/Elysheba/DODO/tree/master/in
 
 ## Constructing a new DODO Neo4j database
 
-To construct a DODO instance, a set of script is available to load and feed a Neo4j instance. These are not exposed directly to the user instead, these scripts are available in the *build/scripts* folder. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub (Table \@ref(tab:githubOntology)).
+To construct a DODO instance, a set of script is available to load and feed a Neo4j instance. These are not exposed directly to the user instead, these scripts are available in the *build/scripts* folder. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub.
 
------------
-Resource | GitHub repository
------------
-Monarch Disease Ontology (MonDO) | https://github.com/Elysheba/Monarch
-Experimental Factor Ontology (EFO) | https://github.com/Elysheba/EFO
-Orphanet | https://github.com/Elysheba/Orphanet
-MedGen | https://github.com/Elysheba/MedGen
-Medical Subject Headings (MeSH) | https://github.com/Elysheba/MeSH
-Human Phenotype Ontology (HPO) | https://github.com/Elysheba/HPO
-ClinVar | https://github.com/Elysheba/ClinVar
-Disease Ontology (DO) | https://github.com/Elysheba/DO
-International Classification of Diseases (ICD11) | https://github.com/Elysheba/ICD11
------------
+|----|-------|
+|Resource | GitHub repository|
+|----|-------|
+|Monarch Disease Ontology (MonDO) | https://github.com/Elysheba/Monarch |
+|Experimental Factor Ontology (EFO) | https://github.com/Elysheba/EFO |
+|Orphanet | https://github.com/Elysheba/Orphanet |
+|MedGen | https://github.com/Elysheba/MedGen |
+|Medical Subject Headings (MeSH) | https://github.com/Elysheba/MeSH |
+|Human Phenotype Ontology (HPO) | https://github.com/Elysheba/HPO |
+|ClinVar | https://github.com/Elysheba/ClinVar |
+|Disease Ontology (DO) | https://github.com/Elysheba/DO |
+|International Classification of Diseases (ICD11) | https://github.com/Elysheba/ICD11 |
+|----|-------|
 

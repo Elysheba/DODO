@@ -190,16 +190,16 @@ To construct a DODO instance, a set of script is available to load and feed a Ne
 \toprule
 Disease ontology & GitHub\\
 \midrule
-Monarch Disease Ontology (MonDO) & NA\\
-Experimental Factor Ontology (EFO) & NA\\
-Orphanet & NA\\
-MedGen & NA\\
-Medical Subject Headings (MeSH) & NA\\
+Monarch Disease Ontology (MonDO) & https://github.com/Elysheba/Monarch\\
+Experimental Factor Ontology (EFO) & https://github.com/Elysheba/EFO\\
+Orphanet & https://github.com/Elysheba/Orphanet\\
+MedGen & https://github.com/Elysheba/MedGen\\
+Medical Subject Headings (MeSH) & https://github.com/Elysheba/MeSH\\
 \addlinespace
-Human Phenotype Ontology (HPO) & NA\\
-ClinVar & NA\\
-Disease Ontology (DO) & NA\\
-International Classification of Diseases (ICD10) & NA\\
+Human Phenotype Ontology (HPO) & https://github.com/patzaw/HPO\\
+ClinVar & https://github.com/patzaw/ClinVar\\
+Disease Ontology (DO) & https://github.com/Elysheba/DO\\
+International Classification of Diseases (ICD11) & https://github.com/Elysheba/ICD11\\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -389,22 +389,32 @@ As a consequence of the different way ontologies define disease (or phenotype) c
 \toprule
 Disease identifier & Disease label\\
 \midrule
-\rowcolor{gray!6}  ORPHA:192 & Coffin-Lowry syndrome\\
-MONDO:0010561 & Coffin-Lowry syndrome\\
-\rowcolor{gray!6}  ClinVar:823 & Coffin-Lowry syndrome\\
-MedGen:C0265252 & Coffin-Lowry syndrome\\
-\rowcolor{gray!6}  DOID:3783 & Coffin-Lowry syndrome\\
+\rowcolor{gray!6}  MedGen:C0795900 & Coffin syndrome 1\\
+ORPHA:192 & Coffin-Lowry syndrome\\
+\rowcolor{gray!6}  MONDO:0010561 & Coffin-Lowry syndrome\\
+ClinVar:823 & Coffin-Lowry syndrome\\
+\rowcolor{gray!6}  MedGen:C0265252 & Coffin-Lowry syndrome\\
 \addlinespace
-UMLS:C0265252 & Coffin-Lowry syndrome\\
-\rowcolor{gray!6}  MeSH:D038921 & Coffin-Lowry Syndrome\\
-OMIM:303600 & COFFIN-LOWRY SYNDROME\\
-\rowcolor{gray!6}  ICD10:Q87.0 & Congenital malformation syndromes predominantly affecting facial appearance\\
-MeSH:C536435 & NA\\
+DOID:3783 & Coffin-Lowry syndrome\\
+\rowcolor{gray!6}  UMLS:C0265252 & Coffin-Lowry syndrome\\
+MeSH:D038921 & Coffin-Lowry Syndrome\\
+\rowcolor{gray!6}  OMIM:303600 & COFFIN-LOWRY SYNDROME\\
+ICD10:Q87.0 & Congenital malformation syndromes predominantly affecting facial appearance\\
 \addlinespace
-\rowcolor{gray!6}  SNOMEDCT:15182000 & NA\\
+\rowcolor{gray!6}  MeSH:C536435 & NA\\
+SNOMEDCT:15182000 & NA\\
+\rowcolor{gray!6}  OMIM:300075 & NA\\
+UMLS:C0795900 & NA\\
+\rowcolor{gray!6}  GTR:GTRT000007048 & NA\\
+\addlinespace
 ICD9:759.89 & NA\\
+\rowcolor{gray!6}  OMIM:300075.0011 & NA\\
+GTR:GTRT000000823 & NA\\
 \rowcolor{gray!6}  NCIt:C84643 & NA\\
-GARD:0008589 & NA\\
+GARD:6123 & NA\\
+\addlinespace
+\rowcolor{gray!6}  GARD:0008589 & NA\\
+SNOMEDCT\_US\_2019\_09\_01:15182000 & NA\\
 \rowcolor{gray!6}  GARD:0006123 & NA\\
 \bottomrule
 \end{tabular}}
@@ -416,7 +426,7 @@ In addition to the concept of \emph{ambiguity}, two types of cross-reference edg
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/DODO_publication/fig/heatmap_ambiguity} 
+{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/heatmap_ambiguity} 
 
 }
 
@@ -427,7 +437,7 @@ Figure \ref{fig:boxplotAmbiguity} shows the number of conversions per identifier
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/DODO_publication/fig/boxplot_ambiguity_conversion_mondo} 
+{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/boxplot_ambiguity_conversion_mondo} 
 
 }
 
@@ -439,11 +449,11 @@ By comparing the results and relationship between the different ontologies with 
 \hypertarget{results}{%
 \section{Results}\label{results}}
 
-The table below shows the number of nodes available through each disease ontology, in total there are 454637 nodes (Figure @ref\{fig:listDB)) in this DODO instance.
+The table below shows the number of nodes available through each disease ontology, in total there are 586468 nodes (Figure @ref\{fig:listDB)) in this DODO instance.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.75\linewidth]{DODO_publication_files/figure-latex/listDB-1} 
+{\centering \includegraphics[width=0.5\linewidth,height=0.5\textheight]{DODO-F1000-publication_files/figure-latex/listDB-1} 
 
 }
 
@@ -462,11 +472,11 @@ A first and default conversion consists of two steps, a first using the transiti
 
 \begin{figure}
 
-{\centering \includegraphics[width=8.42in]{/data/lfrancois/Development/DODO/DODO_publication/fig/disNetExtension} 
+{\centering \includegraphics[width=8.42in]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNetExtension} 
 
 }
 
-\caption{A disNet constructed and subsequently extended using only cross-reference relations using the MonDO identifier for 'Epilepsy' ('MONDO:0005027') as an example. This extension is performed in two phases. First, the transitive mapping uses the *is\_xref* edges wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (blue edges). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending. This final intransitive mapping step will return all nodes related through either an *is\_related* (brown edges) or *is\_xref* edge with no filtering as all.}\label{fig:extension}
+\caption{A disNet constructed and subsequently extended using only cross-reference relations using the MonDO identifier for 'Epilepsy' ('MONDO:0005027') as an example. This extension is performed in two phases. First, the transitive mapping uses the *is\_xref* edges (blue edges) wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (green nodes). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending (red nodes). This final intransitive mapping step will return all nodes related through either an *is\_related* (orange edges) or *is\_xref* edge with no filtering as all.}\label{fig:extension}
 \end{figure}
 
 A second case is the return of direct cross-references only without the use of transitivty to return indirect relations (parameter ``step = 1''). For the same identifier ``MONDO:0005027'', Table @ref\{tab:step1\} shows only the direct cross-references.
@@ -480,25 +490,25 @@ A second case is the return of direct cross-references only without the use of t
 \toprule
 from & to & label\\
 \midrule
-\rowcolor{gray!6}  MONDO:0005027 & MONDO:0005027 & Epilepsy, unspecified, not intractable, without status epilepticus\\
-MONDO:0005027 & ICD9:345.8 & Epilepsy, unspecified\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD10:G40.9 & Epilepsy and recurrent seizures\\
-MONDO:0005027 & ICD10:G40.909 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.80 & Epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & MONDO:0005027 & epilepsy\\
+MONDO:0005027 & ICD9:345.8 & epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & COHD:380378 & Epilepsy\\
+MONDO:0005027 & ICD9:345.90 & Epilepsy, unspecified, not intractable, without status epilepticus\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD10:G40.9 & NA\\
 \addlinespace
-MONDO:0005027 & ICD9:345.9 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345 & epilepsy\\
-MONDO:0005027 & ICD9:345.90 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.91 & NA\\
-MONDO:0005027 & COHD:380378 & NA\\
-\addlinespace
+MONDO:0005027 & ICD9:345.9 & NA\\
 \rowcolor{gray!6}  MONDO:0005027 & NIFSTD:birnlex\_12718 & NA\\
-MONDO:0005027 & ICD10:G40 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & MeSH:D004827 & NA\\
-MONDO:0005027 & DOID:1826 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:84757009 & NA\\
+MONDO:0005027 & ICD9:345.80 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD9:345 & NA\\
+MONDO:0005027 & ICD10:G40.909 & NA\\
 \addlinespace
-MONDO:0005027 & NCIt:C3020 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.91 & NA\\
+MONDO:0005027 & ICD10:G40 & epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:84757009 & NA\\
+MONDO:0005027 & DOID:1826 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & MeSH:D004827 & Epilepsy and recurrent seizures\\
+\addlinespace
+MONDO:0005027 & NCIt:C3020 & Epilepsy, unspecified\\
 \rowcolor{gray!6}  MONDO:0005027 & EFO:0000474 & NA\\
 \bottomrule
 \end{tabular}}
@@ -515,45 +525,45 @@ A third use case can be used to focus on concepts that are equivalent to each ot
 \toprule
 from & to & label\\
 \midrule
-\rowcolor{gray!6}  MONDO:0005027 & MONDO:0005027 & Epilepsy, unspecified, not intractable, without status epilepticus\\
-MONDO:0005027 & ICD9:345.91 & Epilepsy, unspecified, not intractable, without status epilepticus\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345 & Epilepsy, unspecified\\
-MONDO:0005027 & ICD9:345.8 & Epilepsy, unspecified\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.90 & Epilepsy, Cryptogenic\\
+\rowcolor{gray!6}  MONDO:0005027 & MONDO:0005027 & epilepsy syndrome\\
+MONDO:0005027 & ICD10:G40 & Epilepsy, unspecified, not intractable, without status epilepticus\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD9:345 & Epilepsy syndrome\\
+MONDO:0005027 & ICD10:G40.909 & epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.91 & epilepsy\\
 \addlinespace
-MONDO:0005027 & NIFSTD:birnlex\_12718 & Epilepsy, Cryptogenic\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD10:G40.9 & Epilepsy syndrome\\
-MONDO:0005027 & ICD10:G40.909 & Epilepsy and recurrent seizures\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD10:G40 & Epilepsy\\
-MONDO:0005027 & COHD:380378 & Awakening Epilepsy\\
+MONDO:0005027 & NIFSTD:birnlex\_12718 & Epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.9 & Epilepsy, Cryptogenic\\
+MONDO:0005027 & ICD9:345.8 & Epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & COHD:380378 & Awakening Epilepsy\\
+MONDO:0005027 & ICD9:345.90 & Epilepsy\\
 \addlinespace
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.9 & Awakening Epilepsy\\
-MONDO:0005027 & DOID:1826 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & NCIt:C3020 & Epilepsy\\
-MONDO:0005027 & EFO:0000474 & Epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:84757009 & Epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD10:G40.9 & Epilepsy, unspecified, not intractable, without status epilepticus\\
+MONDO:0005027 & EFO:0000474 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:84757009 & NA\\
+MONDO:0005027 & DOID:1826 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & MeSH:D004827 & Epilepsy\\
 \addlinespace
-MONDO:0005027 & MeSH:D004827 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & UMLS:C0014544 & epilepsy\\
+MONDO:0005027 & NCIt:C3020 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & MedGen:C0014544 & NA\\
+MONDO:0005027 & UMLS:C0014544 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & ClinVar:9566 & NA\\
 MONDO:0005027 & MedGen:C0086237 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & UMLS:C0751111 & NA\\
-MONDO:0005027 & MedGen:C0014544 & NA\\
 \addlinespace
 \rowcolor{gray!6}  MONDO:0005027 & UMLS:C0086237 & NA\\
-MONDO:0005027 & MedGen:C0751111 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & ClinVar:9566 & NA\\
-MONDO:0005027 & ICD9:345.80 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD10CM:G40.909 & NA\\
+MONDO:0005027 & MedGen:C0751111 & epilepsy\\
+\rowcolor{gray!6}  MONDO:0005027 & UMLS:C0751111 & NA\\
+MONDO:0005027 & ICD10CM:G40.909 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD9CM:345.9 & Epilepsy and recurrent seizures\\
 \addlinespace
-MONDO:0005027 & ICD10CM:G40.9 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT\_US\_2018\_03\_01:84757009 & NA\\
-MONDO:0005027 & ICD9CM:345.9 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & ORPHA:166463 & NA\\
+MONDO:0005027 & SNOMEDCT\_US\_2019\_09\_01:84757009 & Epilepsy, unspecified\\
+\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.80 & NA\\
 MONDO:0005027 & GTR:GTRT000009566 & NA\\
-\addlinespace
-\rowcolor{gray!6}  MONDO:0005027 & OMIM:MTHU018883 & NA\\
-MONDO:0005027 & OMIM:MTHU022799 & NA\\
 \rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:128613002 & NA\\
+MONDO:0005027 & OMIM:MTHU018883 & NA\\
+\addlinespace
+\rowcolor{gray!6}  MONDO:0005027 & ORPHA:166463 & NA\\
+MONDO:0005027 & OMIM:MTHU022799 & NA\\
+\rowcolor{gray!6}  MONDO:0005027 & MONDO:0015650 & NA\\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -562,11 +572,11 @@ Finally, a specific conversion procedure is recommended for the ontologies that 
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/DODO_publication/fig/get_related_ambiguity_NULL_G409} 
+{\centering \includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/get_related_ambiguity_NULL_G409} 
 
 }
 
-\caption{Comparison of the default conversion results with the output of the specific conversion for ontologies with limited connections through is\_xref edges. The example is the ICD10 identifier G40.9 (Epilepsy). The nodes in green signify those return through both methods, while the nodes in orange are only returned using the more specific approach for this type of ontology. In addition, the edges in blue represent is\_xref edges, while those in pink present is\_related edges between nodes (with no specification for ambiguity for simplicity).}\label{fig:getRelated}
+\caption{Comparison of the default conversion results with the output of the specific conversion for ontologies with limited connections through is\_xref edges (blue edges). The example is the ICD10 identifier G40.9 (Epilepsy). The nodes in green signify those return through both methods, while the nodes in orange are only returned using the more specific approach for this type of ontology. In addition, the edges in blue represent is\_xref edges, while those in pink present is\_related edges between nodes (with no specification for ambiguity for simplicity).}\label{fig:getRelated}
 \end{figure}
 
 Conversion can also be used to convert between concept, i.e.~from disease identifier to phenotype identifiers or vice versa. This conversion is handled in two distinct phases. First, depending on the options listed above, identifiers are converted within the same concept. When this is not required, using parameter ``step = NA'' the conversion within the same concept can be avoided. The second phase converts between concepts by returning phenotype or disease nodes directly related to the original identifiers (including the converted identifiers obtain in the first phase).
@@ -574,7 +584,7 @@ Conversion can also be used to convert between concept, i.e.~from disease identi
 \hypertarget{building-a-disnet}{%
 \subsection{Building a disNet}\label{building-a-disnet}}
 
-A core concept in DODO is the \emph{disNet}, a S3 object containing all information on a disease and its relationship with other nodes in the object (see above). This object can be constructed using helper functions starting from disease identifiers (\emph{build\_disnet}) and specifying either identifiers or terms to build a disNet around.
+Another core concept in DODO is the S3 \emph{disNet} object which contains all information on diseases/phenotypes and their internal relationships. This object can be constructed using helper functions starting from disease identifiers or search terms (\emph{build\_disnet}).
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -588,49 +598,100 @@ A core concept in DODO is the \emph{disNet}, a S3 object containing all informat
 \hypertarget{extending-a-disnet}{%
 \subsection{Extending a disNet}\label{extending-a-disnet}}
 
-When building a \emph{disNet} by either identifier or search term, the resulting \emph{disNet} will likely not contain the complete information on that particular disease landscape and might be missing some cross-reference relationships. Alternatively, it might be necessary to extend the returned nodes to include their child terms, annotated phenotypes/disease, or alternative identifieres when available. To this end, the \emph{extend\_disnet} function in DODO allows extending a disNet object and returning additional cross-references edges, parent/child information, alternative identifierse, and/or phenotype annotation.
+When building a \emph{disNet} by either identifier(s) or search term(s), the resulting \emph{disNet} will likely not contain the complete information on that particular disease landscape. The \emph{extend\_disNet} function enriches the disNet to include addition cross-reference identifiers, child/parent terms, annotated phenotypes/disease, or alternative identifieres when available. In concordance with the conversion procedure, extension follows the same two-step approach. Please refer to paragraph @ref(Converting concepts) for more details and the different use cases.
 
-DODO is build as a meta-database incorporating several disease ontologies and their listed relationships. Not all relationships might be required or needed and exploring (\emph{explore\_disNet}) or plotting a \emph{disNet} visualizes the sometimes more fuzzy concept of a disease as different ontologies employ hetergeneous definitions and cross-reference axes are not always exact. This may help to understand how disease are identified across ontologies and visualize the relationship between different resources.
-
-Extension follows the same two-step approach as converting between ontologies. Please refer to paragraph @ref(Converting concepts) for more details and the different use cases.
-
-\hypertarget{reviewing}{%
-\subsection{Reviewing}\label{reviewing}}
-
-Often after extending it is necessary to review the returned \emph{disNet} to assess whether all nodes are of interest. This workflow decribed below aims to establish a process of reviewing a \emph{disNet} following a top/down approach. Clustering the \emph{disNet} nodes based on cross-reference edges, allows the user to focus on the disease he/she wishes to retain and takes care of these cross-reference information in the back.
-
-For a smaller-sized \emph{disNet} the clustering step and exploring these clusters might be sufficient to review a given object.
-
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{# ## Cluster disNet on "xref"}
-\CommentTok{# clDisNet <- cluster_disNet(disNet = disNet, }
-\CommentTok{#                           clusterOn = "xref")}
-\CommentTok{# }
-\CommentTok{# ## Explore clusters}
-\CommentTok{# # explore_disNet(disNet = clDisNet)}
-\CommentTok{# disNet <- c(list = clDisNet[c(1:2, 5, 9)])}
-\end{Highlighting}
-\end{Shaded}
-
-When establishing a \emph{disNet} based on search terms, some returned nodes have no parent/child edges or cross-reference edges. These are considered as \emph{singletons} and are treated separately as these can still be of interest when aiming to link to different external resources.
-
-\hypertarget{phenotypes}{%
-\subsection{Phenotypes}\label{phenotypes}}
-
-Finally, it is also possible to extend to phenotype information using either \emph{convert\_concept} and specify the concept to convert to. Additionally, the \emph{extend\_disNet} can be used to extend identifiers to either ``Phenotype'' or ``Disease'' relations. While this extension can be performede simultaneously with extension using ``xref'', ``parent/child'', or ``alt'' parameters, it is not possible to extend through both ``disease'' and ``phenotype'' at the same time. Please note that extending through either phenotype or disease in combination with other options for extension (e.g.~xref, parent, child, or alt) will not use transitivity for phenotype or disease extension. This is only performed as a final step after two-step extension (similar to conversion, please refer to paragraph @ref\{Converting concepts\} for more details).
+Of specific note is the extension to (or from) phenotype information. Within one extension all different parameters (xref, child, parent, alt, and disease/phenotype) can be supplied with the exception that it is not possible to extend to both disease and phenotype simultaneously. Extending to or from phenotypes does not employ the transitivity mechanism but is performed as a final step (similar to conversion, please refer to paragraph @ref\{Converting concepts\} for more details).
 
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{disNet <-}\StringTok{ }\KeywordTok{build_disNet}\NormalTok{(}\DataTypeTok{id =} \KeywordTok{c}\NormalTok{(}\StringTok{"HP:0003394"}\NormalTok{, }\StringTok{"HP:0002180"}\NormalTok{, }\StringTok{"HP:0002878"}\NormalTok{))}
 \NormalTok{disNet <-}\StringTok{ }\KeywordTok{extend_disNet}\NormalTok{(}\DataTypeTok{disNet =}\NormalTok{ disNet, }\DataTypeTok{relations =} \StringTok{"disease"}\NormalTok{)}
-\KeywordTok{nrow}\NormalTok{(disNet)}
+\NormalTok{disNet}
 \end{Highlighting}
 \end{Shaded}
 
 \begin{verbatim}
-## [1] 140
+## # A tibble: 397 x 7
+##    id      label            definition            shortID level type    database
+##    <chr>   <chr>            <chr>                 <chr>   <int> <chr>   <chr>   
+##  1 MONDO:~ glycogen storag~ "Phosphoglycerate ki~ 0010392    11 Concep~ MONDO   
+##  2 OMIM:6~ NEURODEGENERATI~ "NEURODEGENERATION W~ 610217     NA Concep~ OMIM    
+##  3 MONDO:~ adult-onset dis~ "Adult-onset distal ~ 0018006    10 Concep~ MONDO   
+##  4 MONDO:~ Charcot-Marie-T~ "Autosomal dominant ~ 0011675     9 Concep~ MONDO   
+##  5 OMIM:6~ MOTOR NEURON DI~ "MOTOR NEURON DISEAS~ 600333     NA Concep~ OMIM    
+##  6 MONDO:~ pure mitochondr~ "Pure mitochondrial ~ 0016807    11 Concep~ MONDO   
+##  7 ORPHA:~ Congenital musc~ "Congenital muscular~ 258         8 Concep~ ORPHA   
+##  8 OMIM:3~ MITOCHONDRIAL C~ "MITOCHONDRIAL COMPL~ 301021     NA Concep~ OMIM    
+##  9 ORPHA:~ Nocardiosis      "Nocardiosis is a lo~ 31204       4 Concep~ ORPHA   
+## 10 ORPHA:~ Mitochondrial e~ " mutation is charac~ 1194        9 Concep~ ORPHA   
+## # ... with 387 more rows
+## 
+## The disNet contains:
+##  -  394 disease nodes from 6 ontologies and 3 phenotype nodes from 1 ontologies 
+##  -  2206 synonyms of the disease nodes
+##  -  0 parent/child edges
+##  -  0 crossreference edges
+##  -  0 alternative edges
+##  -  398 phenotype edges
+##  -  The disNet was build based on 3 seeds
 \end{verbatim}
+
+\hypertarget{reviewing}{%
+\subsection{Reviewing}\label{reviewing}}
+
+Often after extending it is necessary to review the returned \emph{disNet} to assess whether all nodes are of interest. This process can be simplified by considering clusters of cross-references (nodes dealing with similar concepts) using the \emph{cluster\_disNet} functionality. Instead of reviewing each nodes, the different clusters can be reviewed to identify those of interest while using the relationships between nodes to address equivalent nodes simultaneously (Table \ref{tab:cldisNet}).
+
+\begin{table}
+
+\caption{\label{tab:cldisNet}Annotation of the different cross-reference clusters of nodes identified for a disNet around 'amyotrophic lateral sclerosis'. The annotation is obtained from node within the cluster with the highest order in its disease ontology ('level') and avialability of label information.}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}[t]{rrlrl}
+\toprule
+cluster & clusterSize & id & level & values\\
+\midrule
+\rowcolor{gray!6}  1 & 150 & ICD10CM:G12.21 & 4 & Amyotrophic lateral sclerosis\\
+2 & 22 & MONDO:0017161 & 7 & frontotemporal dementia with motor neuron disease\\
+\rowcolor{gray!6}  3 & 2 & MedGen:C1862940 & NA & Amyotrophic Lateral Sclerosis, Autosomal Recessive\\
+4 & 9 & ORPHA:357043 & 6 & Amyotrophic lateral sclerosis type 4\\
+\rowcolor{gray!6}  5 & 3 & MedGen:C3542025 & NA & Amyotrophic lateral sclerosis 1, autosomal recessive\\
+\addlinespace
+6 & 8 & MONDO:0005145 & 8 & sporadic amyotrophic lateral sclerosis\\
+\rowcolor{gray!6}  7 & 6 & MONDO:0014640 & 10 & FTDALS3\\
+8 & 5 & MONDO:0008781 & 10 & juvenile amyotrophic lateral sclerosis with dementia\\
+\rowcolor{gray!6}  9 & 6 & MONDO:0011632 & 8 & amyotrophic lateral sclerosis type 21\\
+10 & 2 & MedGen:C4302169 & NA & Amyotrophic lateral sclerosis plus syndrome\\
+\addlinespace
+\rowcolor{gray!6}  11 & 3 & UMLS:C2750729 & NA & Amyotrophic lateral sclerosis 6, autosomal recessive\\
+12 & 3 & UMLS:CN239196 & NA & Amyotrophic Lateral Sclerosis, Recessive\\
+\rowcolor{gray!6}  13 & 2 & MedGen:CN260033 & NA & Amyotrophic lateral sclerosis 10, with or without FTD\\
+14 & 4 & ORPHA:52430 & 8 & Inclusion body myopathy with Paget disease of bone and frontotemporal dementia\\
+\rowcolor{gray!6}  15 & 3 & UMLS:C2931441 & NA & Infantile-onset ascending hereditary spastic paralysis\\
+\addlinespace
+16 & 2 & MedGen:C2931786 & NA & Amyotrophic lateral sclerosis, type 6\\
+\rowcolor{gray!6}  17 & 3 & ORPHA:98756 & 10 & Spinocerebellar ataxia type 2\\
+18 & 2 & MedGen:C3662062 & NA & Restrictive lung disease due to amyotrophic lateral sclerosis\\
+\rowcolor{gray!6}  19 & 3 & MedGen:CN239175 & NA & Amyotrophic Lateral Sclerosis, Dominant\\
+20 & 2 & MedGen:C4551993 & NA & Amyotrophic Lateral Sclerosis, Familial\\
+\addlinespace
+\rowcolor{gray!6}  21 & 3 & UMLS:CN239211 & NA & Amyotrophic Lateral Sclerosis/Frontotemporal Dementia\\
+22 & 1 & ClinVar:10103 & NA & Amyotrophic lateral sclerosis, typical\\
+\rowcolor{gray!6}  23 & 1 & ClinVar:10438 & NA & Amyotrophic lateral sclerosis, susceptibility to\\
+24 & 1 & ClinVar:10387 & NA & Amyotrophic lateral sclerosis 13\\
+\rowcolor{gray!6}  25 & 1 & ClinVar:32676 & NA & Amyotrophic lateral sclerosis 22 with frontotemporal dementia\\
+\addlinespace
+26 & 1 & MONDO:0008178 & 10 & inclusion body myopathy with Paget disease of bone and frontotemporal dementia type 1\\
+\rowcolor{gray!6}  27 & 1 & ClinVar:10104 & NA & Amyotrophic lateral sclerosis-parkinsonism/dementia complex 1, susceptibility to\\
+28 & 1 & ClinVar:16925 & NA & Amyotrophic lateral sclerosis 14 without frontotemporal dementia\\
+\rowcolor{gray!6}  29 & 1 & HP:0007354 & 7 & Amyotrophic lateral sclerosis\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\hypertarget{visualizations}{%
+\subsection{Visualizations}\label{visualizations}}
+
+DODO is build as a meta-database incorporating several disease ontologies and their listed relationships. As disease concepts and definitions are not auto-generated but rather a human effort, concepts might not always be clearly defined or related to each other in a straightforward manner. The different ontologies employ hetergeneous definitions and cross-reference axes are not always exact. Using the \emph{explore\_disNet} and plotting function may increase understanding in how disease are defined across the different ontologies and visualize the relationship between different resources.
 
 \hypertarget{connecting-to-external-resources}{%
 \subsection{Connecting to external resources}\label{connecting-to-external-resources}}
@@ -643,7 +704,7 @@ Figure \ref{fig:disNetalsExtension} shows the retrieval of additional nodes not 
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_extension} 
+{\centering \includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_extension} 
 
 }
 
@@ -652,53 +713,51 @@ Figure \ref{fig:disNetalsExtension} shows the retrieval of additional nodes not 
 
 \textbf{CHEMBL}
 
-There are 74 compounds identified through 4 identified (identifiers: MeSH:D000690, EFO:0000253, ORPHA:98756, EFO:0001356) using the disNet while 74 compounds identified through 3 disease identifiers (identifiers: MeSH:D000690, EFO:0000253, EFO:0001356.
+There are 96 compounds identified through 4 identified (identifiers: MeSH:D000690, EFO:0000253, ORPHA:98756, EFO:0001356) using the disNet while 96 compounds identified through 3 disease identifiers (identifiers: MeSH:D000690, EFO:0000253, EFO:0001356.
 
 Both approaches identify the same drug compounds but an additional disease was available through use of a disNet.
 
 \begin{verbatim}
 ## 
 ##  EFO:0000253  EFO:0001356 MeSH:D000690  ORPHA:98756 
-##           74            1           75            2
+##           95            2           97            2
 \end{verbatim}
 
 \begin{verbatim}
 ## 
 ##  EFO:0000253  EFO:0001356 MeSH:D000690 
-##           74            1           75
+##           95            2           97
 \end{verbatim}
 
 This disease is a child term identified through extending the disNet (Figure \ref{fig:disnetALSchembl}). This term `ORPHA:98756' was identified as a child term of `EFO:0001356' with the extension of the disNet using DODO. The disease could not be identified through querying CHEMBL directly as it's labelled `Spinocerebellar ataxia type 2'". While this enriched extended network did not return additional compounds from CHEMBL in this example, the annotation of compounds used for treatment of ALS shows more granularity.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_chembl} 
+{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_chembl} 
 
 }
 
-\caption{The visualized disNet shows the relations between the different diseases with compounds available in CHEMBL resource. This term 'ORPHA:98756' was identified as a child term of 'EFO:0001356' through extension. The disease could not be identified through querying CHEMBL directly as it's labelled 'Spinocerebellar ataxia type 2'. Using disease relationships present in DODO this node was identified additionally.}\label{fig:disnetALSchembl}
+\caption{The visualized disNet shows the relations between the different diseases with compounds available in CHEMBL resource. This term 'ORPHA:98756' was identified as a child term of 'EFO:0001356' through extension (green edges). Cross-reference edge is\_xref are indicated in blue.  The disease could not be identified through querying CHEMBL directly as it's labelled 'Spinocerebellar ataxia type 2'. Using disease relationships present in DODO this node was identified additionally.}\label{fig:disnetALSchembl}
 \end{figure}
 
 \textbf{ClinVar}
 
-All entrez gene identifiers identified by querying the ClinVar resource directly for ``amyotrophic lateral sclerosis'' were also returned when using the disNet disease network. All entrez gene identifiers identified by querying the ClinVar resource directly for ``amyotrophic lateral sclerosis'' were also returned when using the disNet disease network.
+All entrez gene identifiers identified by querying the ClinVar resource directly for ``amyotrophic lateral sclerosis'' were also returned when using the disNet disease network. Contrary, using the disNet build around ALS returns 1 additional Entrez gene identifiers reported for ClinVar identifier ClinVar:18286 with label: Inclusion body myopathy with early-onset Paget disease with or without frontotemporal dementia 2. This identifier was identified through extending through cross-references edges through transitivity mapping related to ``ORPHA:52430'' which carries ``Pagetoid amyotrophic lateral sclerosis'' as a synonym (Figure \ref{fig:disnetALSclinvar}).
 
-There are 3 Entrez gene identifiers that were identified using ClinVar directly as a resource compared to using the disNet. A closer look shows that these internal ClinVar trait ids (``t.id'') either have no external cross-references or have a cross-reference to a MedGen identifier signifying a ``finding''. DODO is constructed only including MedGen identifiers of the following types: ``Disease or Syndrome'',``Acquired Abnormality'', ``Anatomical Abnormality'', or ``Congenital Abnormality''. This explains these missing ClinVar trait ids as these are related to MedGen ``Findings'' (= clinical feature of many conditions) only (see link){[}\url{https://www.ncbi.nlm.nih.gov/books/NBK159970/}{]}.
+\begin{figure}
 
-The table below shows the genes carrying a disease variant only identified through ClinVar directly:
+{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_chembl} 
 
-These terms from MedGen and OMIM are related to term ``MONDO:0014178'' () itself a child term of ``MONDO:0000507'' (inclusion body myopathy with Paget disease of bone and frontotemporal dementia). This additional variant was identified through extending the disNet and obtaining al child terms and related cross-references.
+}
+
+\caption{The visualized disNet shows how the identifier 'ClinVar:18286' ('Inclusion body myopathy with early-onset Paget disease with or without frontotemporal dementia 2') was returned through the use of transitivity on cross-reference edges starting from 'ORPHA:52430' ('Pagetoid amyotrophic lateral sclerosis'). With the is\_xref edges are indicated in blue and the is\_related edges indicated in orange.}\label{fig:disnetALSclinvar}
+\end{figure}
 
 \textbf{Tracing connections}
 
-A additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses.
+When obtaining a list of variants or compounds directly from the resources it isn't possible to understand if the return disease identiers that originate from different ontologies are always dealing with the same disease concepts. An additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses. Figure \ref{fig:traceConn} shows the original ALS disNet with disease identifiers matching in CHEMBL (orange) and those matching in ClinVar (blue). As both resources use different ontologies as references, there is a necessity to use cross-reference to understand their relationship to each other. Indirect relationships are used and recorded when extending and can facilitate the understanding and integration of different biological resources.
 
-\begin{center}\includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/DODO_publication/fig/trace_connections} \end{center}
-
-\hypertarget{bridging-external-resources}{%
-\subsection{Bridging external resources}\label{bridging-external-resources}}
-
-Connecting ClinVar to CHEMBL
+\begin{center}\includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/trace_connections} \end{center}
 
 --\textgreater{}
 

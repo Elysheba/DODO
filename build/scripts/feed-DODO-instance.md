@@ -1,7 +1,7 @@
 ---
 title: "Building DODO database"
 author: "Liesbeth François"
-date: "March 18 2020"
+date: "April 02 2020"
 abstract: "This report records the process the load the different disease ontologies into a single DODO instance and return an RDF table as well as RData objects with all parsed information."
 output:
     html_document:
@@ -32,27 +32,6 @@ In this example several publically available disease ontologies are integrated i
 ```r
 ##
 library(DODO)
-```
-
-```
-## Warning in check_dodo_connection(verbose = TRUE): DODO DB is empty !
-```
-
-```
-## Warning in check_dodo_connection(): DODO DB is empty !
-
-## Warning in check_dodo_connection(): DODO DB is empty !
-```
-
-```
-## Warning in check_dodo_cache(newCon = TRUE): Clearing cache
-```
-
-```
-## Warning in check_dodo_connection(verbose = FALSE): DODO DB is empty !
-```
-
-```r
 library(knitr)
 library(here)
 library(dplyr)
@@ -94,21 +73,8 @@ connect_to_dodo(
 ```
 
 ```
-## Warning in check_dodo_connection(verbose = TRUE): DODO DB is empty !
-```
-
-```
-## Warning in check_dodo_connection(): DODO DB is empty !
-
-## Warning in check_dodo_connection(): DODO DB is empty !
-```
-
-```
-## Warning in check_dodo_cache(newCon = TRUE): Clearing cache
-```
-
-```
-## Warning in check_dodo_connection(verbose = FALSE): DODO DB is empty !
+## Error in function (type, msg, asError = TRUE)  : 
+##   Recv failure: Connection reset by peer
 ```
 
 <!----------------------------------------------------------------->
@@ -131,21 +97,26 @@ for(s in src){
   dbfiles <- grep("txt",list.files(ddir),value =T)
   for(i in dbfiles){
     x <- read.table(file.path(ddir,i),header = TRUE, sep = "\t", 
-                    quote = '"', comment.char = "", colClasses= c("character"))
-    # if(grepl("entryId",i)){
-    #   x$resource <- s
-    # }
+                    quote = '"', comment.char = "", 
+                    colClasses= c("character"))
+    if(grepl("entryId",i)){
+      if(grepl("OMIM", i)){
+        x$origin <- "OMIM"
+      }else{
+        x$origin <- s
+      }
+    }
     assign(gsub(".txt","",i), x) 
   }
 }
 
 ## Some issues in the first lines of HPO files
-toRem <- grep("disease-db", HPO_diseaseHP$db)
-HPO_diseaseHP <- HPO_diseaseHP[-toRem,]
-toRem <- grep("disease-db", HPO_diseases$db)
-HPO_diseases <- HPO_diseases[-toRem,]
-toRem <- grep("disease-db", HPO_diseaseSynonyms$db)
-HPO_diseaseSynonyms <- HPO_diseaseSynonyms[-toRem,]
+# toRem <- grep("disease-db", HPO_diseaseHP$db)
+# HPO_diseaseHP <- HPO_diseaseHP[-toRem,]
+# toRem <- grep("disease-db", HPO_diseases$db)
+# HPO_diseases <- HPO_diseases[-toRem,]
+# toRem <- grep("disease-db", HPO_diseaseSynonyms$db)
+# HPO_diseaseSynonyms <- HPO_diseaseSynonyms[-toRem,]
 ```
 
 
@@ -170,57 +141,57 @@ The URL provides a link to its respective GitHub repository where you can find t
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *def* (character, definition of the concept), and *level* (integer, in the ontology hierarchy).
 
-<!--html_preserve--><div id="htmlwidget-8ae7579387e9114d84e1" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8ae7579387e9114d84e1">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0001642"],["A primary or metastatic malignant neoplasm involving the cervix.","A hordeolum that results from obstruction and infection of an eyelash follicle and adjacent glands of Zeis or Moll glands. Follicle obstruction may be associated with blepharitis."],["9","10"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>def<\/th>\n      <th>level<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-19bfb95cb063c7735c62" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-19bfb95cb063c7735c62">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0001642"],["A primary or metastatic malignant neoplasm involving the cervix.","A hordeolum that results from obstruction and infection of an eyelash follicle and adjacent glands of Zeis or Moll glands. Follicle obstruction may be associated with blepharitis."],["9","10"],["Monarch","Monarch"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>def<\/th>\n      <th>level<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **idNames**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *syn* (character, synonym and label), and canonical (boolean, whether *syn* is the canonical concept label).
 
-<!--html_preserve--><div id="htmlwidget-8c2b6656436b9a78b399" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-8c2b6656436b9a78b399">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0001642"],["cervical cancer","hordeolum externum"],["TRUE","TRUE"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>syn<\/th>\n      <th>canonical<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-18265c6a132ff9cdb427" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-18265c6a132ff9cdb427">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0001642"],["cervical cancer","hordeolum externum"],["TRUE","TRUE"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>syn<\/th>\n      <th>canonical<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **parentId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *pDB* (character, database or ontology of the parent term), *parent* (character, identifiers of the parent), origin (character, database or ontology where this relationship originates from).
 
-<!--html_preserve--><div id="htmlwidget-51779f4f39120407a615" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-51779f4f39120407a615">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0016629","0007779"],["MONDO","MONDO"],["0002243","0000426"],["MONDO","MONDO"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>pDB<\/th>\n      <th>parent<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-6ca34bc7d09f4043fca6" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6ca34bc7d09f4043fca6">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0016629","0007779"],["MONDO","MONDO"],["0002243","0000426"],["MONDO","MONDO"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>pDB<\/th>\n      <th>parent<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **crossId**
 
 Dataframe with columns *DB1* (character, database or ontology of the first identifier), *id1* (character, first identifier without the database prefex), *DB2* (character, database or ontology of the second identifier), *id2* (character, second identifier also called cross-referenced identifier without database prefix).
 
-<!--html_preserve--><div id="htmlwidget-41a76ff202f807563d12" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-41a76ff202f807563d12">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0002974"],["ICD9","ICD9"],["180.8","180"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB1<\/th>\n      <th>id1<\/th>\n      <th>DB2<\/th>\n      <th>id2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-d84456bf937e66403079" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d84456bf937e66403079">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0002974"],["ICD9","ICD9"],["180.8","180"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB1<\/th>\n      <th>id1<\/th>\n      <th>DB2<\/th>\n      <th>id2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **altId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *alt* (character, database or ontology of the alternative identifier), *altDB* (character, alternative identifier).
 
-<!--html_preserve--><div id="htmlwidget-6e000ff98095d883b128" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-6e000ff98095d883b128">{"x":{"filter":"none","data":[["1","2"],["0000003","0000005"],["0004715","0001453"],["HP","HP"],["HP","HP"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>id<\/th>\n      <th>alt<\/th>\n      <th>altDB<\/th>\n      <th>DB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-4c00a053a75bcbd6bebc" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4c00a053a75bcbd6bebc">{"x":{"filter":"none","data":[["1","2"],["0000003","0000005"],["0004715","0001453"],["HP","HP"],["HP","HP"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>id<\/th>\n      <th>alt<\/th>\n      <th>altDB<\/th>\n      <th>DB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 **pheno2dis**
 
 Dataframe with columns *phenoDB* (character, database or ontology of the phenotype), *phenoID* (character, phenotype identifier without the database prefex), *disDB* (character, database or ontology of the disease identifier), *disID* (character, disease identifier).
 
-<!--html_preserve--><div id="htmlwidget-7599755f71292b4cb78c" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-7599755f71292b4cb78c">{"x":{"filter":"none","data":[[],[],[],[],[]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>phenoDB<\/th>\n      <th>phenoID<\/th>\n      <th>disDB<\/th>\n      <th>disID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-dca9a9e74651e67cfcb9" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-dca9a9e74651e67cfcb9">{"x":{"filter":"none","data":[["1","2"],["HP","HP"],["0000252","0001249"],["DECIPHER","DECIPHER"],["1","1"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>phenoDB<\/th>\n      <th>phenoID<\/th>\n      <th>disDB<\/th>\n      <th>disID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 ## Database convention
 
 There are often different abbreviations available for different ontology database. Here, we adopt a naming convention to harmonize the different inputs.
 
-<!--html_preserve--><div id="htmlwidget-b2ff93e0aa9e7c8c714f" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-b2ff93e0aa9e7c8c714f">{"x":{"filter":"none","data":[["MeSH","MONDO","EFO","OMIMPS","OMIM","Orphanet","SNOMEDCT","SCTID","DOID","NCIt","UMLS","ICD9","ICD10","GARD","MedGen","Human Phenotype Ontology"],["Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease",null,"Trait"],["MeSH","MONDO","EFO","OMIMPS","OMIM","ORPHA","SNOMEDCT","SNOMEDCT","DOID","NCIt","MedGen","ICD9","ICD10","GARD","MedGen","HP"],["D001368","0000001","0000408","602483","613339 ","377788","702443003","702443003","1","C84570","C0003803","255.4","Q04.3","0007446","C0003803","0001272"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Database<\/th>\n      <th>Type<\/th>\n      <th>DB<\/th>\n      <th>ID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-16f34c02f4d70c721c7d" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-16f34c02f4d70c721c7d">{"x":{"filter":"none","data":[["MeSH","MONDO","EFO","OMIMPS","OMIM","Orphanet","SNOMEDCT","SCTID","DOID","NCIt","UMLS","ICD9","ICD10","GARD","MedGen","Human Phenotype Ontology"],["Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease",null,"Trait"],["MeSH","MONDO","EFO","OMIMPS","OMIM","ORPHA","SNOMEDCT","SNOMEDCT","DOID","NCIt","MedGen","ICD9","ICD10","GARD","MedGen","HP"],["D001368","0000001","0000408","602483","613339 ","377788","702443003","702443003","1","C84570","C0003803","255.4","Q04.3","0007446","C0003803","0001272"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Database<\/th>\n      <th>Type<\/th>\n      <th>DB<\/th>\n      <th>ID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 ## Cross-reference edges
 
 There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
 
-<!--html_preserve--><div id="htmlwidget-0cb85fdf5eecbaf8ecef" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0cb85fdf5eecbaf8ecef">{"x":{"filter":"none","data":[["DOID","DOID","DOID","ORPHA","ORPHA","ORPHA","ORPHA","ORPHA","EFO","EFO","EFO","EFO","MONDO","MONDO","MONDO","MONDO","MedGen","MedGen","MedGen","ClinVar","ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","Cortellis_indication","UMLS","ICD10","Cortellis_condition"],["SNOMEDCT","GARD","MONDO","EFO","NCIt","ORPHA","SNOMEDCT","MONDO","ClinVar","EFO","GARD","MONDO","MONDO","NCIt","SNOMEDCT","MeSH","UMLS","ClinVar","NCIt","NCIt","MeSH","UMLS","SNOMEDCT","MetaBase_disease","MEDDRA","MeSH","MetaBase_disease","NCIt","ICD9","Cortellis_indication"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-d26f06316d527f1581df" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d26f06316d527f1581df">{"x":{"filter":"none","data":[["EFO","MedGen","OPRHA","ORPHA","Cortellis_condition","ORPHA","ORPHA","ORPHA","DOID","EFO","ORPHA","ICD10","Cortellis_indication","ORPHA","ClinVar","Cortellis_indication","MONDO","ORPHA","Cortellis_condition","EFO","DOID","OMIM","MedGen","UMLS","Cortellis_condition","Cortellis_indication","DOID","EFO","ORPHA","ClinVar","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","EFO","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","MONDO","ORPHA","ClinVar","MedGen","ORPHA"],["ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","DOID","EFO","GARD","GARD","GARD","ICD9","MEDDRA","MedGen","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MetaBase_disease","MetaBase_disease","MONDO","MONDO","MONDO","NCIt","NCIt","NCIt","NCIt","NCIt","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","SNOMEDCT","SNOMEDCT","SNOMEDCT","SNOMEDCT","UMLS","UMLS","UMLS"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 ## Harmonize HPO
 
@@ -260,6 +231,7 @@ for(i in obj){
   print(i)
   sapply(dbobj,
            function(x){
+             print(x)
              print(names(get(x)))
            })
   sobj <- unique(do.call(rbind,lapply(dbobj,function(x) get(x))))
@@ -270,47 +242,84 @@ for(i in obj){
 
 ```
 ## [1] "entryId"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
-## [1] "DB"    "id"    "def"   "level"
+## [1] "DO_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "EFO_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "HPO_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "ICD10_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "ICD10CM_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "MedGen_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "MedGen_OMIM_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "Mesh_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "Monarch_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
+## [1] "Orphanet_entryId"
+## [1] "DB"     "id"     "def"    "level"  "origin"
 ## [1] "crossId"
+## [1] "DO_crossId"
 ## [1] "DB1" "id1" "DB2" "id2"
+## [1] "EFO_crossId"
 ## [1] "DB1" "id1" "DB2" "id2"
+## [1] "MedGen_crossId"
 ## [1] "DB1" "id1" "DB2" "id2"
+## [1] "Monarch_crossId"
 ## [1] "DB1" "id1" "DB2" "id2"
+## [1] "Orphanet_crossId"
 ## [1] "DB1" "id1" "DB2" "id2"
 ## [1] "idNames"
+## [1] "DO_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "EFO_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "HPO_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "ICD10_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "ICD10CM_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "MedGen_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "MedGen_OMIM_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "Mesh_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "Monarch_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
+## [1] "Orphanet_idNames"
 ## [1] "DB"        "id"        "syn"       "canonical"
 ## [1] "parentId"
+## [1] "DO_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "EFO_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "HPO_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "ICD10_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "ICD10CM_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "Mesh_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "Monarch_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
+## [1] "Orphanet_parentId"
 ## [1] "DB"     "id"     "pDB"    "parent" "origin"
 ## [1] "pheno2dis"
+## [1] "HPO_pheno2dis"
 ## [1] "phenoDB" "phenoID" "disDB"   "disID"  
 ## [1] "altId"
+## [1] "DO_altId"
 ## [1] "DB"    "id"    "altDB" "alt"  
+## [1] "DO_altId~"
 ## [1] "DB"    "id"    "altDB" "alt"  
+## [1] "HPO_altId"
 ## [1] "id"    "alt"   "altDB" "DB"
 ```
 
@@ -331,7 +340,12 @@ for(i in obj){
 ## create dbid
 DODO_entryId <- DODO_entryId %>%
   distinct() %>%
-  mutate(dbid = str_c(DB, id, sep = ":"))
+  mutate(dbid = str_c(DB, id, sep = ":"),
+         origin = case_when(origin == "Monarch" ~ "MONDO",
+                            origin == "Orphanet" ~ "ORPHA",
+                            TRUE ~ origin)) %>%
+  mutate(origin = case_when(is.na(origin) ~ DB,
+                            TRUE ~ origin))
 
 DODO_pheno2dis <- DODO_pheno2dis %>%
   mutate(ddbid = str_c(disDB, disID, sep = ":"),
@@ -377,7 +391,7 @@ The parsed dataframes are appended to their respective DODO counterparts.
 
 ```r
 ## Add to DODO
-DODO_entryId <- rbind(DODO_entryId, cv_entryId)
+DODO_entryId <- rbind(DODO_entryId, cv_entryId) 
 DODO_idNames <- rbind(DODO_idNames, cv_idNames)
 DODO_crossId <- rbind(DODO_crossId, cv_crossId)
 
@@ -449,7 +463,7 @@ dim(DODO_crossId)
 ```
 
 ```
-## [1] 333634      6
+## [1] 331646      6
 ```
 
 ## Modify database name
@@ -464,8 +478,9 @@ Some resources use either "MedGen" or "UMLS" as database name for NCI Metathesau
 ## Add UMLS entries as MedGen entries (double entry)
 DODO_entryId <- filter(DODO_entryId,DB == "UMLS") %>% 
   mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
+         origin =  str_replace_all(origin, "UMLS","MedGen"),
          dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
-  bind_rows(DODO_entryId)
+  bind_rows(DODO_entryId) 
 tmp <- DODO_entryId %>%
   filter(grepl("UMLS", dbid)) %>%
   mutate(DB1 = DB,
@@ -610,7 +625,7 @@ print(dodoVersion)
 ```
 
 ```
-## [1] "2020.03.18"
+## [1] "2020.04.02"
 ```
 
 ```r
@@ -638,21 +653,18 @@ concept <- "Concept"
 
 ```r
 toImport <- DODO_entryId %>%
-  left_join(
-    DODO_idNames %>% 
-      filter(as.logical(canonical)) %>% 
-      select(-canonical, -dbid) %>% 
-      distinct(DB, id, .keep_all = TRUE),
-    by=c("DB", "id")
+  select(
+    database = DB,
+    shortID = id,
+    definition= def,
+    label = syn,
+    name = dbid,
+    level,
+    origin
   ) %>%
-  rename(
-    "database"="DB",
-    "shortID"="id",
-    "definition"="def",
-    "label"="syn",
-    "name" = "dbid"
-  ) %>%
-  mutate(level = as.integer(level))
+  arrange(desc(level)) %>%
+  filter(database == origin) %>% ## First only DB = origin, to add original DBs, later add additional databases
+  distinct(name, .keep_all = T)
 # toImport$origin <- db
 concept <- "Concept"
 stopifnot(nrow(distinct(toImport, name))==nrow(toImport))
@@ -708,8 +720,8 @@ datatable(xrefDB,
           rownames = FALSE)
 ```
 
-<!--html_preserve--><div id="htmlwidget-0b7d19df2c7d942f5c80" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-0b7d19df2c7d942f5c80">{"x":{"filter":"none","data":[["DOID","DOID","DOID","ORPHA","ORPHA","ORPHA","ORPHA","ORPHA","EFO","EFO","EFO","EFO","MONDO","MONDO","MONDO","MONDO","MedGen","MedGen","MedGen","ClinVar","ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","Cortellis_indication","UMLS","ICD10","Cortellis_condition"],["SNOMEDCT","GARD","MONDO","EFO","NCIt","ORPHA","SNOMEDCT","MONDO","ClinVar","EFO","GARD","MONDO","MONDO","NCIt","SNOMEDCT","MeSH","UMLS","ClinVar","NCIt","NCIt","MeSH","UMLS","SNOMEDCT","MetaBase_disease","MEDDRA","MeSH","MetaBase_disease","NCIt","ICD9","Cortellis_indication"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
+<!--html_preserve--><div id="htmlwidget-218941cfc35d881c3463" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-218941cfc35d881c3463">{"x":{"filter":"none","data":[["EFO","MedGen","OPRHA","ORPHA","Cortellis_condition","ORPHA","ORPHA","ORPHA","DOID","EFO","ORPHA","ICD10","Cortellis_indication","ORPHA","ClinVar","Cortellis_indication","MONDO","ORPHA","Cortellis_condition","EFO","DOID","OMIM","MedGen","UMLS","Cortellis_condition","Cortellis_indication","DOID","EFO","ORPHA","ClinVar","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","EFO","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","MONDO","ORPHA","ClinVar","MedGen","ORPHA"],["ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","DOID","EFO","GARD","GARD","GARD","ICD9","MEDDRA","MedGen","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MetaBase_disease","MetaBase_disease","MONDO","MONDO","MONDO","NCIt","NCIt","NCIt","NCIt","NCIt","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","SNOMEDCT","SNOMEDCT","SNOMEDCT","SNOMEDCT","UMLS","UMLS","UMLS"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
 
 ```r
 toImport <- DODO_crossId %>%
@@ -739,22 +751,32 @@ toImport <- DODO_pheno2dis %>%
 DODO:::load_has_phenotypes(toImport=toImport)
 ```
 
-## Additional databases
+## Connect nodes to databases
 
 Some identifiers are recorded across multiple database, e.g. EFO incorporates identifiers from Monarch, Orphanet, etc. These receive additional *is_in* edge.
 
 
 ```r
-toImport <- bind_rows(DODO_parentId %>% select(DB,
-                                               id, 
-                                               origin),
-                      DODO_parentId %>% select(DB = pDB,
-                                               id = parent,
-                                               origin)) %>%
-  distinct() %>%
-  select(database = DB,
-         shortID = id,
-         origin)
+# toImport <- bind_rows(DODO_parentId %>% select(DB,
+#                                                id, 
+#                                                origin),
+#                       DODO_parentId %>% select(DB = pDB,
+#                                                id = parent,
+#                                                origin)) %>%
+#   distinct() %>%
+#   select(database = DB,
+#          shortID = id,
+#          origin)
+toImport <- DODO_entryId %>%
+  select(
+    database = DB,
+    shortID = id,
+    name = dbid,
+    level,
+    origin
+  ) %>%
+  arrange(desc(level)) %>%
+  distinct(name, origin, .keep_all = T)
 DODO:::load_concept_names(toImport = toImport, concept = concept)
 ```
 

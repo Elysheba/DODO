@@ -116,8 +116,8 @@ gh <- c("https://github.com/Elysheba/Monarch",
         "https://github.com/Elysheba/Orphanet",
         "https://github.com/Elysheba/MedGen",
         "https://github.com/Elysheba/MeSH",
-        "https://github.com/Elysheba/HPO",
-        "https://github.com/Elysheba/ClinVar",
+        "https://github.com/patzaw/HPO",
+        "https://github.com/patzaw/ClinVar",
         "https://github.com/Elysheba/DO",
         "https://github.com/Elysheba/ICD11")
 toShow <- tibble(`Disease ontology` = do,
@@ -319,7 +319,7 @@ The concept of *ambiguity* is introduced to identify nodes that have many cross-
 
 ```{r tableAmbiguity, echo = FALSE,  message=FALSE, include=FALSE}
 # Appendix \@ref(app:tableAmbiguity) shows the summary of total ambiguities of cross-reference edges between ontologies. 
-toShow <- readr::read_csv(file = here("DODO_publication/fig/ambiguity_between_ontologies.csv"))
+toShow <- readr::read_csv(file = here("inst/documentation/DODO-F1000-publication/fig/ambiguity_between_ontologies.csv"))
 toShow %>%
   mutate(Mean = round(Mean, digits = 2)) %>%
   kable(caption = "To define a subtype for a cross-reference edge, the total ambiguity on cross-reference edges between ontologies is assessed. The total ambiguity is calculated by aggregating the forward and backward ambiguity to quantify the symmetry of the relationships between them. The table provides a summary of the total ambiguity on all cross-references edges between two ontologies (DB1 and DB2).",
@@ -334,25 +334,28 @@ oriAmb <- reshape2::acast(toShow,
                           formula = DB1 ~ DB2,
                           value.var = "Max.")  %>%
   log10()
-jpeg(file=here("DODO_publication/fig/heatmap_ambiguity.jpg"))
+my_palette <- colorRampPalette(c("yellow", "darkgreen"))(n = 20)
+
+jpeg(file=here("inst/documentation/DODO-F1000-publication/fig/heatmap_ambiguity.jpg"))
 gplots::heatmap.2(x = oriAmb,
                   revC = T,
                   Rowv = TRUE,
                   Colv = TRUE,
                   trace = "none",
-                  col = gplots::bluered(100),
+                  symbreaks = FALSE,
+                  col = my_palette,
                   density.info = "none")
 dev.off()
 ```
 
 ```{r heatmapAmbiguity, echo = FALSE, out.width="50%", include = TRUE, fig.cap="The heatmap shows the maximum value of total ambiguity between ontologies using a $log_{10}$ transformation. While many ontologies are using concepts of similar level as identified by low total ambiguity, a few can be identified that are more ambiguous in their mappings. The 'optimal' ambiguity for a *is\\_xref* edges is determinged by comparing the number of conversions when incrementally increasing the cutoff of total ambiguity to defining a cross-reference edge between ontologie of either *is\\_xref* or *is\\_related* and knowledge of the way disease concepts are defined within ontologies."}
-knitr::include_graphics(here("DODO_publication/fig/heatmap_ambiguity.jpg"))
+knitr::include_graphics(here("inst/documentation/DODO-F1000-publication/fig/heatmap_ambiguity.jpg"))
 ```
 
 Figure \@ref(fig:boxplotAmbiguity) shows the number of conversions per identifier for MonDO when incrementally increasing the cutoff for the (total) ambiguity to define ontologies connected through *is_xref* and *is_related* edges. A very low cutoff would not return all cross-reference identifiers while a too high cutoff impact especially a few identifiers strongly with the return of many, lesser related, cross-reference identifiers. 
 
 ```{r boxplotAmbiguity, out.width="50%", include = TRUE, echo = FALSE, fig.cap="Number of conversions comparing incremental cutoffs in the (total) ambiguity to define *is\\_xref* and *is\\_related* cross-reference edges on an ontology scale (example of MonDO ontology)."}
-knitr::include_graphics(here("DODO_publication/fig/boxplot_ambiguity_conversion_mondo.jpg"))
+knitr::include_graphics(here("inst/documentation/DODO-F1000-publication/fig/boxplot_ambiguity_conversion_mondo.jpg"))
 ```
 
 By comparing the results and relationship between the different ontologies with a (total) ambiguity equal or lower than four are considered as *is_xref*. An exception is used for ICD10 and ICD9 which are never connected through an *is_xref* edge except between themselves. An additional exception is put in place for OMIM and Orphanet, which often define very narrow subtypes of diseases and therefore will be still encoded as an *is_xref* edge.
@@ -364,7 +367,7 @@ By comparing the results and relationship between the different ontologies with 
 
 The table below shows the number of nodes available through each disease ontology, in total there are `r sum(list_database()$count)` nodes (Figure \@ref{fig:listDB)) in this DODO instance.
 
-```{r listDB, out.width="75%", fig.cap="Overview of the number of nodes present for each disease ontology in DODO.", include = TRUE, echo = FALSE}
+```{r listDB, out.width="50%", out.height= "50%", fig.cap="Overview of the number of nodes present for each disease ontology in DODO.", include = TRUE, echo = FALSE}
 list_database() %>%
   arrange(desc(count)) %>%
   mutate(database=factor(database, levels=database)) %>%   
@@ -390,41 +393,36 @@ A first and default conversion consists of two steps, a first using the transiti
 ```{r, include = FALSE, echo = FALSE, eval=rerun}
 disNet <- build_disNet(id = "MONDO:0005027")
 disNet <- extend_disNet(disNet = disNet,
+                        step = 1)
+edisNet <- extend_disNet(disNet = disNet,
                         transitive.ambiguity = 1,
                         intransitive.ambiguity = NULL,
                         relations = "xref")
-col <- DODO:::color_database(disNet = disNet)
+# col <- DODO:::color_database(disNet = disNet)
 
 ## Edges
-edges1 <- disNet$xref %>%
-    dplyr::select(to,
-                  from,
-                  FA = forwardAmbiguity,
-                  BA = backwardAmbiguity) %>%
-    dplyr::mutate(color = dplyr::case_when(BA > 1 ~ "#fdbb84",
-                                           TRUE ~ "#7fcdbb"),
-                  title = paste("FA = ", FA, ", BA = ", BA),
-                  arrows = "to")
-edges2 <- disNet$xref %>%
-  dplyr::select(to = from,
-                from = to,
-                BA = forwardAmbiguity,
-                FA = backwardAmbiguity) %>%
-  dplyr::mutate(color = dplyr::case_when(BA > 1 ~ "#fdbb84",
-                                         TRUE ~ "#7fcdbb"),
-                title = paste("FA = ", FA, ", BA = ", BA),
-                arrows = "to")
-edges <- dplyr::bind_rows(edges1,
-                          edges2) %>%
-  dplyr::distinct()
+edges <- edisNet$xref %>%
+  dplyr::select(from, 
+                to,
+                type,
+                FA = forwardAmbiguity,
+                BA = backwardAmbiguity) %>%
+  dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
+                                         TRUE ~ "#8da0cb"),
+                title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
+                arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                                   BA == 1 ~ "from",
+                                   FA == 1 ~ "to",
+                                   TRUE ~ "FALSE"))
 
 ## Nodes
-nodes <- disNet$nodes %>%
+nodes <- edisNet$nodes %>%
   dplyr::select(id,
                 database,
                 label) %>%
-  dplyr::mutate(color = col[database],
-                shape = case_when(id %in% disNet$seed ~ "triangle",
+  dplyr::mutate(color = case_when(id %in% disNet$nodes$id ~ "#99d594",
+                             TRUE ~ "#fc8d59"),
+                shape = case_when(id %in% edisNet$seed ~ "triangle",
                                   TRUE ~ "dot"),
                 lbl = label,
                 label = id,
@@ -438,8 +436,8 @@ visNetwork::visNetwork(nodes = nodes,
 ```
 
 
-```{r extension, include = TRUE, echo = FALSE, fig.cap="A disNet constructed and subsequently extended using only cross-reference relations using the MonDO identifier for 'Epilepsy' ('MONDO:0005027') as an example. This extension is performed in two phases. First, the transitive mapping uses the *is\\_xref* edges wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (blue edges). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending. This final intransitive mapping step will return all nodes related through either an *is\\_related* (brown edges) or *is\\_xref* edge with no filtering as all."}
-include_graphics(here("DODO_publication/fig/disNetExtension.jpg"))
+```{r extension, include = TRUE, echo = FALSE, fig.cap="A disNet constructed and subsequently extended using only cross-reference relations using the MonDO identifier for 'Epilepsy' ('MONDO:0005027') as an example. This extension is performed in two phases. First, the transitive mapping uses the *is\\_xref* edges (blue edges) wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (green nodes). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending (red nodes). This final intransitive mapping step will return all nodes related through either an *is\\_related* (orange edges) or *is\\_xref* edge with no filtering as all."}
+include_graphics(here("inst/documentation/DODO-F1000-publication/fig/disNetExtension.jpg"))
 ```
 
 A second case is the return of direct cross-references only without the use of transitivty to return indirect relations (parameter "step = 1"). For the same identifier "MONDO:0005027", Table \@ref{tab:step1} shows only the direct cross-references. 
@@ -479,20 +477,25 @@ Finally, a specific conversion procedure is recommended for the ontologies that 
 ```{r, include = TRUE, echo = FALSE, eval = rerun}
 conversion <- convert_concept(from = "ICD10:G40.9",
                           from.concept = "Disease",
-                          to.concept = "Disease",
-                          intransitive_ambiguity = 1)
+                          to.concept = "Disease")
 related <- get_related(from = "ICD10:G40.9",
                         from.concept = "Disease",
-                        to.concept = "Disease",
-                       intransitive_ambiguity = 1)
-disNet <- build_disNet(id = c(related$from, related$to), ambiguity = 1)
+                        to.concept = "Disease")
+disNet <- build_disNet(id = c(related$from, related$to))
 ## Edges
 edges <- disNet$xref %>%
-    dplyr::select(to,
-                  from,
-                  type) %>%
-  mutate(color = case_when(type == "is_related" ~ "#de77ae",
-                           TRUE ~ "#4393c3"))
+  dplyr::select(from, 
+                to,
+                type,
+                FA = forwardAmbiguity,
+                BA = backwardAmbiguity) %>%
+  dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
+                                         TRUE ~ "#8da0cb"),
+                title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
+                arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                                   BA == 1 ~ "from",
+                                   FA == 1 ~ "to",
+                                   TRUE ~ "FALSE"))
 
 ## Nodes
 nodes <- tibble(id = unique(c(related$from, related$to))) %>%
@@ -511,28 +514,18 @@ visNetwork::visNetwork(nodes = nodes,
   visNetwork::visIgraphLayout(smooth = TRUE)
 ```
 
-```{r getRelated, include = TRUE, out.width="100%", echo = FALSE, fig.cap="Comparison of the default conversion results with the output of the specific conversion for ontologies with limited connections through is\\_xref edges. The example is the ICD10 identifier G40.9 (Epilepsy). The nodes in green signify those return through both methods, while the nodes in orange are only returned using the more specific approach for this type of ontology. In addition, the edges in blue represent is\\_xref edges, while those in pink present is\\_related edges between nodes (with no specification for ambiguity for simplicity)."}
-include_graphics(here("DODO_publication/fig/get_related_ambiguity_NULL_G409.jpg"))
+```{r getRelated, include = TRUE, out.width="100%", echo = FALSE, fig.cap="Comparison of the default conversion results with the output of the specific conversion for ontologies with limited connections through is\\_xref edges (blue edges). The example is the ICD10 identifier G40.9 (Epilepsy). The nodes in green signify those return through both methods, while the nodes in orange are only returned using the more specific approach for this type of ontology. In addition, the edges in blue represent is\\_xref edges, while those in pink present is\\_related edges between nodes (with no specification for ambiguity for simplicity)."}
+include_graphics(here("inst/documentation/DODO-F1000-publication/fig/get_related_ambiguity_NULL_G409.jpg"))
 
 ```
 
 Conversion can also be used to convert between concept, i.e. from disease identifier to phenotype identifiers or vice versa. This conversion is handled in two distinct phases. First, depending on the options listed above, identifiers are converted within the same concept. When this is not required, using parameter "step = NA" the conversion within the same concept can be avoided. The second phase converts between concepts by returning phenotype or disease nodes directly related to the original identifiers (including the converted identifiers obtain in the first phase).
 
-<!-- In some cross-reference edges more trust is put than in other as a consequence of the different manner (disease) concepts are defined across ontologies. While some ontologies use a narrower definition than other, cross-reference edges between these may result in the return of distantly related concepts. Therefore, based on the ontology as different type of cross-reference edge is implemented to capture these differences. The *is_xref* edge is used to signify relations that defined similarly related concept, while the *is_related* edge is used between nodes where the relationship is less equivalent. All nodes originating from ICD10, ICD9, MedGen/UMLS, and Cortellis resources (when available) are defined as *is_related* edges. -->
-
-<!-- Due to the definitions of diseases within the different ontologies, it is not always possible to establish a clear one-on-one relationship. Some ontologies (such as ICD10) defined disease concepts much broader than other (e.g. MONDO). Therefore, traversing between cross-reference edges between such nodes should be handled with care. The issue is exemplified below where one disease identifier is cross-referenced to many only distantly relating IDs from another database. Traversing such cross-reference edges can result in exponential increase of the number of nodes returned. Therefore the concept of *ambiguity* was introduced and added as a facet proporty to each *is_xref* edge. It captures the number of cross-reference edges starting from one node and extending to nodes of the same database. As edges are directional in Dgraph, both a forward (FA) and backward (BA) ambiguity are calculating, allowing the user to filter easily no matter the direction the node is traversed.  -->
-
-<!-- This ambiguity captures whether a crossreference edge between two disease nodes is exact or ambiguous, meaning that a particular node can have multiple cross-references to a database or only one (as shown below). As edges can be traversed in both direction, ambiguity is embedded as both forward and backward ambiguity allowing to filter for both forward and backward ambiguity no matter the direction that is used. -->
-
-<!-- Firstly, the concept of ambiguity is introduced between cross-references edges. Due to the differences in disease concept definition between ontologies, it is advised to not filter on forward ambiguity as this can be considered as moving from a more broadly defined disease concept to several narrower disease concepts in another ontology (as shown below). However, limiting the on backward ambiguity to one is strongly advised as a larger backward ambiguity would correspond to moving from a more narrow concepts to a larger one. This can result in 'hopping' through more broader defined nodes, far more distantly related to the initial concept. The returned cross-reference edges cannot be considered as exact or close crossreferences of a node (shown below). -->
-
-<!-- A second adaptation is the possibility to define a blacklist and whitelist of database that should be avoided or required (respectively) when passing through cross-references edges. A blacklist can be considered as a list of databases who's crossreferences edges are trusted less than those of other databases. The nodes of these blacklisted databases are returned; however, they are not traversed when returning cross-references. By providing NA and NULL values to either blacklist or whitelist, a specific filtering can be obtained, more details in the table below: -->
-
 
 <!-- ##### -->
 ## Building a disNet
 
-A core concept in DODO is the *disNet*, a S3 object containing all information on a disease and its relationship with other nodes in the object (see above). This object can be constructed using helper functions starting from disease identifiers (*build_disnet*) and specifying either identifiers or terms to build a disNet around. 
+Another core concept in DODO is the S3 *disNet* object which contains all information on diseases/phenotypes and their internal relationships. This object can be constructed using helper functions starting from disease identifiers or search terms (*build_disnet*).
 
 ```{r, include = TRUE, echo = TRUE}
 disNet <- build_disNet(id = c("MONDO:0005144"))
@@ -544,40 +537,57 @@ disNet <- build_disNet(term = "amyotrophic lateral sclerosis",
 <!-- ##### -->
 ## Extending a disNet
 
-When building a *disNet* by either identifier or search term, the resulting *disNet* will likely not contain the complete information on that particular disease landscape and might be missing some cross-reference relationships. Alternatively, it might be necessary to extend the returned nodes to include their child terms, annotated phenotypes/disease, or alternative identifieres when available. To this end, the *extend_disnet* function in DODO allows extending a disNet object and returning additional cross-references edges, parent/child information, alternative identifierse, and/or phenotype annotation.
+When building a *disNet* by either identifier(s) or search term(s), the resulting *disNet* will likely not contain the complete information on that particular disease landscape. The *extend_disNet* function enriches the disNet to include addition cross-reference identifiers, child/parent terms, annotated phenotypes/disease, or alternative identifieres when available. In concordance with the conversion procedure, extension follows the same two-step approach. Please refer to paragraph \@ref(Converting concepts) for more details and the different use cases. 
 
-DODO is build as a meta-database incorporating several disease ontologies and their listed relationships. Not all relationships might be required or needed and exploring (*explore_disNet*) or plotting a *disNet* visualizes the sometimes more fuzzy concept of a disease as different ontologies employ hetergeneous definitions and cross-reference axes are not always exact. This may help to understand how disease are identified across ontologies and visualize the relationship between different resources.
-
-Extension follows the same two-step approach as converting between ontologies. Please refer to paragraph \@ref(Converting concepts) for more details and the different use cases. 
-
-<!-- ##### -->
-## Reviewing
-
-Often after extending it is necessary to review the returned *disNet* to assess whether all nodes are of interest. This workflow decribed below aims to establish a process of reviewing a *disNet* following a top/down approach. Clustering the *disNet* nodes based on cross-reference edges, allows the user to focus on the disease he/she wishes to retain and takes care of these cross-reference information in the back. 
-
-For a smaller-sized *disNet* the clustering step and exploring these clusters might be sufficient to review a given object.
-
-```{r, include = TRUE, echo = TRUE}
-# ## Cluster disNet on "xref"
-# clDisNet <- cluster_disNet(disNet = disNet, 
-#                           clusterOn = "xref")
-# 
-# ## Explore clusters
-# # explore_disNet(disNet = clDisNet)
-# disNet <- c(list = clDisNet[c(1:2, 5, 9)])
-```
-
-When establishing a *disNet* based on search terms, some returned nodes have no parent/child edges or cross-reference edges. These are considered as *singletons* and are treated separately as these can still be of interest when aiming to link to different external resources.
-
-## Phenotypes
-
-Finally, it is also possible to extend to phenotype information using either *convert_concept* and specify the concept to convert to. Additionally, the *extend_disNet* can be used to extend identifiers to either "Phenotype" or "Disease" relations. While this extension can be performede simultaneously with extension using "xref", "parent/child", or "alt" parameters, it is not possible to extend through both "disease" and "phenotype" at the same time. Please note that extending through either phenotype or disease in combination with other options for extension (e.g. xref, parent, child, or alt) will not use transitivity for phenotype or disease extension. This is only performed as a final step after two-step extension (similar to conversion, please refer to paragraph \@ref{Converting concepts} for more details). 
+Of specific note is the extension to (or from) phenotype information. Within one extension all different parameters (xref, child, parent, alt, and disease/phenotype) can be supplied with the exception that it is not possible to extend to both disease and phenotype simultaneously. Extending to or from phenotypes does not employ the transitivity mechanism but is performed as a final step (similar to conversion, please refer to paragraph \@ref{Converting concepts} for more details). 
 
 ```{r, include = TRUE, echo = TRUE}
 disNet <- build_disNet(id = c("HP:0003394", "HP:0002180", "HP:0002878"))
 disNet <- extend_disNet(disNet = disNet, relations = "disease")
-nrow(disNet)
+disNet
 ```
+
+<!-- ##### -->
+## Reviewing
+
+Often after extending it is necessary to review the returned *disNet* to assess whether all nodes are of interest. This process can be simplified by considering clusters of cross-references (nodes dealing with similar concepts) using the *cluster_disNet* functionality. Instead of reviewing each nodes, the different clusters can be reviewed to identify those of interest while using the relationships between nodes to address equivalent nodes simultaneously (Table \@ref(tab:cldisNet)). 
+
+```{r, include = FALSE, echo = TRUE}
+disNet <- build_disNet(term = "amyotrophic lateral sclerosis", 
+                       fields = c("label", "synonym"))
+clDisNet <- cluster_disNet(disNet = disNet,
+                          clusterOn = "xref")
+```
+
+```{r cldisNet, echo = FALSE, include = TRUE}
+## Explore clusters
+counter <- 1
+toShow <- do.call(rbind,
+                  lapply(clDisNet,
+                         function(x){
+                           toRet <- x$nodes %>%
+                             dplyr::arrange(level, label) %>%
+                             dplyr::mutate(clusterSize = length(id)) %>%
+                             dplyr::slice(1) %>%
+                             dplyr::mutate(values = label,
+                                           cluster = counter) %>%
+                             dplyr::select(cluster, clusterSize, id, level, values) 
+                           counter <<- counter + 1
+                           return(toRet)
+                         })
+)
+kable(toShow,
+      row.names = FALSE, 
+      caption = "Annotation of the different cross-reference clusters of nodes identified for a disNet around 'amyotrophic lateral sclerosis'. The annotation is obtained from node within the cluster with the highest order in its disease ontology ('level') and avialability of label information.",
+        format = "latex", 
+        booktabs = T)   %>%
+  kable_styling(latex_options = c("striped", "scale_down"))
+```
+
+<!-- ###### -->
+## Visualizations
+
+DODO is build as a meta-database incorporating several disease ontologies and their listed relationships. As disease concepts and definitions are not auto-generated but rather a human effort, concepts might not always be clearly defined or related to each other in a straightforward manner. The different ontologies employ hetergeneous definitions and cross-reference axes are not always exact. Using the *explore_disNet* and plotting function may increase understanding in how disease are defined across the different ontologies and visualize the relationship between different resources.
 
 <!-- ##### -->
 ## Connecting to external resources
@@ -588,8 +598,8 @@ Below this use with DODO will be exemplified by connecting to two different exte
 
 ```{r, include = TRUE, echo = FALSE}
 if(!rerun){
-  load(here("DODO_publication/data/als_disNet_to_externalResources.rda"))
-  load(here("DODO_publication/data/als_direct_chembl_clinvar_results.rda"))
+  load(here("inst/documentation/DODO-F1000-publication/data/als_disNet_to_externalResources.rda"))
+  load(here("inst/documentation/DODO-F1000-publication/data/als_direct_chembl_clinvar_results.rda"))
 }else{
   ## Obtain all drugs for psoriasis using CHEMBL version 25
   chembl <- TKCat::chMDB(tkcon, "CHEMBL")
@@ -614,11 +624,18 @@ if(!rerun){
   ## Compare disNet and extension
   ## Edges
   edges <- edisNet$xref %>%
-      dplyr::select(to,
-                    from,
-                    type) %>%
-    mutate(color = case_when(type == "is_related" ~ "#de77ae",
-                             TRUE ~ "#4393c3"))
+    dplyr::select(from, 
+                  to,
+                  type,
+                  FA = forwardAmbiguity,
+                  BA = backwardAmbiguity) %>%
+    dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
+                                           TRUE ~ "#8da0cb"),
+                  title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
+                  arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                                     BA == 1 ~ "from",
+                                     FA == 1 ~ "to",
+                                     TRUE ~ "FALSE"))
   
   ## Nodes
   nodes <- tibble(id = edisNet$nodes$id,
@@ -651,9 +668,10 @@ if(!rerun){
   ## Number of identified genes carrying a disease variant
   length(unique(clinvar_disnet$entrez))
   save(disNet,
+       edisNet,
        chembl_disnet,
        clinvar_disnet,
-       file = here("DODO_publication/data/als_disNet_to_externalResources.rda"))
+       file = here("inst/documentation/DODO-F1000-publication/data/als_disNet_to_externalResources.rda"))
   
   
   ##########################@
@@ -681,14 +699,15 @@ if(!rerun){
   length(unique(clinvar_als$entrez))
   ## Genes identified through use of disNet or ClinVar directly
   table(unique(clinvar_als$entrez) %in% unique(clinvar_disnet$entrez))
-  save(chembl_als, clinvar_als, file = here("DODO_publication/data/als_direct_chembl_clinvar_results.rda"))
+  save(chembl_als, clinvar_als, 
+       file = here("inst/documentation/DODO-F1000-publication/data/als_direct_chembl_clinvar_results.rda"))
 }
 ```
 
 Figure \@ref(fig:disNetalsExtension) shows the retrieval of additional nodes not identified when querying directly for "amyotrophic lateral sclerosis" through either labels or synonyms. Extending the `nrow(disNet)` original nodes matching the query to return equivalent cross-reference relations as well as child terms, resulted in `nrow(edisNet) - nrow(disNet)` additional disease identifiers related to "amyotrophic lateral sclerosis" to be returned. 
 
 ```{r disNetalsExtension, out.width="100%", include = TRUE, echo = FALSE, fig.cap="The disNet build on the term 'amyotrophic lateral sclerosisr querying both labels and synonyms provided in DODO (green nodes). This disNet is subsequenctly extended to return all cross-reference identifiers and child terms using the extend\\_disNet function (parameters 'relations = c('xref', 'child')' and to return only equivalent identifiers 'intransitive\\_ambiguity = 1' is used (orange nodes)."}
-include_graphics(here("DODO_publication/fig/disNet_als_extension.png"))
+include_graphics(here("inst/documentation/DODO-F1000-publication/fig/disNet_als_extension.png"))
 ```
 
 **CHEMBL**
@@ -709,44 +728,37 @@ This disease is a child term identified through extending the disNet (Figure \@r
 
 ```{r, include = TRUE, echo = FALSE, eval = rerun}
 toShow <- build_disNet(id = unique(chembl_disnet$dbid))
-## Edges
 col <- DODO:::color_database(disNet = toShow)
-
-edges1 <- toShow$xref %>%
-    dplyr::select(to,
-                  from, 
-                  type) %>%
-    dplyr::mutate(color = dplyr::case_when(type == "is_related_nba" ~ "#fdbb84",
-                                           TRUE ~ "#7fcdbb"),
-                  arrows = "to")
-edges2 <- toShow$xref %>%
-  dplyr::select(to = from,
-                from = to,
-                type) %>%
-  dplyr::mutate(color = dplyr::case_when(type == "is_related_nba"  ~ "#fdbb84",
-                                         TRUE ~ "#7fcdbb"),
-                arrows = "to")
-edges3 <- toShow$children %>%
-  select(from = child,
-         to = parent) %>%
-  mutate(color = "#31a354",
-         arrows = "to",
-         type = "is_a")
-edges <- bind_rows(edges1,
-                   edges2,
-                   edges3) %>%
-  dplyr::distinct()
+## Edges
+edges <- toShow$xref %>%
+  dplyr::select(from, 
+                to,
+                type,
+                FA = forwardAmbiguity,
+                BA = backwardAmbiguity) %>%
+  dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
+                                         TRUE ~ "#8da0cb"),
+                title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
+                arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                                   BA == 1 ~ "from",
+                                   FA == 1 ~ "to",
+                                   TRUE ~ "FALSE"))
+edges <- toShow$children %>%
+  dplyr::select(from = parent, 
+                to = child,
+                origin) %>%
+  dplyr::mutate(title = paste("is_a, origin = ", origin),
+                arrows = "to",
+                color = "#66c2a5") %>%
+  dplyr::bind_rows(edges)
 
 ## Nodes
-nodes <- toShow$nodes %>%
-  dplyr::select(id,
-                database,
-                label) %>%
-  dplyr::mutate(color = col[database],
-                lbl = label,
-                label = id,
-                title = paste(id, lbl, sep = " | "))
-
+nodes <- tibble(id = toShow$nodes$id,
+                database = toShow$nodes$database) %>%
+  distinct() %>%
+  mutate(color = col[database],
+         shape =  "dot",
+         label = id)
 
 ## Visnetwork
 visNetwork::visNetwork(nodes = nodes,
@@ -754,86 +766,58 @@ visNetwork::visNetwork(nodes = nodes,
   visNetwork::visIgraphLayout(smooth = TRUE)
 ```
 
-```{r disnetALSchembl, include = TRUE, echo = FALSE, out.width="50%", fig.cap="The visualized disNet shows the relations between the different diseases with compounds available in CHEMBL resource. This term 'ORPHA:98756' was identified as a child term of 'EFO:0001356' through extension. The disease could not be identified through querying CHEMBL directly as it's labelled 'Spinocerebellar ataxia type 2'. Using disease relationships present in DODO this node was identified additionally."}
-include_graphics(here("DODO_publication/fig/disNet_als_chembl.png"))
+```{r disnetALSchembl, include = TRUE, echo = FALSE, out.width="50%", fig.cap="The visualized disNet shows the relations between the different diseases with compounds available in CHEMBL resource. This term 'ORPHA:98756' was identified as a child term of 'EFO:0001356' through extension (green edges). Cross-reference edge is\\_xref are indicated in blue.  The disease could not be identified through querying CHEMBL directly as it's labelled 'Spinocerebellar ataxia type 2'. Using disease relationships present in DODO this node was identified additionally."}
+include_graphics(here("inst/documentation/DODO-F1000-publication/fig/disNet_als_chembl.png"))
 ```
 
 **ClinVar**
 
-All entrez gene identifiers identified by querying the ClinVar resource directly for "amyotrophic lateral sclerosis" were also returned when using the disNet disease network. All entrez gene identifiers identified by querying the ClinVar resource directly for "amyotrophic lateral sclerosis" were also returned when using the disNet disease network. 
+All entrez gene identifiers identified by querying the ClinVar resource directly for "amyotrophic lateral sclerosis" were also returned when using the disNet disease network. Contrary, using the disNet build around ALS returns `r sum(!unique(clinvar_disnet$entrez) %in% unique(clinvar_als$entrez))` additional Entrez gene identifiers reported for ClinVar identifier `r clinvar_disnet %>% filter(!entrez %in% clinvar_als$entrez) %>% distinct(dbid) %>% pull(dbid)` with label: `r edisNet$nodes %>% dplyr::filter(id == "ClinVar:18286") %>% pull(label)`.  This identifier was identified through extending through cross-references edges through transitivity mapping related to "ORPHA:52430" which carries "Pagetoid amyotrophic lateral sclerosis" as a synonym (Figure \@ref(fig:disnetALSclinvar)). 
 
-There are `r sum(!unique(clinvar_als$entrez) %in% unique(clinvar_disnet$entrez))` Entrez gene identifiers that were identified using ClinVar directly as a resource compared to using the disNet. A closer look shows that these internal ClinVar trait ids ("t.id") either have no external cross-references or have a cross-reference to a MedGen identifier signifying a "finding". DODO is constructed only including MedGen identifiers of the following types: "Disease or Syndrome","Acquired Abnormality", "Anatomical Abnormality", or "Congenital Abnormality". This explains these missing ClinVar trait ids as these are related to MedGen "Findings" (= clinical feature of many conditions) only (see link)[https://www.ncbi.nlm.nih.gov/books/NBK159970/].
+```{r, include = TRUE, echo = FALSE, eval = rerun}
+toShow <- focus_disNet(disNet = edisNet, 
+                       diseaseID = "ClinVar:18286", 
+                       relationship = c("xref"), 
+                       step = 2)
+## Edges
+edges <- toShow$xref %>%
+    dplyr::select(from, 
+                  to,
+                  type,
+                  FA = forwardAmbiguity,
+                  BA = backwardAmbiguity) %>%
+    dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
+                                           TRUE ~ "#8da0cb"),
+                  title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
+                  arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                                     BA == 1 ~ "from",
+                                     FA == 1 ~ "to",
+                                     TRUE ~ "FALSE"))
 
-
-```{r, include = TRUE, echo = FALSE}
-sel <- clinvar_als %>%
-  filter(!entrez %in% clinvar_disnet$entrez) %>%
-  select(t.id, name, entrez) %>%
-  distinct()
-# toShow <- clinvar$ClinVar_traitCref %>%
-#   inner_join(sel,
-#              by = c("t.id"))
+## Nodes
+nodes <- toShow$nodes %>%
+  dplyr::select(id,
+                database,
+                label) %>%
+  dplyr::mutate(color = col[database],
+                shape = case_when(id %in% disNet$seed ~ "triangle",
+                                  TRUE ~ "dot"),
+                lbl = label,
+                label = id,
+                title = paste(id, lbl, sep = " | ")) 
+## Visnetwork
+visNetwork::visNetwork(nodes = nodes,
+                       edges = edges) %>%
+  visNetwork::visIgraphLayout(smooth = TRUE)
 ```
 
-The table below shows the genes carrying a disease variant only identified through ClinVar directly:
-
-```{r, include = TRUE, echo = FALSE}
-# datatable(toShow %>% select(t.id, disease, variant),
-#           colnames = c("ClinVar trait identifier", "Disease cross-reference", "Gene variant"),
-#           rownames = FALSE,
-#           escape = FALSE)
-```
-
-
-
-```{r, include = TRUE, echo = FALSE}
-# Similarly, there is `r sum(!unique(clinvar_disnet$entrez) %in% unique(clinvar_als$entrez))` Entrez gene identifier that were identified additionally using the disNet approach compared to using the ClinVar resource directly. 
-
-# # sel <- clinvar_disnet %>% 
-# #   filter(!entrez %in% clinvar_als$entrez) %>% 
-# #   select(dbid, entrez) %>% 
-# #   distinct() %>%
-# #   inner_join(disNet$nodes %>% select(id, label),
-# #              by = c("dbid" = "id"))
-# # toShow <- clinvar$ClinVar_traitCref %>%
-# #   mutate(dbid = paste("ClinVar", t.id, sep = ":")) %>%
-# #   inner_join(sel, 
-# #              by = c("dbid")) %>%
-# #   mutate(disease = sprintf('<a target="_blank" href = "%s">%s</a>',
-# #                            get_concept_url(id = paste(db, id, sep = ":"), 
-# #                                            exact = TRUE)$url,
-# #                            label),
-# #          gene = getBeIdDescription(ids = as.character(entrez), 
-# #                                be = "Gene", 
-# #                                source = "EntrezGene", 
-# #                                organism = "human")$symbol,
-# #          variant = sprintf('<a target="_blank" href = "https://www.ncbi.nlm.nih.gov/gene/%s">%s</a>',
-# #                            entrez,
-# #                            gene))
-# ```
-# 
-# The table below shows the gene for which the additional variant was identified and the associated disorder.
-# 
-# ```{r, include = TRUE, echo = FALSE}
-# datatable(toShow %>% select(dbid, disease, variant),
-#           colnames = c("ClinVar trait identifier", "Disease cross-reference", "Gene variant"),
-#           rownames = FALSE,
-#           escape = FALSE)
-```
-
-These terms from MedGen and OMIM are related to term "MONDO:0014178" (`r disNet$nodes %>% filter(id == "MONDO:0014178") %>% pull(label)`) itself a child term of "MONDO:0000507" (`r disNet$nodes %>% filter(id == "MONDO:0000507") %>% pull(label)`). This additional variant was identified through extending the disNet and obtaining al child terms and related cross-references.
-
-```{r, include = TRUE, echo = FALSE, fig.width = 6, fig.height = 6}
-# toShow <- focus_disNet(disNet, 
-#                    diseaseID = "ClinVar:18286", 
-#                    relationship = c("xref", "parent"), 
-#                    steps = 3)
-# plot(toShow)
+```{r disnetALSclinvar, include = TRUE, echo = FALSE, out.width="50%", fig.cap="The visualized disNet shows how the identifier 'ClinVar:18286' ('Inclusion body myopathy with early-onset Paget disease with or without frontotemporal dementia 2') was returned through the use of transitivity on cross-reference edges starting from 'ORPHA:52430' ('Pagetoid amyotrophic lateral sclerosis'). With the is\\_xref edges are indicated in blue and the is\\_related edges indicated in orange."}
+include_graphics(here("inst/documentation/DODO-F1000-publication/fig/disNet_als_clinvar.png"))
 ```
 
 **Tracing connections**
 
-A additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses.
+When obtaining a list of variants or compounds directly from the resources it isn't possible to understand if the return disease identiers that originate from different ontologies are always dealing with the same disease concepts. An additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses. Figure \@ref(fig:traceConn) shows the original ALS disNet with disease identifiers matching in CHEMBL (orange) and those matching in ClinVar (blue). As both resources use different ontologies as references, there is a necessity to use cross-reference to understand their relationship to each other. Indirect relationships are used and recorded when extending and can facilitate the understanding and integration of different biological resources. 
 
 ```{r, include = TRUE, echo = FALSE, eval = rerun}
 comp_disNet <- build_disNet(id = c(unique(clinvar_disnet$dbid),
@@ -849,25 +833,20 @@ nodes <- comp_disNet$nodes %>%
          label = case_when(color == "#67a9cf" ~ "ClinVar",
                            color == "#ef8a62" ~ "ChEMBL",
                            TRUE ~ ""))
-edges1 <- comp_disNet$xref %>%
-  dplyr::select(to,
-                from,
-                ambiguity = forwardAmbiguity) %>%
-  dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
-                                         TRUE ~ "#7fcdbb"),
-                title = paste("ambiguity = ", ambiguity),
-                arrows = "to")
-edges2 <- comp_disNet$xref %>%
-  dplyr::select(to = from,
-                from = to,
-                ambiguity = backwardAmbiguity) %>%
-  dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
-                                         TRUE ~ "#7fcdbb"),
-                title = paste("ambiguity = ", ambiguity),
-                arrows = "to")
-edges <- dplyr::bind_rows(edges1,
-                          edges2) %>%
-  dplyr::distinct()
+## Edges
+edges <- comp_disNet$xref %>%
+    dplyr::select(from, 
+                  to,
+                  type,
+                  FA = forwardAmbiguity,
+                  BA = backwardAmbiguity) %>%
+    dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
+                                           TRUE ~ "#8da0cb"),
+                  title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
+                  arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                                     BA == 1 ~ "from",
+                                     FA == 1 ~ "to",
+                                     TRUE ~ "FALSE"))
 
 visNetwork::visNetwork(nodes = nodes,
                        edges = edges) %>%
@@ -877,13 +856,13 @@ visNetwork::visNetwork(nodes = nodes,
 ```
 
 ```{r traceConn, include = TRUE, echo = FALSE, out.width = "100%", fig.cat = "A additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses."}
-include_graphics(here("DODO_publication/fig/trace_connections.png"))
+include_graphics(here("inst/documentation/DODO-F1000-publication/fig/trace_connections.png"))
 ```
 
 <!-- ##### -->
-## Bridging external resources
+<!-- ## Bridging external resources -->
 
-Connecting ClinVar to CHEMBL
+<!-- Connecting ClinVar to CHEMBL -->
 
 <!-- ============================================================= -->
 <!-- ============================================================= -->

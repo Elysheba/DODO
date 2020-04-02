@@ -108,6 +108,11 @@ cluster_disNet <- function(disNet,
     toRet <- list("1" = filter_by_id(disNet, cpIgraph))
     class(toRet) <- "setDisNet"
   }else{
+    missing <- disNet$nodes %>% 
+      dplyr::filter(!id %in% names(cpIgraph$membership)) %>%
+      dplyr::pull(id)
+    missing <- sapply(missing, function(x){x}, USE.NAMES = FALSE, simplify = FALSE)
+    ##
     cpIgraph <- unstack(
       data.frame(
         n=names(cpIgraph$membership),
@@ -116,13 +121,9 @@ cluster_disNet <- function(disNet,
       ),
       n~c
     )
-    # cpIgraph <- sapply(cpIgraph,
-    #                    function(x){
-    #                      if(any(x %in% toRem$to)){
-    #                        x <- c(x, unique(toRem$from[which(toRem$to %in% x)]))
-    #                      }
-    #                      return(x)
-    #                    })
+    cpIgraph <- c(cpIgraph,
+                  missing)
+    names(cpIgraph) <- 1:length(cpIgraph)
     toRet <- split_disNet(disNet = disNet,
                           diseaseList = cpIgraph)
   }

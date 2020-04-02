@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2019.3.1)  1 APR 2020 10:04
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2019.3.1)  2 APR 2020 21:18
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**DODO_publication.tex
-(./DODO_publication.tex
+**DODO-F1000-publication.tex
+(./DODO-F1000-publication.tex
 LaTeX2e <2011/06/27>
 Babel <v3.8m> and hyphenation patterns for english, dumylang, nohyphenation, lo
 aded.
@@ -815,8 +815,8 @@ Package: natbib 2010/09/13 8.31b (PWD, AO)
 \bibsep=\skip58
 LaTeX Info: Redefining \cite on input line 694.
 \c@NAT@ctr=\count131
-) (./DODO_publication.aux)
-\openout1 = `DODO_publication.aux'.
+) (./DODO-F1000-publication.aux)
+\openout1 = `DODO-F1000-publication.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 128.
 LaTeX Font Info:    ... okay on input line 128.
@@ -871,9 +871,9 @@ Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 LaTeX Info: Redefining \ref on input line 128.
 LaTeX Info: Redefining \pageref on input line 128.
 LaTeX Info: Redefining \nameref on input line 128.
-(./DODO_publication.out) (./DODO_publication.out)
+(./DODO-F1000-publication.out) (./DODO-F1000-publication.out)
 \@outlinefile=\write4
-\openout4 = `DODO_publication.out'.
+\openout4 = `DODO-F1000-publication.out'.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -981,7 +981,7 @@ Package natbib Warning: Citation `EFO2019' on page 1 undefined on input line 14
 
 {/usr/share/texlive/texmf/fonts/map/pdftex/updmap/pdftex.map}]
 </data/lfrancois/Development/DODO/inst/documentation/data-model/DODO.png, id=20
-4, 553.06625pt x 534.99875pt>
+0, 553.06625pt x 534.99875pt>
 File: /data/lfrancois/Development/DODO/inst/documentation/data-model/DODO.png G
 raphic file (type png)
 <use /data/lfrancois/Development/DODO/inst/documentation/data-model/DODO.png>
@@ -1055,227 +1055,249 @@ as been already used, duplicate ignored
                                                   \fi \fi 
 l.382 
       ]
-</data/lfrancois/Development/DODO/DODO_publication/fig/heatmap_ambiguity.jpg, i
-d=292, 481.8pt x 481.8pt>
-File: /data/lfrancois/Development/DODO/DODO_publication/fig/heatmap_ambiguity.j
-pg Graphic file (type jpg)
+</data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig
+/heatmap_ambiguity.jpg, id=287, 481.8pt x 481.8pt>
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/heatmap_ambiguity.jpg Graphic file (type jpg)
 
-<use /data/lfrancois/Development/DODO/DODO_publication/fig/heatmap_ambiguity.jp
-g>
-Package pdftex.def Info: /data/lfrancois/Development/DODO/DODO_publication/fig/
-heatmap_ambiguity.jpg used on input line 419.
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/heatmap_ambiguity.jpg>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/heatmap_ambiguity.jpg used on input line 429.
 (pdftex.def)             Requested size: 226.48279pt x 226.48279pt.
 
-</data/lfrancois/Development/DODO/DODO_publication/fig/boxplot_ambiguity_conver
-sion_mondo.jpg, id=294, 554.07pt x 382.42876pt>
-File: /data/lfrancois/Development/DODO/DODO_publication/fig/boxplot_ambiguity_c
-onversion_mondo.jpg Graphic file (type jpg)
+</data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig
+/boxplot_ambiguity_conversion_mondo.jpg, id=289, 554.07pt x 382.42876pt>
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/boxplot_ambiguity_conversion_mondo.jpg Graphic file (type jpg)
 
-<use /data/lfrancois/Development/DODO/DODO_publication/fig/boxplot_ambiguity_co
-nversion_mondo.jpg>
-Package pdftex.def Info: /data/lfrancois/Development/DODO/DODO_publication/fig/
-boxplot_ambiguity_conversion_mondo.jpg used on input line 430.
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/boxplot_ambiguity_conversion_mondo.jpg>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/boxplot_ambiguity_conversion_mondo.jpg used on input l
+ine 440.
 (pdftex.def)             Requested size: 226.48537pt x 156.32413pt.
 
-<DODO_publication_files/figure-latex/listDB-1.pdf, id=295, 409.53pt x 409.53pt>
-File: DODO_publication_files/figure-latex/listDB-1.pdf Graphic file (type pdf)
-<use DODO_publication_files/figure-latex/listDB-1.pdf>
-Package pdftex.def Info: DODO_publication_files/figure-latex/listDB-1.pdf used 
-on input line 446.
-(pdftex.def)             Requested size: 339.74733pt x 339.74733pt.
+<DODO-F1000-publication_files/figure-latex/listDB-1.pdf, id=290, 409.53pt x 409
+.53pt>
+File: DODO-F1000-publication_files/figure-latex/listDB-1.pdf Graphic file (type
+ pdf)
+<use DODO-F1000-publication_files/figure-latex/listDB-1.pdf>
+Package pdftex.def Info: DODO-F1000-publication_files/figure-latex/listDB-1.pdf
+ used on input line 456.
+(pdftex.def)             Requested size: 226.48572pt x 226.48572pt.
 [6pdfTeX warning (ext4): destination with the same identifier (name{table.4}) h
 as been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.451 \end{figure}
+l.461 \end{figure}
                   ] [7pdfTeX warning (ext4): destination with the same identifi
 er (name{figure.2}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.451 \end{figure}
+l.461 \end{figure}
                   pdfTeX warning (ext4): destination with the same identifier (
 name{figure.3}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.451 \end{figure}
-                   </data/lfrancois/Development/DODO/DODO_publication/fig/heatm
-ap_ambiguity.jpg> </data/lfrancois/Development/DODO/DODO_publication/fig/boxplo
-t_ambiguity_conversion_mondo.jpg>]
-</data/lfrancois/Development/DODO/DODO_publication/fig/disNetExtension.jpg, id=
-312, 456.20438pt x 486.31688pt>
-File: /data/lfrancois/Development/DODO/DODO_publication/fig/disNetExtension.jpg
- Graphic file (type jpg)
+l.461 \end{figure}
+                   </data/lfrancois/Development/DODO/inst/documentation/DODO-F1
+000-publication/fig/heatmap_ambiguity.jpg> </data/lfrancois/Development/DODO/in
+st/documentation/DODO-F1000-publication/fig/boxplot_ambiguity_conversion_mondo.
+jpg>]
+</data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig
+/disNetExtension.png, id=308, 487.06969pt x 510.40688pt>
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/disNetExtension.png Graphic file (type png)
 
-<use /data/lfrancois/Development/DODO/DODO_publication/fig/disNetExtension.jpg>
-Package pdftex.def Info: /data/lfrancois/Development/DODO/DODO_publication/fig/
-disNetExtension.jpg used on input line 465.
-(pdftex.def)             Requested size: 456.20325pt x 486.31569pt.
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/disNetExtension.png>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/disNetExtension.png used on input line 475.
+(pdftex.def)             Requested size: 487.09077pt x 510.42899pt.
 
-Overfull \hbox (3.23535pt too wide) in paragraph at lines 465--466
+Overfull \hbox (34.12288pt too wide) in paragraph at lines 475--476
  [][] 
  []
+
+
+LaTeX Warning: Reference `fig:icd10Convert' on page 8 undefined on input line 5
+71.
 
 [8pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) 
 has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.473 
-       <./DODO_publication_files/figure-latex/listDB-1.pdf>] [9pdfTeX warning (
-ext4): destination with the same identifier (name{figure.5}) has been already u
-sed, duplicate ignored
+l.572 
+       <./DODO-F1000-publication_files/figure-latex/listDB-1.pdf>] [9pdfTeX war
+ning (ext4): destination with the same identifier (name{figure.5}) has been alr
+eady used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.473 
-       </data/lfrancois/Development/DODO/DODO_publication/fig/disNetExtension.j
-pg>]
+l.572 
+       </data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicat
+ion/fig/disNetExtension.png>] [10pdfTeX warning (ext4): destination with the sa
+me identifier (name{table.5}) has been already used, duplicate ignored
 
-LaTeX Warning: Reference `fig:icd10Convert' on page 10 undefined on input line 
-561.
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.572 
+      pdfTeX warning (ext4): destination with the same identifier (name{table.6
+}) has been already used, duplicate ignored
 
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.572 
+      ]
+</data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig
+/get_related_ambiguity_NULL_G409.png, id=334, 478.78876pt x 431.36156pt>
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/get_related_ambiguity_NULL_G409.png Graphic file (type png)
 
-</data/lfrancois/Development/DODO/DODO_publication/fig/get_related_ambiguity_NU
-LL_G409.png, id=331, 581.17125pt x 539.76656pt>
-File: /data/lfrancois/Development/DODO/DODO_publication/fig/get_related_ambigui
-ty_NULL_G409.png Graphic file (type png)
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/get_related_ambiguity_NULL_G409.png>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/get_related_ambiguity_NULL_G409.png used on input line
+ 575.
+(pdftex.def)             Requested size: 452.96916pt x 408.09956pt.
 
-<use /data/lfrancois/Development/DODO/DODO_publication/fig/get_related_ambiguit
-y_NULL_G409.png>
-Package pdftex.def Info: /data/lfrancois/Development/DODO/DODO_publication/fig/
-get_related_ambiguity_NULL_G409.png used on input line 565.
-(pdftex.def)             Requested size: 452.97476pt x 420.70325pt.
+Package xcolor Warning: Incompatible color definition on input line 589.
 
-Package xcolor Warning: Incompatible color definition on input line 579.
+[11pdfTeX warning (ext4): destination with the same identifier (name{figure.6})
+ has been already used, duplicate ignored
 
-LaTeX Font Info:    Try loading font information for T1+lmtt on input line 580.
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.589 \begin{Shaded}
+                     </data/lfrancois/Development/DODO/inst/documentation/DODO-
+F1000-publication/fig/get_related_ambiguity_NULL_G409.png>]
+LaTeX Font Info:    Try loading font information for T1+lmtt on input line 590.
 
 (/usr/share/texlive/texmf-dist/tex/latex/lm/t1lmtt.fd
 File: t1lmtt.fd 2009/10/30 v1.6 Font defs for Latin Modern
 )
 LaTeX Font Info:    Font shape `T1/lmtt/bx/n' in size <9> not available
-(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 581.
+(Font)              Font shape `T1/lmtt/b/n' tried instead on input line 591.
 
-Package xcolor Warning: Incompatible color definition on input line 586.
+Package xcolor Warning: Incompatible color definition on input line 596.
 
 
-Package xcolor Warning: Incompatible color definition on input line 586.
+Package xcolor Warning: Incompatible color definition on input line 596.
 
-[10pdfTeX warning (ext4): destination with the same identifier (name{table.5}) 
+
+Package xcolor Warning: Incompatible color definition on input line 605.
+
+
+Package xcolor Warning: Incompatible color definition on input line 611.
+
+
+Package xcolor Warning: Incompatible color definition on input line 611.
+
+[12]
+</data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig
+/disNet_als_extension.png, id=355, 627.09282pt x 596.2275pt>
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/disNet_als_extension.png Graphic file (type png)
+
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/disNet_als_extension.png>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/disNet_als_extension.png used on input line 707.
+(pdftex.def)             Requested size: 452.98006pt x 430.68451pt.
+[13pdfTeX warning (ext4): destination with the same identifier (name{table.7}) 
 has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.592 
-      ] [11pdfTeX warning (ext4): destination with the same identifier (name{ta
-ble.6}) has been already used, duplicate ignored
+l.733 
+      ] [14pdfTeX warning (ext4): destination with the same identifier (name{fi
+gure.7}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.592 
-      ] [12pdfTeX warning (ext4): destination with the same identifier (name{fi
-gure.6}) has been already used, duplicate ignored
+l.733 
+       </data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicat
+ion/fig/disNet_als_extension.png>]
+</data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig
+/disNet_als_chembl.png, id=368, 371.88937pt x 140.77594pt>
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/disNet_als_chembl.png Graphic file (type png)
 
-\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
-                                                  \fi \fi 
-l.592 
-       </data/lfrancois/Development/DODO/DODO_publication/fig/get_related_ambig
-uity_NULL_G409.png>]
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/disNet_als_chembl.png>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/disNet_als_chembl.png used on input line 736.
+(pdftex.def)             Requested size: 226.48901pt x 85.7357pt.
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/disNet_als_chembl.png Graphic file (type png)
 
-Package xcolor Warning: Incompatible color definition on input line 604.
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/disNet_als_chembl.png>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/disNet_als_chembl.png used on input line 749.
+(pdftex.def)             Requested size: 226.48901pt x 85.7357pt.
 
-
-Package xcolor Warning: Incompatible color definition on input line 614.
-
-
-Package xcolor Warning: Incompatible color definition on input line 614.
-
-
-Package xcolor Warning: Incompatible color definition on input line 623.
-
-
-Package xcolor Warning: Incompatible color definition on input line 629.
+LaTeX Warning: Reference `fig:traceConn' on page 15 undefined on input line 758
+.
 
 
-Package xcolor Warning: Incompatible color definition on input line 629.
+</data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig
+/trace_connections.png, id=370, 666.23906pt x 618.81187pt>
+File: /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publicatio
+n/fig/trace_connections.png Graphic file (type png)
 
-[13]
-</data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_extension.png
-, id=362, 700.11563pt x 650.43pt>
-File: /data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_extensio
-n.png Graphic file (type png)
-
-<use /data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_extension
-.png>
-Package pdftex.def Info: /data/lfrancois/Development/DODO/DODO_publication/fig/
-disNet_als_extension.png used on input line 646.
-(pdftex.def)             Requested size: 452.97592pt x 420.82924pt.
-[14pdfTeX warning (ext4): destination with the same identifier (name{figure.7})
- has been already used, duplicate ignored
-
-\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
-                                                  \fi \fi 
-l.663 \end{verbatim}
-                     </data/lfrancois/Development/DODO/DODO_publication/fig/dis
-Net_als_extension.png>]
-</data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_chembl.png, i
-d=370, 515.67656pt x 188.95593pt>
-File: /data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_chembl.p
-ng Graphic file (type png)
-
-<use /data/lfrancois/Development/DODO/DODO_publication/fig/disNet_als_chembl.pn
-g>
-Package pdftex.def Info: /data/lfrancois/Development/DODO/DODO_publication/fig/
-disNet_als_chembl.png used on input line 675.
-(pdftex.def)             Requested size: 226.48134pt x 82.98804pt.
-
-</data/lfrancois/Development/DODO/DODO_publication/fig/trace_connections.png, i
-d=372, 701.62125pt x 670.75594pt>
-File: /data/lfrancois/Development/DODO/DODO_publication/fig/trace_connections.p
-ng Graphic file (type png)
-
-<use /data/lfrancois/Development/DODO/DODO_publication/fig/trace_connections.pn
-g>
-Package pdftex.def Info: /data/lfrancois/Development/DODO/DODO_publication/fig/
-trace_connections.png used on input line 696.
-(pdftex.def)             Requested size: 452.97581pt x 433.04877pt.
+<use /data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication
+/fig/trace_connections.png>
+Package pdftex.def Info: /data/lfrancois/Development/DODO/inst/documentation/DO
+DO-F1000-publication/fig/trace_connections.png used on input line 760.
+(pdftex.def)             Requested size: 452.97557pt x 420.72986pt.
 [15pdfTeX warning (ext4): destination with the same identifier (name{figure.8})
  has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.696 ...ation/fig/trace_connections} \end{center}
+l.760 ...ation/fig/trace_connections} \end{center}
+                                                  pdfTeX warning (ext4): destin
+ation with the same identifier (name{figure.9}) has been already used, duplicat
+e ignored
+
+\AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
+                                                  \fi \fi 
+l.760 ...ation/fig/trace_connections} \end{center}
                                                    </data/lfrancois/Development
-/DODO/DODO_publication/fig/disNet_als_chembl.png>] [16 </data/lfrancois/Develop
-ment/DODO/DODO_publication/fig/trace_connections.png>] [17] (./DODO_publication
-.bbl [18])
+/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_chembl.png>] [16
+ </data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fi
+g/trace_connections.png>] [17] (./DODO-F1000-publication.bbl [18])
 
 Package natbib Warning: There were undefined citations.
 
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 780.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 839.
 [19]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 780.
-(./DODO_publication.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 780.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 780.
-Package rerunfilecheck Info: File `DODO_publication.out' has not changed.
-(rerunfilecheck)             Checksum: FD0E417A5B64AFB56AD738E8E3D1D8FB;3465.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 839.
+(./DODO-F1000-publication.aux)
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 839.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 839.
+Package rerunfilecheck Info: File `DODO-F1000-publication.out' has not changed.
+
+(rerunfilecheck)             Checksum: 9BF747A27A3DEDC65456C050275AF551;3287.
 
 LaTeX Warning: There were undefined references.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 780.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 839.
  ) 
 Here is how much of TeX's memory you used:
- 14535 strings out of 495063
- 210950 string characters out of 3182202
- 329902 words of memory out of 3000000
- 17211 multiletter control sequences out of 15000+200000
- 67991 words of font info for 131 fonts, out of 3000000 for 9000
+ 14529 strings out of 495063
+ 211671 string characters out of 3182202
+ 341555 words of memory out of 3000000
+ 17210 multiletter control sequences out of 15000+200000
+ 67412 words of font info for 128 fonts, out of 3000000 for 9000
  14 hyphenation exceptions out of 8191
- 34i,10n,35p,2088b,467s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 34i,10n,35p,2094b,467s stack positions out of 5000i,500n,10000p,200000b,50000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/lm-ec.enc}{/usr/share/texli
 ve/texmf-dist/fonts/enc/dvips/lm/lm-rm.enc}{/usr/share/texlive/texmf-dist/fonts
 /enc/dvips/lm/lm-mathit.enc}{/usr/share/texlive/texmf-dist/fonts/enc/dvips/lm/l
@@ -1290,12 +1312,11 @@ ype1/public/lm/lmr8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lm
 r9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmri9.pfb></usr/sha
 re/texlive/texmf-dist/fonts/type1/public/lm/lmsy9.pfb></usr/share/texlive/texmf
 -dist/fonts/type1/public/lm/lmtk10.pfb></usr/share/texlive/texmf-dist/fonts/typ
-e1/public/lm/lmtt9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/lm/lmt
-ti10.pfb>
-Output written on DODO_publication.pdf (19 pages, 984976 bytes).
+e1/public/lm/lmtt9.pfb>
+Output written on DODO-F1000-publication.pdf (19 pages, 971698 bytes).
 PDF statistics:
- 509 PDF objects out of 1000 (max. 8388607)
- 454 compressed objects within 5 object streams
+ 504 PDF objects out of 1000 (max. 8388607)
+ 449 compressed objects within 5 object streams
  120 named destinations out of 1000 (max. 500000)
- 14590 words of extra memory for PDF output out of 17280 (max. 10000000)
+ 14582 words of extra memory for PDF output out of 17280 (max. 10000000)
 

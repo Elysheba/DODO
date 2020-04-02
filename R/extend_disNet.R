@@ -118,7 +118,7 @@ extend_disNet <- function(
   
   ##############@
   ## steps ----
-  if(is.null(step) & length(q) != 1){
+  if(is.null(step) & q != ""){
     cql.trans <- c(
       'MATCH (f)',
       ifelse(is.null(avoidNodes), 
@@ -164,7 +164,7 @@ extend_disNet <- function(
         dplyr::filter(grepl("is_alt", relation)) %>%
         dplyr::select(id = to, 
                       alt = from) 
-      ids <- unique(ids, c(transitivity$from, transitivity$to))
+      ids <- unique(c(ids, transitivity$from, transitivity$to))
     }else{
       ids <- ids
     }

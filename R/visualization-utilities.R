@@ -33,8 +33,8 @@ plot.disNet <- function(
   match.arg(relations, 
             c("xref","child","parent"),
             several.ok = T)
-  match.arg(label, c("id", "label"), several.ok = FALSE)
-  stopifnot(is.disNet(disNet))
+  stopifnot(is.disNet(disNet),
+            is.logical(labelling))
   
   ## Colors
   col <- DODO:::color_database(disNet = disNet)
@@ -358,7 +358,7 @@ explore_disNet <- function(disNet,
                       lapply(disNet,
                              function(x){
                                toRet <- x$nodes %>%
-                                 dplyr::arrange(level) %>%
+                                 dplyr::arrange(level, label) %>%
                                  dplyr::mutate(clusterSize = length(id)) %>%
                                  dplyr::slice(1) %>%
                                  dplyr::mutate(values = case_when(show == "label" ~ label,

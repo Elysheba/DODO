@@ -546,9 +546,9 @@ load_ClinVar <- function(DODO_entryId,
                            quote = '"', 
                            comment.char = "", 
                            colClasses= c("character"))
-  cv_idNames <- merge(x = cv_idNames, 
-                      y = clinvar, 
-                      by = "t.id")
+  cv_idNames <- dplyr::full_join(x = cv_idNames, 
+                                 y = clinvar, 
+                                 by = "t.id")
   # table(cv_idNames$db[!duplicated(cv_idNames$dbid)])
   
   ## Check labels
@@ -560,6 +560,17 @@ load_ClinVar <- function(DODO_entryId,
   cv_idNames$canonical <- ifelse(cv_idNames$type.x == "Preferred", TRUE, FALSE)
   cv_idNames <- cv_idNames[order(cv_idNames$canonical, decreasing = T),]
   clinvar$def <- cv_idNames$name[match(clinvar$t.id, cv_idNames$t.id)]
+  ## add missing ids in clinvar object
+  clinvar <- cv_idNames %>%
+    dplyr::arrange(desc(canonical)) %>%
+    dplyr::filter(!t.id %in% clinvar$t.id) %>%
+    dplyr::distinct(t.id, .keep_all = TRUE) %>%
+    dplyr::select(t.id,
+                  def = name) %>%
+    dplyr::mutate(id = NA,
+                  db = NA,
+                  type = NA) %>%
+    dplyr::bind_rows(clinvar)
   
   ## Create entryId and idNames
   ## Use clinvar internal id and add cross-reference ids (assign label/def)
@@ -581,7 +592,8 @@ load_ClinVar <- function(DODO_entryId,
                   def) %>%
     dplyr::mutate(level = NA,
                   origin = DB,
-                  dbid = paste(DB, id, sep = ":")) 
+                  dbid = paste(DB, id, sep = ":")) %>%
+    dplyr::filter(!is.na(id))
   cv_entryId <- dplyr::bind_rows(cv_entryId,
                                  toAdd) %>%
     dplyr::distinct() %>%
@@ -620,7 +632,8 @@ load_ClinVar <- function(DODO_entryId,
                   id2 = id) %>%
     dplyr::distinct() %>%
     dplyr::mutate(dbid1 = paste(DB1, id1, sep = ":"),
-                  dbid2 = paste(DB2, id2, sep = ":"))
+                  dbid2 = paste(DB2, id2, sep = ":")) %>%
+    dplyr::filter(!is.na(id2))
   return(list(cv_entryId = cv_entryId,
               cv_crossId = cv_crossId,
               cv_idNames = cv_idNames))
