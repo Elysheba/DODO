@@ -45,7 +45,7 @@ Please refer to the (DODO paper)[https://github.com/Elysheba/DODO/tree/master/in
 
 To construct a DODO instance, a set of script is available to load and feed a Neo4j instance. These are not exposed directly to the user instead, these scripts are available in the *build/scripts* folder. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub.
 
-|----|-------|
+
 |Resource | GitHub repository|
 |----|-------|
 |Monarch Disease Ontology (MonDO) | https://github.com/Elysheba/Monarch |
@@ -53,9 +53,8 @@ To construct a DODO instance, a set of script is available to load and feed a Ne
 |Orphanet | https://github.com/Elysheba/Orphanet |
 |MedGen | https://github.com/Elysheba/MedGen |
 |Medical Subject Headings (MeSH) | https://github.com/Elysheba/MeSH |
-|Human Phenotype Ontology (HPO) | https://github.com/Elysheba/HPO |
-|ClinVar | https://github.com/Elysheba/ClinVar |
+|Human Phenotype Ontology (HPO) | https://github.com/patzaw/HPO |
+|ClinVar | https://github.com/patzaw/ClinVar |
 |Disease Ontology (DO) | https://github.com/Elysheba/DO |
 |International Classification of Diseases (ICD11) | https://github.com/Elysheba/ICD11 |
-|----|-------|
 

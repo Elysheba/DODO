@@ -29,7 +29,7 @@
 }
 \usepackage{hyperref}
 \hypersetup{
-            pdftitle={Dictionary of disease ontologies},
+            pdftitle={Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies},
             pdfkeywords={disease ontologies, diseases, phenotypes, database, identifiers},
             pdfborder={0 0 0},
             breaklinks=true}
@@ -121,14 +121,14 @@
 \usepackage[]{natbib}
 \bibliographystyle{plainnat}
 
-\title{Dictionary of disease ontologies}
-\author{true \and true \and true}
+\title{Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies}
+\author{Liesbeth Francois, Jonathan van Eyll and Patrice Godard}
 \date{}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-To add
+Disease ontologies assign diseases to a more formal classification that facilate the connection to biological databases containing drug information, transcriptomics and genomics information, and others. However, different ontologies employ independent identifiers and use heterogenous decisions on disease definitions. Despite ongoing efforts on integration, two challenges can still be identified. First, no resource provides a complete mapping across the multitude of disease ontologies and there is no ready to use software available to interact and explore with ontologies on the standard bioinformatics platforms. In this paper, the DODO (Dictionary of Disease Ontology) database and accompagnying R package are presented. DODO aims to deal with these two challenges by constructing a meta-database incorporating information of different publically available disease ontology resources and their annotations. Through the use of transitivity mappings build on the cross-reference relationships provided by the ontologies, indirect relations between disease and phenotype identifiers can be retrieved. The accompagnying R package contains several functions to build and interact with disease networks or convert concept identifiers between ontologies. It specifically aims to facilitate access and the exhaustive extraction of information from life science databases without the need to harmonize these upfront. The workflow for local adaption and extension of the DODO database is available as well as a docker image of the DODO database for convenience.
 \end{abstract}
 
 \textbf{R version}: R version 3.6.0 (2019-04-26)
@@ -140,11 +140,11 @@ To add
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
 
-Disease ontologies have been developed to meet the need to structure, classify, and describe diseases \citep{Gruber1993, Haendel2018, Hoehndorf2013}. As a result of the diversity in their usage a multitude of disease ontologies exist, aiming to facilitate the integration with drug information, transcriptomics and genomics information, etc. as well as to support development of novel treatments \citep{Haendel2018, Hoehndorf2013, Rappaport2013}. Disease ontologies allow a more formal description of disease; however, each often defines an independent identifier and will only link to a subset of independent biological databases \citep{Hasnain2014, Hoehndorf2013, Kibbe2015, Livingston2015, Malone2010, Rappaport2013}. While this stimulated the construction of integrated biological knowledge bases, the use of independent, ontology-specific identifiers, heterogeneous decisions on disease definitions, and the inherent presence of errors complicates integrating disease ontologies \citep{Livingston2015, Rappaport2013}. In addition, the navigation of these large integrated knowledgebase with often an inheritely complicated data model, is difficult for most, non-expert users \citep{Hasnain2014, Hu2017, Livingston2015}.
+Disease ontologies have been developed to meet the need to structure, classify, and describe diseases \citep{Gruber1993, Haendel2018, Hoehndorf2013}. As a result of the diversity in their usage a multitude of disease ontologies exist, aiming to facilitate the integration with drug information, transcriptomics and genomics information, etc. as well as to support development of novel treatments \citep{Haendel2018, Hoehndorf2013, Rappaport2013}. Disease ontologies allow a more formal description of diseases; however, each ontology often defines an independent identifier and will only link to a subset of independent biological databases \citep{Hasnain2014, Hoehndorf2013, Kibbe2015, Livingston2015, Malone2010, Rappaport2013}. While this stimulated the construction of integrated biological knowledgebases, the use of independent, ontology-specific identifiers, heterogeneous decisions on disease definitions, and the inherent presence of errors complicates integrating disease ontologies \citep{Livingston2015, Rappaport2013}. In addition, the navigation of these large integrated knowledgebases with often an inheritely complicated data model, is difficult for most, non-expert users \citep{Hasnain2014, Hu2017, Livingston2015}.
 
-Several efforts have been made to connect the different disease ontologies themselves by generating of a single new integrative ontology \citep{Mungall2017, Shefchek2019, Rappaport2013}. Using semantic similarity the Monarch Disease Ontology (MonDO) aggregates different sources including OMIM, Orphanet, NCiT, GARD, DO, and MF \citep{Mungall2017, Shefchek2019}. Other examples is the Disease Ontology (DO) resource which aims to standardize disease descriptions and classification from a clinical perspective using equivalence mappings \citep{Cheng2013, Schriml2015, Yu2015}. The Experimental Factor Ontology (EFO) also establishes an unified ontology (not limited to diseases) by re-using several reference ontologies that lie within its scope and enriches these classess with additional axioms when needed \citep{Malone2010}. Currently, it combines information from OMIM, Orphanet, ICD9/10 and SNOMEDCT, HPO, UBERON, and MonDO \citep{EFO2019}.
+Several efforts have been made to connect the different disease ontologies themselves by generating of a single new integrative ontology \citep{Mungall2017, Shefchek2019, Rappaport2013}. Using semantic similarity the Monarch Disease Ontology (MonDO) aggregates different sources including OMIM, Orphanet, NCiT, GARD, DO, and MF \citep{Mungall2017, Shefchek2019}. Other examples is the Disease Ontology (DO) resource which aims to standardize disease descriptions and classification from a clinical perspective using equivalence mappings \citep{Cheng2013, Schriml2015, Yu2015}. The Experimental Factor Ontology (EFO) also establishes an unified ontology (not limited to diseases) by re-using several reference ontologies that lie within its scope. It subsequently enriches these classes with additional axioms when needed \citep{Malone2010}. Currently, it combines information from OMIM, Orphanet, ICD9/10 and SNOMEDCT, HPO, UBERON, and MonDO \citep{EFO2019}.
 
-Despite ongoing efforts, two issues remain to use disease ontologies efficiently: the issue of completeness and ease of access. To this end, the Dictionary of Disease Ontologies (DODO) was developed. The first issue of completeness concerns the exhaustiveness of disease cross-reference mappings \citep{Hu2017, Rappaport2013}. While efforts such as the Monarch Initiative and EFO try to integrate different disease ontologies through semantic learning and manual curation, these resources, like the different disease ontologies themselves, are currently not providing a complete mapping across different disease ontologies. By combining the information provided by the different ontologies, these cross-reference mappings can be enriched. It also allows connecting ontologies to each other that have no direct cross-reference mapping between them by indirectly inferring relationships. In addition, the existing efforts for integration are not flexible to extend easily to proprietary disease ontologies. Another challenge is the availability of an efficient and straightforward manner to access disease information through well established bioinformatics platforms (R or python) \citep{Rappaport2013, Saqi2018}. If avialble, this will facilitate a more flexible connection to the different life science resources to create a more complete disease landscape. Currently, the programmatic access provided by many ontologies often requires expertise in creating SPARQL queries and a high level of understanding of the underlying databases or data model to be able to generate more complex queries \citep{Hasnain2014, Hu2017, Rappaport2013}. The presented graph database is accompagnied by a R package that allows easy access, exploration, and definition of disease concepts of interest. It can work as the intermediate player to facilitate access and exhaustive extraction of information from other life science databases without the need to harmonize these up front. In this paper we will present DODO graphical database and R package with use cases.
+Despite ongoing efforts, two issues remain to use disease ontologies efficiently: the issue of completeness and ease of access. To this end, the Dictionary of Disease Ontologies (DODO) was developed. The first issue of completeness concerns the exhaustiveness of disease cross-reference mappings \citep{Hu2017, Rappaport2013}. While efforts such as the Monarch Initiative and EFO try to integrate different disease ontologies through semantic learning and manual curation, these resources, like the different disease ontologies themselves, are currently not providing a complete mapping across different disease ontologies. In addition, the existing efforts for integration are not flexible to extend easily to proprietary disease ontologies. DODO combines the information provided by the different ontologies, to enrich cross-reference mappings. It also allows connecting ontologies to each other that have no direct cross-reference mapping between them by indirectly inferring relationships using transitivity. Another challenge is the availability of an efficient and straightforward manner to access disease information through well-established bioinformatics platforms (R or python) \citep{Rappaport2013, Saqi2018}. Such access could facilitate a more flexible connection to the different life science resources and create a more complete disease landscape. Currently, the programmatic access provided by many ontologies often requires expertise in creating SPARQL queries and a high level of understanding of the underlying databases or data model to be able to generate more complex queries \citep{Hasnain2014, Hu2017, Rappaport2013}. The presented database is accompagnied by a R package that allows easy access, exploration, and definition of disease concepts of interest. It can work as the intermediate player to facilitate access and ensure exhaustive extraction of information from other life science databases without the need to harmonize these up front. In this paper we will present DODO graphical database and R package with use cases.
 
 \hypertarget{methods}{%
 \section{Methods}\label{methods}}
@@ -152,9 +152,7 @@ Despite ongoing efforts, two issues remain to use disease ontologies efficiently
 \hypertarget{implementation}{%
 \subsection{Implementation}\label{implementation}}
 
-For software tool papers, this section should address how the tool works and any relevant technical details required for implementation of the tool by other developers.
-
-In this section, an overview is presented of the DODO graphQL+ database and the accompagnying R package.
+In this section, an overview is presented of the DODO database and the accompagnying R package.
 
 \hypertarget{data-model}{%
 \subsubsection{Data model}\label{data-model}}
@@ -165,22 +163,22 @@ In this section, an overview is presented of the DODO graphQL+ database and the 
 
 }
 
-\caption{The DODO graph model is shown as an Entity/Relationship (ER) diagram. It consist of four types of entities (concept, disease, phenotype, database) corresponding to graph nodes. Several relationships between the nodes are described referring to graph edges. 'ID' refers to an unique entity while 'idx' indicates whether this entity is indexed.}\label{fig:dataModel}
+\caption{The DODO data model is shown as an Entity/Relationship (ER) diagram. It consist of four types of entities (concept, disease, phenotype, database) corresponding to graph nodes. Several relationships between the nodes are described referring to graph edges. 'ID' refers to an unique entity while 'idx' indicates whether this entity is indexed.}\label{fig:dataModel}
 \end{figure}
 
-The data model underlying DODO aims to capture the relationship between disease and phenotypes as described across different databases \ref{fig:dataModel}. It relies on four types of nodes (concept, disease, phenotype, and database) each with specific proporties. A disease or phenotype nodes have the same properties with \emph{name} as their primary property. \emph{Name} is the full length identifier of a disease or phenotype, namely a concatenation of database and identifier, e.g. ``MONDO:0005027''. Additional properties are (when available) a unique (canonical) \emph{label}, disease \emph{definition}, \emph{database}, and node \emph{type}. In addition, \emph{label\_up} and \emph{definition\_up} are the uppercase version of \emph{label} and \emph{definition} respectively. Each node with class disease or phenotype is also encoded witht the class ``Concept''. Synonyms of the nodes are available through the \emph{is\_known\_as} relationship with \emph{value} and \emph{value\_up} containing the (uppercase) synonyms. A database node has only two property values, its \emph{name} (the name of the database) and url link (\emph{idURL}).
+The data model underlying DODO aims to capture the relationship between disease and phenotypes as described across different databases (Figure \ref{fig:dataModel}). It relies on four types of nodes (concept, disease, phenotype, and database) each with specific proporties. A disease or phenotype node share the same properties. \emph{Name} is a primary property and the full length identifier of a disease or phenotype, a concatenation of database and identifier, e.g. ``MONDO:0005027''. Additional properties are (when available) a unique (canonical) \emph{label}, disease \emph{definition}, \emph{database}, and node \emph{type}. In addition, \emph{label\_up} and \emph{definition\_up} are the uppercase version of \emph{label} and \emph{definition} respectively. When available, a node also has the property of (hierarchical) \emph{level} which captures the lowest level a disease has in the ontological tree. Each node with class disease or phenotype is also encoded with the class ``Concept''. Synonyms of the nodes are available through the \emph{is\_known\_as} relationship with \emph{value} and \emph{value\_up} containing the (uppercase) synonyms. A database node has only two property values, its \emph{name} (the name of the database) and url link (\emph{idURL}).
 
 Nodes can be related to each other through different relations based on information provided by the
-resources. A disease/phenotype/concept node can be related to another node belonging to a different database by the \emph{is\_xref} or \emph{is\_related} relationship. This relationship indicates nodes relating to the same or highly similar disease concepts (as defined by the original resources). The relationship is directional and has the property \emph{FA} (forward ambiguity) and \emph{BA} (backward ambiguity). As disease definitions can be implemented in a broad or narrow sense by each disease ontology, \emph{is\_xref} and \emph{is\_related} relationships across ontologies are not always unambiguous. The concept of forward and backward ambiguity is implemented to handle transitivity mapping (see below). The \emph{is\_xref} and \emph{is\_related} relationship is dependent on the direction one is traversing through and is therefore encoded twice between each node. Each of these directions has its subsequent forward and backward ambiguity information provided as properties.
+resources. A disease/phenotype/concept node can be related to another node belonging to a different database by the \emph{is\_xref} or \emph{is\_related} relationship. This relationship indicates nodes relating to the same or highly similar disease concepts (as defined by the original resources). The relationship is directional and has the property \emph{FA} (forward ambiguity) and \emph{BA} (backward ambiguity). As disease definitions can be implemented in a broad or narrow sense by each disease ontology, \emph{is\_xref} and \emph{is\_related} relationships across ontologies are not always unambiguous. The concept of forward and backward ambiguity is implemented to handle transitivity mapping (see paragraph \ref{transitivity-mapping}. The \emph{is\_xref} and \emph{is\_related} relationship is dependent on the direction one is traversing through and is therefore encoded twice between each node. Each of these directions has its subsequent forward and backward ambiguity information provided as properties.
 
 Phenotype/disease/concept nodes may also be related through \emph{is\_a} directional hierarchical relationship identifying parent/child nodes based on an ontological tree. This relationship is only available between nodes of the same database with the exception of diseases defined by EFO. EFO combines the re-use of identifiers from external resources and enriches this information with additional internal disease classifiers to construct its ontology \citep{Malone2010}. To distinguish the origin of the \emph{is\_a} relationship, the property \emph{origin} is a added.
 
-Phenotypes are highly detailed descriptions of clinical abnormalities which are used to describe disease through \emph{has\_pheno} non-directional relationship. And finally, each disease or phenotype node belongs to a database as encoded by the \emph{is\_in} relationship. This relationship is assigned the property (hierarchical) \emph{level} capturing the highest position a node has in the ontology tree.
+Phenotypes are highly detailed descriptions of clinical abnormalities which are used to describe disease through \emph{has\_pheno} non-directional relationship. And finally, each disease or phenotype node belongs to a database encoded by the \emph{is\_in} relationship. This relationship is assigned the property (hierarchical) \emph{level} capturing the highest position a node has in the ontology tree.
 
 \hypertarget{feeding-the-database}{%
 \subsubsection{Feeding the database}\label{feeding-the-database}}
 
-To construct a DODO instance, a set of script is available to load and feed a Neo4j instance. These are not exposed directly to the user instead, these scripts are available in the \emph{build/scripts} folder. The feeding of DODO is based on the parsed files of the different ontologies, a workflow on downloading and parsing for each included ontology is available through GitHub (Table \ref{tab:githubOntology}).
+To construct a DODO instance, a set of scripts is available to load and feed a Neo4j instance. These are not exposed directly to the user instead and a general workflow is available in the \emph{build/scripts} folder. The feeding of DODO is based on the parsed files of the different ontologies. The workflow to download and parse each included ontology is available through GitHub (Table \ref{tab:githubOntology}).
 
 \begin{table}
 
@@ -204,7 +202,7 @@ International Classification of Diseases (ICD11) & https://github.com/Elysheba/I
 \end{tabular}
 \end{table}
 
-The different steps are briefly described below:
+The different steps to construct a new DODO Neo4j instance are briefly described below:
 
 \begin{enumerate}
 \def\labelenumi{\arabic{enumi}.}
@@ -221,70 +219,68 @@ The different steps are briefly described below:
 \hypertarget{availability}{%
 \subsubsection{Availability}\label{availability}}
 
-The DODO instance build using the workflow described above is provided as a Docker image \citep{Docker2017} here.
-This instance is build on information from the following disease ontologies listed in (Table \ref{tab:githubOntology}.
+The DODO instance build using the workflow described above is provided as a Docker image \citep{Docker2019}: \url{https://hub.docker.com/repository/docker/elysheba/dodo} (tag: 02.04.2020). This instance is build on information from the following disease ontologies listed in (Table \ref{tab:githubOntology}).
 
 \hypertarget{s3-object}{%
 \subsubsection{S3 object}\label{s3-object}}
 
-The center object used through the DODO R package is the disease network or disNet S3 object. It captures all information (disease node information, hierarchical information, phenotype information, and cross-reference informatino) around a disease and is structured as shown in Table \ref{tab:disNetObject}
+The center object used through the DODO R package is the disease network or disNet S3 object. It captures all information (disease node information, hierarchical information, phenotype information, alternative identifiers, and cross-reference information) around a disease and is structured as shown in Table \ref{tab:disNetObject}.
 
 \begin{table}
 
 \caption{\label{tab:disNetObject}The center object used through the DODO R package is the disease network or disNet S3 object. It captures all information (disease node information, hierarchical information, phenotype information, and cross-reference informatino) around a disease.}
 \centering
-\resizebox{\linewidth}{!}{
 \begin{tabular}[t]{ll}
 \toprule
 Part & Content\\
 \midrule
-\rowcolor{gray!6}  \addlinespace[0.3em]
+\addlinespace[0.3em]
 \multicolumn{2}{l}{\textbf{nodes}}\\
 \hspace{1em}id & disease ids (database:shortID)\\
 \hspace{1em}database & disease databases\\
-\rowcolor{gray!6}  \hspace{1em}shortID & disease short identifiers\\
+\hspace{1em}shortID & disease short identifiers\\
 \hspace{1em}label & disease labels\\
-\rowcolor{gray!6}  \hspace{1em}definition & disease descriptions\\
+\hspace{1em}definition & disease descriptions\\
 \hspace{1em}level & maximum level the identifier holds in the hierarchical ontology tree\\
-\rowcolor{gray!6}  \hspace{1em}type & type of node (disease or phenotype)\\
+\hspace{1em}type & type of node (disease or phenotype)\\
 \addlinespace[0.3em]
 \multicolumn{2}{l}{\textbf{synonyms}}\\
 \hspace{1em}id & disease ids\\
-\rowcolor{gray!6}  \hspace{1em}synonym & disease synonyms\\
+\hspace{1em}synonym & disease synonyms\\
 \addlinespace[0.3em]
 \multicolumn{2}{l}{\textbf{children}}\\
 \hspace{1em}parent & parent disease ids\\
-\rowcolor{gray!6}  \hspace{1em}child & child disease ids\\
+\hspace{1em}child & child disease ids\\
 \hspace{1em}origin & ontology of origin where the parent/child relationship is recorded\\
-\rowcolor{gray!6}  \addlinespace[0.3em]
+\addlinespace[0.3em]
 \multicolumn{2}{l}{\textbf{xref}}\\
 \hspace{1em}from & disease 1 ids\\
 \hspace{1em}to & disease 2 ids\\
-\rowcolor{gray!6}  \hspace{1em}ur & unique cross-reference identifier\\
+\hspace{1em}ur & unique cross-reference identifier\\
 \hspace{1em}forwardAmbiguity & number of cross-references between disease 1 and database 2\\
-\rowcolor{gray!6}  \hspace{1em}backwardAmbiguity & number of cross-references between disease 2 and database 1\\
+\hspace{1em}backwardAmbiguity & number of cross-references between disease 2 and database 1\\
+\hspace{1em}type & type of cross-reference edge (is\_xref or is\_related)\\
 \addlinespace[0.3em]
 \multicolumn{2}{l}{\textbf{alt}}\\
-\hspace{1em}type & type of cross-reference edge (is\_xref or is\_related)\\
-\rowcolor{gray!6}  \hspace{1em}id & current identifier\\
+\hspace{1em}id & current identifier\\
+\hspace{1em}alt & deprecated identifier\\
 \addlinespace[0.3em]
 \multicolumn{2}{l}{\textbf{pheno}}\\
-\hspace{1em}alt & deprecated identifier\\
-\rowcolor{gray!6}  \hspace{1em}disease & disease identifier\\
+\hspace{1em}disease & disease identifier\\
+\hspace{1em}phenotype & phenotype identifier\\
 \addlinespace[0.3em]
 \multicolumn{2}{l}{\textbf{seed}}\\
-\hspace{1em}phenotype & phenotype identifier\\
-\rowcolor{gray!6}  seed & vector of disease ids used to seed the disNet\\
+\hspace{1em}seed & vector of disease ids used to seed the disNet\\
 \bottomrule
-\end{tabular}}
+\end{tabular}
 \end{table}
 
-In addition, a \emph{setDisNet} S3 object is also available which consists of a list of \emph{disNet} objects. Figure @ref\{fig:disNet\} shows an example disNet object for epilepsy.
+In addition, a \emph{setDisNet} S3 object is also available which build as a list of \emph{disNet} objects. Figure @ref\{fig:disNet\} shows an example disNet object for epilepsy.
 
 \hypertarget{operation}{%
 \subsection{Operation}\label{operation}}
 
-The data model is implemented using the Neo4j graph database which using the Cypher query language \citep{Neo4j2020}. One accompagnying R package \emph{DODO} was developed to connect and query the resource. It provides higher level functions to query the Neo4j graph database based on the described data model (above) \citep{R2019}.
+The data model is implemented using the Neo4j software which uses the Cypher query language \citep{Neo4j2020}. An accompagnying R package \emph{DODO} was developed to connect and provides higher level functions to query the Neo4j graph database based on the described data model (paragraph \ref{data-model}) \citep{R2019}.
 
 The minimal system requirements are:
 
@@ -297,7 +293,7 @@ The minimal system requirements are:
   Memory \(\geq\) 4GB RAM
 \end{itemize}
 
-The graph database has been implemented with Neo4j 3.4.9 \citep{Neo4j2020}, the DODO R package uses the following packages:
+The graph database has been implemented with Neo4j 3.5.14 \citep{Neo4j2020}, the DODO R package uses the following packages:
 
 \begin{itemize}
 \item
@@ -305,7 +301,7 @@ The graph database has been implemented with Neo4j 3.4.9 \citep{Neo4j2020}, the 
 \item
   \emph{\href{https://CRAN.R-project.org/package=tibble}{tibble}} \citep{Muller2019}
 \item
-  \emph{\href{https://CRAN.R-project.org/package=neo2R}{neo2R}} \citep{Godard2020}
+  \emph{\href{https://CRAN.R-project.org/package=neo2R}{neo2R}} \citep{Godard2018}
 \item
   \emph{\href{https://CRAN.R-project.org/package=rlist}{rlist}} \citep{Ren2016}
 \item
@@ -313,7 +309,7 @@ The graph database has been implemented with Neo4j 3.4.9 \citep{Neo4j2020}, the 
 \item
   \emph{\href{https://CRAN.R-project.org/package=readr}{readr}} \citep{Wickham2018}
 \item
-  \emph{\href{https://CRAN.R-project.org/package=visNetwork}{visNetwork}} \citep{Almende2017}
+  \emph{\href{https://CRAN.R-project.org/package=visNetwork}{visNetwork}} \citep{Almende2019}
 \item
   \emph{\href{https://CRAN.R-project.org/package=shinythemes}{shinythemes}} \citep{Chang2018}
 \item
@@ -322,16 +318,12 @@ The graph database has been implemented with Neo4j 3.4.9 \citep{Neo4j2020}, the 
   \emph{\href{https://CRAN.R-project.org/package=igraph}{igraph}} \citep{Csardi2006}
 \item
   \emph{\href{https://CRAN.R-project.org/package=shiny}{shiny}} \citep{Chang2019}
-\item
-  \emph{\href{https://CRAN.R-project.org/package=BiocStyle}{BiocStyle}}\citep{Oles2020}
 \end{itemize}
 
 \hypertarget{querying-the-database}{%
 \subsubsection{Querying the database}\label{querying-the-database}}
 
-The DODO R package combines several functions to construct, interact, and explore such a disNet object. These will be briefly outlined in the sections below. These functions also split or cluster a disNet, generating a list of disNet object, captured by the S3 object setDisNet.
-
-DODO R package provides function to allow four different scopes: building and interacting with a disNet of setDisNet object, visualizing a disNet, converting disease and phenotype concepts to different ontologies, and several utility functions to connect to DODO graph database or obtain low level information on identifiers. The Table \ref{tab:functions} briefly list all function available within the package, as well as a short description and identification of the scope.
+The DODO R package combines several functions to construct, interact, and explore a disNet object. These will be briefly outlined in the sections below. DODO R package provides function to allow four different scopes: building and interacting with a \emph{disNet} of \emph{setDisNet} object, visualizing a \emph{disNet}, converting disease and phenotype concepts to different ontologies, and several utility functions to connect to DODO graph database or obtain low level information on identifiers. The Table \ref{tab:functions} briefly list all function available within the package, as well as a short description and identification of the scope.
 
 \begin{table}
 
@@ -378,51 +370,51 @@ get\_ontology & Returns whole ontology & Utility\\
 \hypertarget{transitivity-mapping}{%
 \subsubsection{Transitivity mapping}\label{transitivity-mapping}}
 
-As a consequence of the different way ontologies define disease (or phenotype) concepts, some cross-reference edges connect identifiers that are not exactly equal. Therefore, some cross-reference edges are trusted more than others. Ontologies such as MONDO or EFO use more narrow disease definitions than others like ICD10 or ICD9. If cross-reference edges are all considered equal without taking this distinction into account, it will result in the return of more distantly related concepts when traversing these edges. Table \ref{tab:exampleAmb} shows an example of ``Coffin-Lowry'' syndrome (Orphanet identifier ``192'') for which most cross-reference identifiers are defined similarly. However, its cross-reference to ICD10 deals with a very broad term of ``Conginetal malformation syndromes predominantly affecting facial appearance'' (``ICD:Q87.0''). This identifier is highly ambiguous and has 284 different direct cross-referenced disease identifiers.
+As a consequence of the different way ontologies define disease (or phenotype) concepts, some cross-reference edges connect identifiers that are not exactly equal. Therefore, some cross-reference edges are trusted more than others. Ontologies such as MONDO or EFO use more narrow disease definitions than others like ICD10 or ICD9. If cross-reference edges are all considered equal without taking this distinction into account, it will result in the return of more distantly related concepts when traversing these edges. Table \ref{tab:exampleAmb} shows an example of ``Coffin-Lowry syndrome'' (Orphanet identifier ``192'') for which most cross-reference identifiers are defined in similar terms. However, its cross-reference to ICD10 deals with a very broad term of ``Conginetal malformation syndromes predominantly affecting facial appearance'' (``ICD:Q87.0''). This identifier is highly ambiguous and has 284 different direct cross-referenced disease identifiers. As mentioned before, not all nodes have label information available. This information can only be added when it is provided by the original resources.
 
 \begin{table}
 
-\caption{\label{tab:exampleAmb}The EFO (and Orphanet) identifier for Coffin-Lowry syndrome (ORPHA:192) is cross-referenced to 21 different identifiers. Many of these cross-references are more or less equivalent to the original identifier (disease labels are only available when present in the parsed resources. Otherwise only a disease identifier is available). However, among its cross-references it also links to an ICD10 identifier (Q87.0) which is a broad term of 'Congenital malformation syndromes predominantly affecting facial appearance'. This identifier is highly ambiguous and links directly to 284 disease concepts.}
+\caption{\label{tab:exampleAmb}The EFO (and Orphanet) identifier for 'Coffin-Lowry syndrome' ('ORPHA:192') is cross-referenced to 21 different identifiers. Many of these cross-references are similarly defined as the original identifier. However, among its cross-references it lists a relation to an ICD10 identifier (Q87.0), a broad term of 'Congenital malformation syndromes predominantly affecting facial appearance'. This identifier is highly ambiguous and links directly to 284 disease concepts. (Disease labels are only available when present in the parsed resources. Otherwise only a disease identifier is available).}
 \centering
 \resizebox{\linewidth}{!}{
 \begin{tabular}[t]{ll}
 \toprule
 Disease identifier & Disease label\\
 \midrule
-\rowcolor{gray!6}  MedGen:C0795900 & Coffin syndrome 1\\
+\rowcolor{gray!6}  ICD10:Q87.0 & Congenital malformation syndromes predominantly affecting facial appearance\\
+OMIM:303600 & COFFIN-LOWRY SYNDROME\\
+\rowcolor{gray!6}  MeSH:D038921 & Coffin-Lowry Syndrome\\
 ORPHA:192 & Coffin-Lowry syndrome\\
 \rowcolor{gray!6}  MONDO:0010561 & Coffin-Lowry syndrome\\
+\addlinespace
 ClinVar:823 & Coffin-Lowry syndrome\\
 \rowcolor{gray!6}  MedGen:C0265252 & Coffin-Lowry syndrome\\
-\addlinespace
 DOID:3783 & Coffin-Lowry syndrome\\
 \rowcolor{gray!6}  UMLS:C0265252 & Coffin-Lowry syndrome\\
-MeSH:D038921 & Coffin-Lowry Syndrome\\
-\rowcolor{gray!6}  OMIM:303600 & COFFIN-LOWRY SYNDROME\\
-ICD10:Q87.0 & Congenital malformation syndromes predominantly affecting facial appearance\\
+MedGen:C0795900 & Coffin syndrome 1\\
 \addlinespace
-\rowcolor{gray!6}  MeSH:C536435 & NA\\
-SNOMEDCT:15182000 & NA\\
-\rowcolor{gray!6}  OMIM:300075 & NA\\
-UMLS:C0795900 & NA\\
-\rowcolor{gray!6}  GTR:GTRT000007048 & NA\\
+\rowcolor{gray!6}  MeSH:C536435 & \\
+SNOMEDCT:15182000 & \\
+\rowcolor{gray!6}  OMIM:300075 & \\
+UMLS:C0795900 & \\
+\rowcolor{gray!6}  GTR:GTRT000007048 & \\
 \addlinespace
-ICD9:759.89 & NA\\
-\rowcolor{gray!6}  OMIM:300075.0011 & NA\\
-GTR:GTRT000000823 & NA\\
-\rowcolor{gray!6}  NCIt:C84643 & NA\\
-GARD:6123 & NA\\
+ICD9:759.89 & \\
+\rowcolor{gray!6}  OMIM:300075.0011 & \\
+GTR:GTRT000000823 & \\
+\rowcolor{gray!6}  NCIt:C84643 & \\
+GARD:6123 & \\
 \addlinespace
-\rowcolor{gray!6}  GARD:0008589 & NA\\
-SNOMEDCT\_US\_2019\_09\_01:15182000 & NA\\
-\rowcolor{gray!6}  GARD:0006123 & NA\\
+\rowcolor{gray!6}  GARD:0008589 & \\
+SNOMEDCT\_US\_2019\_09\_01:15182000 & \\
+\rowcolor{gray!6}  GARD:0006123 & \\
 \bottomrule
 \end{tabular}}
 \end{table}
 
-The concept of \emph{ambiguity} is introduced to identify nodes that have many cross-references to the same database. Cross-reference edges are implemented in a directional manner in Neo4j, therefore both a forward (FA) and backward (BA) ambiguity is calculated and encoded on every direction. As it is often desired to move from a broader concept to a more narrow one, no filtering on forward ambiguity is put in place. However, the opposite, namely moving from a more narrow and through a broader concept is not always desired. This can result in an exponential increase of converted/expanded identifiers that are only distantly related to the original identifier.
+The concept of \emph{ambiguity} is introduced to identify nodes that have many cross-references to the same database. Cross-reference edges are implemented in a directional manner in Neo4j, therefore both a forward (FA) and backward (BA) ambiguity is calculated and encoded on every direction. As it is often desired to move from a broader concept to a more narrow one, no filtering on forward ambiguity is put in place. However, the opposite, namely moving from a more narrow and through a broader concept is not always wanted. This can result in an exponential increase of converted/expanded identifiers that are only distantly related to the original disease identifier.
 
-In addition to the concept of \emph{ambiguity}, two types of cross-reference edges encoded in DODO: \emph{is\_xref} and \emph{is\_related}. The \emph{is\_xref} edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept definitions). The \emph{is\_related} edge is used for all other cross-reference edges. These edges are based on the sum of forward and backward ambiguities between databases to quantify the symmetry between them and knowledge of how ontologies deal with disease concepts. Ontologies included for this quantification are: MoNDO, EFO, Orphanet, Orphanet, OMIM, MedGen, UMLS, MeSH, ICD10, ICD9, DOID, ClinVar, MEDDRA, GARD, SNOMEDct, and NCIt. The heatmap (Figure \ref{fig:heatmapAmbiguity}) shows the \(log_{10}\) transformed maximum total ambiguity between ontologies.
+In addition to the concept of \emph{ambiguity}, two types of cross-reference edges encoded in DODO: \emph{is\_xref} and \emph{is\_related}. The \emph{is\_xref} edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept definitions). The \emph{is\_related} edge is used for all other cross-reference edges. The assignemnt of these edges is based on the maximum value of the sum of forward and backward ambiguities of all cross-references relationships between two databases to quantify the symmetry between them and knowledge of how ontologies deal with and define disease concepts. Ontologies included for this quantification are: MoNDO, EFO, Orphanet, Orphanet, OMIM, MedGen, UMLS, MeSH, ICD10, ICD9, DOID, ClinVar, MEDDRA, GARD, SNOMEDct, and NCIt. The heatmap (Figure \ref{fig:heatmapAmbiguity}) shows the \(log_{10}\) transformed maximum total ambiguity between ontologies.
 
 \begin{figure}
 
@@ -430,10 +422,10 @@ In addition to the concept of \emph{ambiguity}, two types of cross-reference edg
 
 }
 
-\caption{The heatmap shows the maximum value of total ambiguity between ontologies using a $log_{10}$ transformation. While many ontologies are using concepts of similar level as identified by low total ambiguity, a few can be identified that are more ambiguous in their mappings. The 'optimal' ambiguity for a *is\_xref* edges is determinged by comparing the number of conversions when incrementally increasing the cutoff of total ambiguity to defining a cross-reference edge between ontologie of either *is\_xref* or *is\_related* and knowledge of the way disease concepts are defined within ontologies.}\label{fig:heatmapAmbiguity}
+\caption{The heatmap shows the maximum value of total ambiguity between ontologies using a $log_{10}$ transformation. While many ontologies are using concepts of similar level as identified by low total ambiguity, a few can be identified that are more ambiguous in their mappings. The 'optimal' ambiguity for a *is\_xref* edges is determinged by comparing the number of conversions when incrementally increasing the cutoff of total ambiguity to defining a cross-reference edge between ontologies of either *is\_xref* or *is\_related* and knowledge of the way disease concepts are defined within ontologies.}\label{fig:heatmapAmbiguity}
 \end{figure}
 
-Figure \ref{fig:boxplotAmbiguity} shows the number of conversions per identifier for MonDO when incrementally increasing the cutoff for the (total) ambiguity to define ontologies connected through \emph{is\_xref} and \emph{is\_related} edges. A very low cutoff would not return all cross-reference identifiers while a too high cutoff impact especially a few identifiers strongly with the return of many, lesser related, cross-reference identifiers.
+The number of conversions per identifier is shown on Figure \ref{fig:boxplotAmbiguity} for MonDO as an example when incrementally increasing the cutoff for the (total) ambiguity to define ontologies connected through \emph{is\_xref} and \emph{is\_related} edges. A very low cutoff would not return all cross-reference identifiers, while a too high cutoff impact especially a few identifiers strongly with the return of many, more distantly related cross-reference identifiers.
 
 \begin{figure}
 
@@ -444,7 +436,7 @@ Figure \ref{fig:boxplotAmbiguity} shows the number of conversions per identifier
 \caption{Number of conversions comparing incremental cutoffs in the (total) ambiguity to define *is\_xref* and *is\_related* cross-reference edges on an ontology scale (example of MonDO ontology).}\label{fig:boxplotAmbiguity}
 \end{figure}
 
-By comparing the results and relationship between the different ontologies with a (total) ambiguity equal or lower than four are considered as \emph{is\_xref}. An exception is used for ICD10 and ICD9 which are never connected through an \emph{is\_xref} edge except between themselves. An additional exception is put in place for OMIM and Orphanet, which often define very narrow subtypes of diseases and therefore will be still encoded as an \emph{is\_xref} edge.
+By comparing the results and relationship between the different ontologies with a (total) ambiguity equal or lower than four are considered as \emph{is\_xref}. An exception is used for ICD10 and ICD9 which are never connected through an \emph{is\_xref} edge except between themselves. Additionally, as OMIM and Orphanet define very narrow subtypes of diseases and these will also be encoded as an \emph{is\_xref} edge.
 
 \hypertarget{results}{%
 \section{Results}\label{results}}
@@ -453,7 +445,7 @@ The table below shows the number of nodes available through each disease ontolog
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth,height=0.5\textheight]{DODO-F1000-publication_files/figure-latex/listDB-1} 
+{\centering \includegraphics[width=0.5\linewidth,height=0.75\textheight]{DODO-F1000-publication_files/figure-latex/listDB-1} 
 
 }
 
@@ -466,109 +458,35 @@ The table below shows the number of nodes available through each disease ontolog
 \hypertarget{converting-concepts}{%
 \subsection{Converting concepts}\label{converting-concepts}}
 
-One of the basic functionalities of DODO is the ability to convert disease and phenotype identifiers. The conversion of identifiers generally performed in two steps based on the type of cross-reference edges and ambiguity values. Four separate use cases can be identified based on the parameters for converting within the same concept, e.g.~converting one disease identifier to other disease ontologies.
+One of the basic functionalities of DODO is the ability to convert disease and phenotype identifiers. The conversion of identifiers is generally performed using a two step process based on the type of cross-reference edges to traverse through and ambiguity values to filter on. Four separate use cases can be identified based on these parameters for converting within the same concept, e.g.~converting one disease identifier to other ontologies.
 
-A first and default conversion consists of two steps, a first using the transitivity of \emph{is\_xref} edges followed by an addition step using both types of cross-reference edges to obtain the indirect cross-references (parameters ``step = NULL'' and ``intranstivity\_ambiguity = NULL''). The default conversion can be used to get all identifiers around a disease concept whether broad or narrowly related or when converting from a more narrow concept to a broader concept. In general when the aim is to reach a broader concept related to the original identifiers but not move through it, it is recommended to put not filter on the \emph{intransitive\_ambiguity}. For transitivity mapping using \emph{is\_xref} edges only it is strongly recommended to use the default filtering on ambiguity by limiting (backward) ambiguity to one. The second step is a intransitive mapping where both \emph{is\_related} and \emph{is\_xref} cross-reference edges are traversed with one step to get the direct cross-reference identifiers. In Figure \ref{fig:extension} an example is presented of the extension starting from the MonDO identifier ``MONDO:0005027'' encoding ``Epilepsy''. The transitive mapping with filtering on ambiguity moves between the \emph{is\_xref} mapping only in which a higher trust is placed. The final intransitive mapping step will return all nodes related through either an \emph{is\_related} or \emph{is\_xref} edge with no filtering as all ambigious relations want to be returned but not used when extending.
+A first and default conversion consists of two steps. The first step uses the transitivity on \emph{is\_xref} edges followed by one step expansion using both types of cross-reference edges (parameters ``step = NULL'' and ``intranstivity\_ambiguity = NULL''). In Figure \ref{fig:extension} an example is presented of the extension starting from the MonDO identifier ``MONDO:0005027'' encoding for ``Epilepsy''. The transitive mapping with filtering on ambiguity moves between the \emph{is\_xref} edges (blue) with ambiguity equal to one. The final intransitive mapping step will return all nodes related through either an \emph{is\_related} or \emph{is\_xref} edge with no filtering (orange) so ambigious relations can also to be returned but not used when extending.
+
+This conversion can be used to get all identifiers around a disease concept whether broadly or narrowly related or when converting from a more narrow concept to a broader concept. In general, when the aim is to reach a broader concept related to the original identifiers but not move through it, it is recommended to put no filter on the \emph{intransitive\_ambiguity}. However, for the first step using transitivity mapping on \emph{is\_xref} edges it is strongly recommended to use the default filtering on ambiguity by limiting (backward) ambiguity to one.
 
 \begin{figure}
 
-{\centering \includegraphics[width=8.42in]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNetExtension} 
+{\centering \includegraphics[width=0.75\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNetExtension} 
 
 }
 
-\caption{A disNet constructed and subsequently extended using only cross-reference relations using the MonDO identifier for 'Epilepsy' ('MONDO:0005027') as an example. This extension is performed in two phases. First, the transitive mapping uses the *is\_xref* edges (blue edges) wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (green nodes). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending (red nodes). This final intransitive mapping step will return all nodes related through either an *is\_related* (orange edges) or *is\_xref* edge with no filtering as all.}\label{fig:extension}
+\caption{A disNet constructed and subsequently extended using only cross-reference relations using the MonDO identifier for 'Epilepsy' ('MONDO:0005027') as an example. This extension is performed in two phases. First, the transitive mapping uses the *is\_xref* edges (blue edges) wich are trusted to a larger extend to obtain all relations with filtering on ambiguity (backward ambiguity = 1) (green nodes). The second steps uses no filtering as all relations (ambiguous or not) need to be returned but not used while extending (red nodes). This final intransitive mapping step will return all nodes related through either an *is\_related* (orange edges) or *is\_xref* edge (blue) with no filtering. The arrows show how nodes can be reached when taking backward ambiguity filtering into account. When there are no arrows present the ambiguity is higher than one and this node can only be reached during the final step of intransitive mapping with no filtering put in place.}\label{fig:extension}
 \end{figure}
 
-A second case is the return of direct cross-references only without the use of transitivty to return indirect relations (parameter ``step = 1''). For the same identifier ``MONDO:0005027'', Table @ref\{tab:step1\} shows only the direct cross-references.
+A second use case can be identified when the aim is to only get direct cross-references of the identifier of interest withouth using transitivity to return indirect relations (parameter ``step = 1''). While transitivity allows the incorporation of information from different ontologies and allows users to connect indirectly related concepts, these relationships might be more vague. This would limit the returned conversion to the nodes indicated in green on Figure \ref{fig:extension}.
 
-\begin{table}
+A third use case can be identified when the aim of conversion is to only return equivalent concepts and not return broader disease concepts. This can be a good practise when converting between ontologies that define concept similarly. Here the transitivity mechanism can be employed by parameter `step = NULL' and supplying `intransitive\_ambiguity = 1' to ensure that only equivalent edges are traversed in the final step. Figure \ref{fig:equivalentConversion} shows the difference between the default conversion and filtering on the final one step extension.
 
-\caption{\label{tab:step1}Conversion of 'MONDO:0005027' (epilepsy) returning only direct cross-references using parameters 'step = 1'}
-\centering
-\resizebox{\linewidth}{!}{
-\begin{tabular}[t]{lll}
-\toprule
-from & to & label\\
-\midrule
-\rowcolor{gray!6}  MONDO:0005027 & MONDO:0005027 & epilepsy\\
-MONDO:0005027 & ICD9:345.8 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & COHD:380378 & Epilepsy\\
-MONDO:0005027 & ICD9:345.90 & Epilepsy, unspecified, not intractable, without status epilepticus\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD10:G40.9 & NA\\
-\addlinespace
-MONDO:0005027 & ICD9:345.9 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & NIFSTD:birnlex\_12718 & NA\\
-MONDO:0005027 & ICD9:345.80 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345 & NA\\
-MONDO:0005027 & ICD10:G40.909 & NA\\
-\addlinespace
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.91 & NA\\
-MONDO:0005027 & ICD10:G40 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:84757009 & NA\\
-MONDO:0005027 & DOID:1826 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & MeSH:D004827 & Epilepsy and recurrent seizures\\
-\addlinespace
-MONDO:0005027 & NCIt:C3020 & Epilepsy, unspecified\\
-\rowcolor{gray!6}  MONDO:0005027 & EFO:0000474 & NA\\
-\bottomrule
-\end{tabular}}
-\end{table}
+\begin{figure}
 
-A third use case can be used to focus on concepts that are equivalent to each other and not return more broadly defined concepts. This can be a good practise when converting between ontologies that define concept similarly. With parameters `step = NULL' and `intransitive\_ambiguity = 1' disease identifiers are convert using transitivitity to return indirect mappings while using an additional filter on ambiguity for the final intransitive step.
+{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_equivalence} 
 
-\begin{table}
+}
 
-\caption{\label{tab:unnamed-chunk-3}Conversion of 'MONDO:0005027' (epilepsy) using transtivity mapping but only returning equivalent concepts in the final step by filtering on intransitive\_ambiguity}
-\centering
-\resizebox{\linewidth}{!}{
-\begin{tabular}[t]{lll}
-\toprule
-from & to & label\\
-\midrule
-\rowcolor{gray!6}  MONDO:0005027 & MONDO:0005027 & epilepsy syndrome\\
-MONDO:0005027 & ICD10:G40 & Epilepsy, unspecified, not intractable, without status epilepticus\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345 & Epilepsy syndrome\\
-MONDO:0005027 & ICD10:G40.909 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.91 & epilepsy\\
-\addlinespace
-MONDO:0005027 & NIFSTD:birnlex\_12718 & Epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.9 & Epilepsy, Cryptogenic\\
-MONDO:0005027 & ICD9:345.8 & Epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & COHD:380378 & Awakening Epilepsy\\
-MONDO:0005027 & ICD9:345.90 & Epilepsy\\
-\addlinespace
-\rowcolor{gray!6}  MONDO:0005027 & ICD10:G40.9 & Epilepsy, unspecified, not intractable, without status epilepticus\\
-MONDO:0005027 & EFO:0000474 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:84757009 & NA\\
-MONDO:0005027 & DOID:1826 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & MeSH:D004827 & Epilepsy\\
-\addlinespace
-MONDO:0005027 & NCIt:C3020 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & MedGen:C0014544 & NA\\
-MONDO:0005027 & UMLS:C0014544 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & ClinVar:9566 & NA\\
-MONDO:0005027 & MedGen:C0086237 & NA\\
-\addlinespace
-\rowcolor{gray!6}  MONDO:0005027 & UMLS:C0086237 & NA\\
-MONDO:0005027 & MedGen:C0751111 & epilepsy\\
-\rowcolor{gray!6}  MONDO:0005027 & UMLS:C0751111 & NA\\
-MONDO:0005027 & ICD10CM:G40.909 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9CM:345.9 & Epilepsy and recurrent seizures\\
-\addlinespace
-MONDO:0005027 & SNOMEDCT\_US\_2019\_09\_01:84757009 & Epilepsy, unspecified\\
-\rowcolor{gray!6}  MONDO:0005027 & ICD9:345.80 & NA\\
-MONDO:0005027 & GTR:GTRT000009566 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & SNOMEDCT:128613002 & NA\\
-MONDO:0005027 & OMIM:MTHU018883 & NA\\
-\addlinespace
-\rowcolor{gray!6}  MONDO:0005027 & ORPHA:166463 & NA\\
-MONDO:0005027 & OMIM:MTHU022799 & NA\\
-\rowcolor{gray!6}  MONDO:0005027 & MONDO:0015650 & NA\\
-\bottomrule
-\end{tabular}}
-\end{table}
+\caption{Conversion of 'MONDO:0005027' (epilepsy) using transtivity mapping but only returning equivalent concepts in the final step by filtering on intransitive\_ambiguity}\label{fig:equivalentConversion}
+\end{figure}
 
-Finally, a specific conversion procedure is recommended for the ontologies that consider disease concepts that are less connected through \emph{is\_xref} edges to the ``core'' ontologies in DODO (e.g.~MonDO, EFO, MedGen, etc.). Ontologies of ICD10, ICD9, ClinVar frequently report only those ontologies that are mapped using \emph{is\_related} cross-reference edges. When converting from these identifiers as a starting point, the conversion will not be able to return cross-reference relationship to all other database (even when they are avialable, Figure \ref{fig:icd10Convert}). It limits or removes the effect of the transitive mapping. Therefore, for these ontologies it is recommend that in addition to the standard conversion, an additional step of intransitive mapping is performed afterwards which is implemented in the function \emph{get\_related} (Figure \ref{fig:getRelated}).
+Finally, a specific conversion procedure is recommended for the ontologies that consider disease concepts that are less connected through \emph{is\_xref} edges to the ``core'' ontologies in DODO (e.g.~MonDO, EFO, MedGen, etc.) such as ontologies like ICD10 or ICD9. When converting from these identifiers as a starting point, the conversion will not be able to return cross-reference relationships to all other database. It limits or removes the transitivity mechanism and, therefore, we recommend an additional step to the standard conversion. Implemented in the \emph{get\_related} function, an addition expension step through \emph{is\_related} and \emph{is\_xref} edges is performed before the standard conversion procedure. The ambiguity on this additional step is the same for the final intransitive step in the standard conversion procedure (modified by the \emph{intransitive\_ambiguity} parameter). Figure \ref{fig:getRelated} shows the difference between the standard conversion procedure and the recommended procedure on ICD10:G40.9 (Epilepsy). When using the standard conversion only the nodes indicated in green are returned and it is not possible to make use of the transitivity mechanism. By using the recommend \emph{get\_related} procedure with an additional expansion step followed by standard conversion, the transitivity mapping can be employed (nodes in orange).
 
 \begin{figure}
 
@@ -576,15 +494,80 @@ Finally, a specific conversion procedure is recommended for the ontologies that 
 
 }
 
-\caption{Comparison of the default conversion results with the output of the specific conversion for ontologies with limited connections through is\_xref edges (blue edges). The example is the ICD10 identifier G40.9 (Epilepsy). The nodes in green signify those return through both methods, while the nodes in orange are only returned using the more specific approach for this type of ontology. In addition, the edges in blue represent is\_xref edges, while those in pink present is\_related edges between nodes (with no specification for ambiguity for simplicity).}\label{fig:getRelated}
+\caption{Comparison of the default conversion results with the output of the specific conversion for ontologies with limited connections through is\_xref edges (blue edges). The example is the ICD10 identifier G40.9 (Epilepsy). The nodes in green signify those return when using the standard conversion. This removes the functionality of the transitive mapping between nodes. Using the recommended procedure implemented in get\_related() function with an additional step of expansion before the standard conversion, the transitivity can be employed (nodes in orange). The edges in blue represent is\_xref edges, while those in pink present is\_related edges between nodes. The arrows show how nodes can be reached when taking backward ambiguity filtering into account. When there are no arrows present the ambiguity is higher than one and this node can only be reached during the final step of intransitive mapping with no filtering put in place.}\label{fig:getRelated}
 \end{figure}
 
 Conversion can also be used to convert between concept, i.e.~from disease identifier to phenotype identifiers or vice versa. This conversion is handled in two distinct phases. First, depending on the options listed above, identifiers are converted within the same concept. When this is not required, using parameter ``step = NA'' the conversion within the same concept can be avoided. The second phase converts between concepts by returning phenotype or disease nodes directly related to the original identifiers (including the converted identifiers obtain in the first phase).
 
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{## From disease to phenotype}
+\NormalTok{toPhenotype <-}\StringTok{ }\KeywordTok{convert_concept}\NormalTok{(}\DataTypeTok{from =} \StringTok{"MONDO:0012391"}\NormalTok{,}
+                               \DataTypeTok{to =} \StringTok{"HP"}\NormalTok{,}
+                               \DataTypeTok{from.concept =} \StringTok{"Disease"}\NormalTok{,}
+                               \DataTypeTok{to.concept =} \StringTok{"Phenotype"}\NormalTok{) }
+\KeywordTok{head}\NormalTok{(toPhenotype)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 3
+##   from          to         deprecated
+##   <chr>         <chr>      <lgl>     
+## 1 MONDO:0012391 HP:0000737 FALSE     
+## 2 MONDO:0012391 HP:0002069 FALSE     
+## 3 MONDO:0012391 HP:0001249 FALSE     
+## 4 MONDO:0012391 HP:0001272 FALSE     
+## 5 MONDO:0012391 HP:0000529 FALSE     
+## 6 MONDO:0012391 HP:0002059 FALSE
+\end{verbatim}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{## From phenotype to disease}
+\NormalTok{toDisease <-}\StringTok{ }\KeywordTok{convert_concept}\NormalTok{(}\DataTypeTok{from =} \StringTok{"HP:0002384"}\NormalTok{,}
+                               \DataTypeTok{from.concept =} \StringTok{"Phenotype"}\NormalTok{,}
+                               \DataTypeTok{to.concept =} \StringTok{"Disease"}\NormalTok{) }
+\KeywordTok{head}\NormalTok{(toDisease)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 6 x 3
+##   from       to            deprecated
+##   <chr>      <chr>         <lgl>     
+## 1 HP:0002384 HP:0002384    FALSE     
+## 2 HP:0002384 ClinVar:17141 FALSE     
+## 3 HP:0002384 UMLS:C0270834 FALSE     
+## 4 HP:0002384 MONDO:0009697 FALSE     
+## 5 HP:0002384 MONDO:0009079 FALSE     
+## 6 HP:0002384 MONDO:0016825 FALSE
+\end{verbatim}
+
+Finally, conversion can also be used to return deprecated identifiers when these are available.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{deprecated <-}\StringTok{ }\KeywordTok{convert_concept}\NormalTok{(}\DataTypeTok{from =} \StringTok{"HP:0009638"}\NormalTok{,}
+                               \DataTypeTok{deprecated =} \OtherTok{TRUE}\NormalTok{,}
+                               \DataTypeTok{from.concept =} \StringTok{"Phenotype"}\NormalTok{,}
+                               \DataTypeTok{to.concept =} \StringTok{"Phenotype"}\NormalTok{) }
+\KeywordTok{head}\NormalTok{(deprecated)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+## # A tibble: 2 x 3
+##   from       to         deprecated
+##   <chr>      <chr>      <lgl>     
+## 1 HP:0009638 HP:0004079 TRUE      
+## 2 HP:0009638 HP:0006073 TRUE
+\end{verbatim}
+
 \hypertarget{building-a-disnet}{%
 \subsection{Building a disNet}\label{building-a-disnet}}
 
-Another core concept in DODO is the S3 \emph{disNet} object which contains all information on diseases/phenotypes and their internal relationships. This object can be constructed using helper functions starting from disease identifiers or search terms (\emph{build\_disnet}).
+A core concept in DODO is the S3 \emph{disNet} object which contains all information on diseases/phenotypes and their internal relationships. This object can be constructed using helper function \emph{build\_disnet} and supplying it with either a vector of disease identifiers or search terms.
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -598,9 +581,9 @@ Another core concept in DODO is the S3 \emph{disNet} object which contains all i
 \hypertarget{extending-a-disnet}{%
 \subsection{Extending a disNet}\label{extending-a-disnet}}
 
-When building a \emph{disNet} by either identifier(s) or search term(s), the resulting \emph{disNet} will likely not contain the complete information on that particular disease landscape. The \emph{extend\_disNet} function enriches the disNet to include addition cross-reference identifiers, child/parent terms, annotated phenotypes/disease, or alternative identifieres when available. In concordance with the conversion procedure, extension follows the same two-step approach. Please refer to paragraph @ref(Converting concepts) for more details and the different use cases.
+When building a \emph{disNet} by either identifier(s) or search term(s), the resulting \emph{disNet} will likely not contain the complete information on that particular disease landscape. The \emph{extend\_disNet} function enriches the disNet and extends it to cross-reference identifiers, child/parent terms, annotated phenotypes/disease, and/or alternative identifieres when available. In concordance with the conversion procedure, extension follows the same two-step approach. Please refer to paragraph \ref{converting-concepts} for more details and the different use cases.
 
-Of specific note is the extension to (or from) phenotype information. Within one extension all different parameters (xref, child, parent, alt, and disease/phenotype) can be supplied with the exception that it is not possible to extend to both disease and phenotype simultaneously. Extending to or from phenotypes does not employ the transitivity mechanism but is performed as a final step (similar to conversion, please refer to paragraph @ref\{Converting concepts\} for more details).
+Of specific note is the extension to (or from) phenotype information. Within one extension all different parameters (xref, child, parent, alt, and disease/phenotype) can be supplied with the exception that it is not possible to extend to both disease and phenotype simultaneously. Extending to or from phenotypes does not employ the transitivity mechanism but is performed as a final step (similar to conversion, please refer to paragraph @ref\{converting-concepts\} for more details).
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -639,51 +622,51 @@ Of specific note is the extension to (or from) phenotype information. Within one
 \hypertarget{reviewing}{%
 \subsection{Reviewing}\label{reviewing}}
 
-Often after extending it is necessary to review the returned \emph{disNet} to assess whether all nodes are of interest. This process can be simplified by considering clusters of cross-references (nodes dealing with similar concepts) using the \emph{cluster\_disNet} functionality. Instead of reviewing each nodes, the different clusters can be reviewed to identify those of interest while using the relationships between nodes to address equivalent nodes simultaneously (Table \ref{tab:cldisNet}).
+It may be required to review the returned \emph{disNet} after building and/or extending it to assess whether all nodes are of interest. This process can be simplified by considering clusters of cross-references (nodes dealing with similar concepts) using the \emph{cluster\_disNet} functionality. Instead of reviewing each node, the different cross-reference clusters can be reviewed to identify those of interest while using the relationships between nodes to handle equivalent nodes simultaneously without the need to review them separately (Table \ref{tab:cldisNet}). In addition, the process of using cross-reference clusters also allows the revision of identifiers that have no label information attached.
 
 \begin{table}
 
 \caption{\label{tab:cldisNet}Annotation of the different cross-reference clusters of nodes identified for a disNet around 'amyotrophic lateral sclerosis'. The annotation is obtained from node within the cluster with the highest order in its disease ontology ('level') and avialability of label information.}
 \centering
 \resizebox{\linewidth}{!}{
-\begin{tabular}[t]{rrlrl}
+\begin{tabular}[t]{rrll}
 \toprule
-cluster & clusterSize & id & level & values\\
+cluster & clusterSize & id & label\\
 \midrule
-\rowcolor{gray!6}  1 & 150 & ICD10CM:G12.21 & 4 & Amyotrophic lateral sclerosis\\
-2 & 22 & MONDO:0017161 & 7 & frontotemporal dementia with motor neuron disease\\
-\rowcolor{gray!6}  3 & 2 & MedGen:C1862940 & NA & Amyotrophic Lateral Sclerosis, Autosomal Recessive\\
-4 & 9 & ORPHA:357043 & 6 & Amyotrophic lateral sclerosis type 4\\
-\rowcolor{gray!6}  5 & 3 & MedGen:C3542025 & NA & Amyotrophic lateral sclerosis 1, autosomal recessive\\
+\rowcolor{gray!6}  1 & 150 & ICD10CM:G12.21 & Amyotrophic lateral sclerosis\\
+2 & 22 & MONDO:0017161 & frontotemporal dementia with motor neuron disease\\
+\rowcolor{gray!6}  3 & 2 & MedGen:C1862940 & Amyotrophic Lateral Sclerosis, Autosomal Recessive\\
+4 & 9 & ORPHA:357043 & Amyotrophic lateral sclerosis type 4\\
+\rowcolor{gray!6}  5 & 3 & MedGen:C3542025 & Amyotrophic lateral sclerosis 1, autosomal recessive\\
 \addlinespace
-6 & 8 & MONDO:0005145 & 8 & sporadic amyotrophic lateral sclerosis\\
-\rowcolor{gray!6}  7 & 6 & MONDO:0014640 & 10 & FTDALS3\\
-8 & 5 & MONDO:0008781 & 10 & juvenile amyotrophic lateral sclerosis with dementia\\
-\rowcolor{gray!6}  9 & 6 & MONDO:0011632 & 8 & amyotrophic lateral sclerosis type 21\\
-10 & 2 & MedGen:C4302169 & NA & Amyotrophic lateral sclerosis plus syndrome\\
+6 & 8 & MONDO:0005145 & sporadic amyotrophic lateral sclerosis\\
+\rowcolor{gray!6}  7 & 6 & MONDO:0014640 & FTDALS3\\
+8 & 5 & MONDO:0008781 & juvenile amyotrophic lateral sclerosis with dementia\\
+\rowcolor{gray!6}  9 & 6 & MONDO:0011632 & amyotrophic lateral sclerosis type 21\\
+10 & 2 & MedGen:C4302169 & Amyotrophic lateral sclerosis plus syndrome\\
 \addlinespace
-\rowcolor{gray!6}  11 & 3 & UMLS:C2750729 & NA & Amyotrophic lateral sclerosis 6, autosomal recessive\\
-12 & 3 & UMLS:CN239196 & NA & Amyotrophic Lateral Sclerosis, Recessive\\
-\rowcolor{gray!6}  13 & 2 & MedGen:CN260033 & NA & Amyotrophic lateral sclerosis 10, with or without FTD\\
-14 & 4 & ORPHA:52430 & 8 & Inclusion body myopathy with Paget disease of bone and frontotemporal dementia\\
-\rowcolor{gray!6}  15 & 3 & UMLS:C2931441 & NA & Infantile-onset ascending hereditary spastic paralysis\\
+\rowcolor{gray!6}  11 & 3 & UMLS:C2750729 & Amyotrophic lateral sclerosis 6, autosomal recessive\\
+12 & 3 & UMLS:CN239196 & Amyotrophic Lateral Sclerosis, Recessive\\
+\rowcolor{gray!6}  13 & 2 & MedGen:CN260033 & Amyotrophic lateral sclerosis 10, with or without FTD\\
+14 & 4 & ORPHA:52430 & Inclusion body myopathy with Paget disease of bone and frontotemporal dementia\\
+\rowcolor{gray!6}  15 & 3 & UMLS:C2931441 & Infantile-onset ascending hereditary spastic paralysis\\
 \addlinespace
-16 & 2 & MedGen:C2931786 & NA & Amyotrophic lateral sclerosis, type 6\\
-\rowcolor{gray!6}  17 & 3 & ORPHA:98756 & 10 & Spinocerebellar ataxia type 2\\
-18 & 2 & MedGen:C3662062 & NA & Restrictive lung disease due to amyotrophic lateral sclerosis\\
-\rowcolor{gray!6}  19 & 3 & MedGen:CN239175 & NA & Amyotrophic Lateral Sclerosis, Dominant\\
-20 & 2 & MedGen:C4551993 & NA & Amyotrophic Lateral Sclerosis, Familial\\
+16 & 2 & MedGen:C2931786 & Amyotrophic lateral sclerosis, type 6\\
+\rowcolor{gray!6}  17 & 3 & ORPHA:98756 & Spinocerebellar ataxia type 2\\
+18 & 2 & MedGen:C3662062 & Restrictive lung disease due to amyotrophic lateral sclerosis\\
+\rowcolor{gray!6}  19 & 3 & MedGen:CN239175 & Amyotrophic Lateral Sclerosis, Dominant\\
+20 & 2 & MedGen:C4551993 & Amyotrophic Lateral Sclerosis, Familial\\
 \addlinespace
-\rowcolor{gray!6}  21 & 3 & UMLS:CN239211 & NA & Amyotrophic Lateral Sclerosis/Frontotemporal Dementia\\
-22 & 1 & ClinVar:10103 & NA & Amyotrophic lateral sclerosis, typical\\
-\rowcolor{gray!6}  23 & 1 & ClinVar:10438 & NA & Amyotrophic lateral sclerosis, susceptibility to\\
-24 & 1 & ClinVar:10387 & NA & Amyotrophic lateral sclerosis 13\\
-\rowcolor{gray!6}  25 & 1 & ClinVar:32676 & NA & Amyotrophic lateral sclerosis 22 with frontotemporal dementia\\
+\rowcolor{gray!6}  21 & 3 & UMLS:CN239211 & Amyotrophic Lateral Sclerosis/Frontotemporal Dementia\\
+22 & 1 & ClinVar:10103 & Amyotrophic lateral sclerosis, typical\\
+\rowcolor{gray!6}  23 & 1 & ClinVar:10438 & Amyotrophic lateral sclerosis, susceptibility to\\
+24 & 1 & ClinVar:10387 & Amyotrophic lateral sclerosis 13\\
+\rowcolor{gray!6}  25 & 1 & ClinVar:32676 & Amyotrophic lateral sclerosis 22 with frontotemporal dementia\\
 \addlinespace
-26 & 1 & MONDO:0008178 & 10 & inclusion body myopathy with Paget disease of bone and frontotemporal dementia type 1\\
-\rowcolor{gray!6}  27 & 1 & ClinVar:10104 & NA & Amyotrophic lateral sclerosis-parkinsonism/dementia complex 1, susceptibility to\\
-28 & 1 & ClinVar:16925 & NA & Amyotrophic lateral sclerosis 14 without frontotemporal dementia\\
-\rowcolor{gray!6}  29 & 1 & HP:0007354 & 7 & Amyotrophic lateral sclerosis\\
+26 & 1 & MONDO:0008178 & inclusion body myopathy with Paget disease of bone and frontotemporal dementia type 1\\
+\rowcolor{gray!6}  27 & 1 & ClinVar:10104 & Amyotrophic lateral sclerosis-parkinsonism/dementia complex 1, susceptibility to\\
+28 & 1 & ClinVar:16925 & Amyotrophic lateral sclerosis 14 without frontotemporal dementia\\
+\rowcolor{gray!6}  29 & 1 & HP:0007354 & Amyotrophic lateral sclerosis\\
 \bottomrule
 \end{tabular}}
 \end{table}
@@ -691,31 +674,155 @@ cluster & clusterSize & id & level & values\\
 \hypertarget{visualizations}{%
 \subsection{Visualizations}\label{visualizations}}
 
-DODO is build as a meta-database incorporating several disease ontologies and their listed relationships. As disease concepts and definitions are not auto-generated but rather a human effort, concepts might not always be clearly defined or related to each other in a straightforward manner. The different ontologies employ hetergeneous definitions and cross-reference axes are not always exact. Using the \emph{explore\_disNet} and plotting function may increase understanding in how disease are defined across the different ontologies and visualize the relationship between different resources.
+DODO is build as a meta-database incorporating several disease ontologies and their listed relationships. As disease concepts and definitions are not auto-generated but rather a human effort, concepts might not always be clearly defined or related to each other in a straightforward manner. The different ontologies employ hetergeneous definitions, cross-reference axes are not always exact, and errors present in the original ontologies will impact DODO as well. Using the \emph{explore\_disNet} and plotting function may increase understanding in how disease are defined across the different ontologies and visualize the relationship between different resources.
 
 \hypertarget{connecting-to-external-resources}{%
 \subsection{Connecting to external resources}\label{connecting-to-external-resources}}
 
-The aim of DODO is to facilitate the connection with external resources. Defining a disNet around a disease of interest annotated with its all its cross-references and/or child terms across different ontologies aims to return an exhaustive network of disease identifier to connect to external resources.
+The aim of DODO is to facilitate the connection with external resources. By defining a \emph{disNet} around a disease of interest and annotating it with all its cross-references and/or child terms across different ontologies, the return will be an exhaustive network of disease identifier to connect to external resources. In addition, the use of a disNet across multiple resources ensures transitivity by defining a network of diseases allows tracing the connecting between these different resources more easily.
 
-Below this use with DODO will be exemplified by connecting to two different external resources ClinVar and CHEMBL for ``Amyotropic Lateral Sclerosis''. To compare this usage, the resources themselves (ClinVar and CHEMBL) are queried directly for this indication and the results compared to the use of a disNet. The disNet is constructed by querying for the term ``amyotrophic lateral sclerosis'' on labels and synonyms provided in DODO and using ``intransitive\_ambiguity = 1'' to return only equivalent identifiers. In addition the use of a disNet across multiple resources ensures transitivity by defining a network of equivalent diseases that allows tracing the connecting between these different resources more easily.
+Below this use case with DODO will be exemplified by connecting to two different external resources: ClinVar and CHEMBL for ``amyotropic lateral sclerosis'' (ALS). To compare this usage, the resources themselves (ClinVar and CHEMBL) are queried directly for this indication and the results compared to using DODO.
 
-Figure \ref{fig:disNetalsExtension} shows the retrieval of additional nodes not identified when querying directly for ``amyotrophic lateral sclerosis'' through either labels or synonyms. Extending the \texttt{nrow(disNet)} original nodes matching the query to return equivalent cross-reference relations as well as child terms, resulted in \texttt{nrow(edisNet)\ -\ nrow(disNet)} additional disease identifiers related to ``amyotrophic lateral sclerosis'' to be returned.
+The \emph{disNet} is constructed by querying for the term ``amyotrophic lateral sclerosis'' on labels and synonyms provided in DODO. This disNet is then extended to use the transitivity mappings to obtain indirect cross-references. The CHEMBL resource using the ontology of EFO and MeSH to annotated compounds with indication, while ClinVar uses a variety of ontologies such as SNOMEDCT, MedGen/UMLS, Orphanet, OMIM. Therefore, we are interested in equivalent cross-references edges only and have no need for broader terms, so the parameter \emph{intransitive\_ambiguity} to put to one.
+
+\textbf{disNet}
+
+The \emph{disNet} and consequent extension around ``amyotrophic lateral sclerosis'' returns 494 disease concepts across 25 ontologies. Figure \ref{fig:disNetalsExtension} shows the retrieval of additional nodes not identified when querying directly for ``amyotrophic lateral sclerosis'' through either labels or synonyms. 251nodes match the query term directly in either label or synonym information attached to the nodes.
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_extension} 
+{\centering \includegraphics[width=0.75\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_extension} 
 
 }
 
-\caption{The disNet build on the term 'amyotrophic lateral sclerosisr querying both labels and synonyms provided in DODO (green nodes). This disNet is subsequenctly extended to return all cross-reference identifiers and child terms using the extend\_disNet function (parameters 'relations = c('xref', 'child')' and to return only equivalent identifiers 'intransitive\_ambiguity = 1' is used (orange nodes).}\label{fig:disNetalsExtension}
+\caption{The disNet build on the term 'amyotrophic lateral sclerosisr querying both labels and synonyms provided in DODO (green nodes). This disNet is subsequenctly extended to return all cross-reference identifiers and child terms using the extend\_disNet function (orange nodes) (parameters 'relations = c('xref', 'child')' and 'intransitive\_ambiguity = 1' to return only equivalent identifiers ).}\label{fig:disNetalsExtension}
 \end{figure}
+
+By using the disNet to connect to the CHEMBL resource, 96 unique compounds are identified as being documented for amyotrophic lateral sclerosis in the database for 4 different disease identifiers (Table \ref{tab:chemblDisNetind}).
+
+\begin{table}
+
+\caption{\label{tab:chemblDisNetind}Using the disNet to connect to CHEMBL results identifies compounds available for different disease identifiers listed here.}
+\centering
+\begin{tabular}[t]{l|l}
+\hline
+dbid & name\\
+\hline
+MeSH:D000690 & Amyotrophic Lateral Sclerosis\\
+\hline
+EFO:0000253 & amyotrophic lateral sclerosis\\
+\hline
+ORPHA:98756 & Spinocerebellar ataxia type 2\\
+\hline
+EFO:0001356 & familial amyotrophic lateral sclerosis\\
+\hline
+\end{tabular}
+\end{table}
+
+Similarly, the \emph{disNet} is used to identify disease variants reported for amyotrophic lateral sclerosis in ClinVar. \texttt{rlength(unique(clinvar\_disnet\$entrez))} unique Entrez gene identifiers are reported for 44 different disease identifiers (Table \ref{tab:clinvarDisNetind}).
+
+\begin{table}
+
+\caption{\label{tab:clinvarDisNetind}Using the disNet to connect to CHEMBL results identifies compounds available for different disease identifiers listed here.}
+\centering
+\begin{tabular}[t]{l|l}
+\hline
+id & label\\
+\hline
+ClinVar:16012 & Amyotrophic lateral sclerosis 14, with or without frontotemporal dementia\\
+\hline
+ClinVar:38753 & AMYOTROPHIC LATERAL SCLEROSIS, SUSCEPTIBILITY TO, 25\\
+\hline
+ClinVar:10103 & Amyotrophic lateral sclerosis, typical\\
+\hline
+ClinVar:6638 & Amyotrophic lateral sclerosis type 12\\
+\hline
+ClinVar:10438 & Amyotrophic lateral sclerosis, susceptibility to\\
+\hline
+ClinVar:219 & Amyotrophic lateral sclerosis type 5\\
+\hline
+ClinVar:38525 & AMYOTROPHIC LATERAL SCLEROSIS 23\\
+\hline
+ClinVar:6240 & Spinocerebellar ataxia 2\\
+\hline
+ClinVar:21297 & Frontotemporal dementia and/or amyotrophic lateral sclerosis 2\\
+\hline
+ClinVar:36393 & Amyotrophic Lateral Sclerosis, Recessive\\
+\hline
+ClinVar:10387 & Amyotrophic lateral sclerosis 13\\
+\hline
+ClinVar:18288 & Amyotrophic lateral sclerosis 20\\
+\hline
+ClinVar:297 & Amyotrophic lateral sclerosis type 2\\
+\hline
+ClinVar:17308 & Amyotrophic lateral sclerosis 17\\
+\hline
+ClinVar:1898 & Amyotrophic lateral sclerosis and/or frontotemporal dementia 1\\
+\hline
+ClinVar:33549 & Frontotemporal dementia and/or amyotrophic lateral sclerosis 3\\
+\hline
+ClinVar:4575 & Amyotrophic lateral sclerosis type 8\\
+\hline
+ClinVar:32676 & Amyotrophic lateral sclerosis 22 with frontotemporal dementia\\
+\hline
+ClinVar:2302 & Inclusion body myopathy with early-onset Paget disease with or without frontotemporal dementia 1\\
+\hline
+ClinVar:239 & Amyotrophic lateral sclerosis type 11\\
+\hline
+ClinVar:4157 & Infantile-onset ascending hereditary spastic paralysis\\
+\hline
+ClinVar:393 & Amyotrophic lateral sclerosis type 9\\
+\hline
+ClinVar:10104 & Amyotrophic lateral sclerosis-parkinsonism/dementia complex 1, susceptibility to\\
+\hline
+ClinVar:16925 & Amyotrophic lateral sclerosis 14 without frontotemporal dementia\\
+\hline
+ClinVar:15814 & TARDBP-related frontotemporal dementia\\
+\hline
+ClinVar:3145 & Amyotrophic lateral sclerosis 21\\
+\hline
+ClinVar:241 & Amyotrophic lateral sclerosis type 4\\
+\hline
+ClinVar:32675 & Amyotrophic lateral sclerosis 22 with or without frontotemporal dementia\\
+\hline
+ClinVar:36372 & Amyotrophic Lateral Sclerosis, Dominant\\
+\hline
+ClinVar:38578 & AMYOTROPHIC LATERAL SCLEROSIS, SUSCEPTIBILITY TO, 24\\
+\hline
+ClinVar:298 & Amyotrophic lateral sclerosis type 6\\
+\hline
+ClinVar:238 & Amyotrophic lateral sclerosis type 1\\
+\hline
+ClinVar:296 & Amyotrophic lateral sclerosis type 10\\
+\hline
+ClinVar:9457 & Amyotrophic lateral sclerosis\\
+\hline
+ClinVar:16560 & Amyotrophic lateral sclerosis 15, with or without frontotemporal dementia\\
+\hline
+ClinVar:16701 & Amyotrophic lateral sclerosis 16, juvenile\\
+\hline
+ClinVar:17352 & Amyotrophic lateral sclerosis 18\\
+\hline
+ClinVar:18364 & Amyotrophic lateral sclerosis 19\\
+\hline
+ClinVar:11395 & Amyotrophic lateral sclerosis 1, autosomal recessive\\
+\hline
+ClinVar:9091 & Amyotrophic lateral sclerosis 6, autosomal recessive\\
+\hline
+ClinVar:18286 & Inclusion body myopathy with early-onset Paget disease with or without frontotemporal dementia 2\\
+\hline
+ClinVar:36408 & Amyotrophic Lateral Sclerosis/Frontotemporal Dementia\\
+\hline
+ClinVar:33572 & Frontotemporal dementia and/or amyotrophic lateral sclerosis 4\\
+\hline
+ClinVar:18287 & Inclusion body myopathy with early-onset paget disease with or without frontotemporal dementia 3\\
+\hline
+\end{tabular}
+\end{table}
 
 \textbf{CHEMBL}
 
-There are 96 compounds identified through 4 identified (identifiers: MeSH:D000690, EFO:0000253, ORPHA:98756, EFO:0001356) using the disNet while 96 compounds identified through 3 disease identifiers (identifiers: MeSH:D000690, EFO:0000253, EFO:0001356.
-
-Both approaches identify the same drug compounds but an additional disease was available through use of a disNet.
+There are 96 compounds identified through 3 disease identifiers when querying CHEMBL directly for amyotrophic lateral sclerosis. Both the direct query of CHEMBL and the use of the \emph{disNet} identify the same drug compounds but an additional disease was available through use of a \emph{disNet}.
 
 \begin{verbatim}
 ## 
@@ -729,7 +836,7 @@ Both approaches identify the same drug compounds but an additional disease was a
 ##           95            2           97
 \end{verbatim}
 
-This disease is a child term identified through extending the disNet (Figure \ref{fig:disnetALSchembl}). This term `ORPHA:98756' was identified as a child term of `EFO:0001356' with the extension of the disNet using DODO. The disease could not be identified through querying CHEMBL directly as it's labelled `Spinocerebellar ataxia type 2'". While this enriched extended network did not return additional compounds from CHEMBL in this example, the annotation of compounds used for treatment of ALS shows more granularity.
+This disease is a child term identified through extending the \emph{disNet} (Figure \ref{fig:disnetALSchembl}). This term `ORPHA:98756' was identified as a child term of `EFO:0001356' with the extension of the \emph{disNet} using DODO. The disease could not be identified through querying CHEMBL directly as it's labelled `Spinocerebellar ataxia type 2'". While this enriched extended network did not return additional compounds from CHEMBL in this example, the annotation of compounds used for treatment of ALS shows more granularity.
 
 \begin{figure}
 
@@ -742,11 +849,11 @@ This disease is a child term identified through extending the disNet (Figure \re
 
 \textbf{ClinVar}
 
-All entrez gene identifiers identified by querying the ClinVar resource directly for ``amyotrophic lateral sclerosis'' were also returned when using the disNet disease network. Contrary, using the disNet build around ALS returns 1 additional Entrez gene identifiers reported for ClinVar identifier ClinVar:18286 with label: Inclusion body myopathy with early-onset Paget disease with or without frontotemporal dementia 2. This identifier was identified through extending through cross-references edges through transitivity mapping related to ``ORPHA:52430'' which carries ``Pagetoid amyotrophic lateral sclerosis'' as a synonym (Figure \ref{fig:disnetALSclinvar}).
+All entrez gene identifiers identified by querying the ClinVar resource directly for ``amyotrophic lateral sclerosis'' were also returned when using the disNet disease network. However, the use of the \emph{disNet} around ALS returns 1 additional Entrez gene identifiers reported for ClinVar identifier ClinVar:18286 with label: Inclusion body myopathy with early-onset Paget disease with or without frontotemporal dementia 2. This identifier was identified through extending through cross-references edges through transitivity mapping related to ``ORPHA:52430'' which carries ``Pagetoid amyotrophic lateral sclerosis'' as a synonym (Figure \ref{fig:disnetALSclinvar}).
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_chembl} 
+{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_clinvar} 
 
 }
 
@@ -755,84 +862,78 @@ All entrez gene identifiers identified by querying the ClinVar resource directly
 
 \textbf{Tracing connections}
 
-When obtaining a list of variants or compounds directly from the resources it isn't possible to understand if the return disease identiers that originate from different ontologies are always dealing with the same disease concepts. An additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses. Figure \ref{fig:traceConn} shows the original ALS disNet with disease identifiers matching in CHEMBL (orange) and those matching in ClinVar (blue). As both resources use different ontologies as references, there is a necessity to use cross-reference to understand their relationship to each other. Indirect relationships are used and recorded when extending and can facilitate the understanding and integration of different biological resources.
+Understanding the relation between disease identifiers obtained when querying a resources directly through a search term is not a trivial thing. The question remains whether these identifiers are dealing with the same disease concepts. An additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses. Figure \ref{fig:traceConn} shows the original ALS extended disNet with disease identifiers matching in CHEMBL (orange) and those matching in ClinVar (blue). As both resources use different ontologies as references, there is a necessity to use cross-reference to understand their relationship to each other. Indirect relationships are used and recorded when extending and can facilitate the understanding and integration of different biological resources.
 
-\begin{center}\includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/trace_connections} \end{center}
+\begin{figure}
 
---\textgreater{}
+{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/trace_connections} 
+
+}
+
+\caption{A additional feature from connecting resources through the use of a disNet, is the possibility to identify if and how diseases returned from each resource are connected to each other. This does not only allow a better understanding of disease, but also facilitates downstream analyses.}\label{fig:traceConn}
+\end{figure}
 
 \hypertarget{conclusions}{%
 \section{Conclusions}\label{conclusions}}
 
-Disease ontologies have allowed a more formal classification of diseases and could facilitate the integration of several biological databases to increase disease understanding and develop novel treatments. However, efforts to integrate biological databases or the ontologies directly are complicated by ontology-specific identifiers, heterogeneous decisions on disease definitions, and the inherent presence of errors. Despite this efforts, we identified two remaning challenges:
+Disease ontologies have allowed a more formal classification of diseases. They facilitate the integration of biological databases thereby increasing disease understanding and supporting the development of novel treatments. However, efforts to integrate biological databases or the ontologies directly are complicated by ontology-specific identifiers, heterogeneous decisions on disease definitions, and the inherent presence of errors. Despite ongoing efforts, we identified two remaning challenges:
 
 \begin{itemize}
 \item
   Currently no resource provides a flexible and complete mapping across the multitude of disease ontologies
 \item
-  Availability of efficient and straightforward software on bioinformatics platform (R or python)
+  Availability of efficient and straightforward software on standard bioinformatics platform (R or python)
 \end{itemize}
 
-DODO R package contains several functions to build and interact with a disNet or convert concept identifiers between ontologies. The workflow to construct a custom, local DODO graphical database is provided with the intent to allow adaptation to specific needs and additional resources can be easily added without adaptation to the data model or R package.
+DODO database and R package aims to tackle these two challenges by constructing a meta-database containing information on disease identifiers and their relationships across different ontologies. Through the transitivity mechanisms, the information across resources can be used to identify indirect cross-references. The R package contains several functions to build and interact with a disNet or convert concept identifiers between ontologies. While the workflow to construct a custom, local DODO database is provided with the intent to allow adaptation and addition, a docker image with the presented ontologies is provided for ease of use.
 
-We believe that DODO can help clarify and define conditions of interest and explore and visualize relationships between disease concepts. This allows the exploration of a disease and how correct the different mappings between ontologies are. This hopefully helps to increase disease understanding to people inside and outside of the medical field. In addition, connecting different biological database (information on compounds, text mining, transcriptomics, etc.) through a disNet ensures these resources are queried using different equivalent identifiers of the disease of interest without the user being required to make decisions on these mappings. In addition, it also allows visualizing the connection between these resources directly.
+We believe that DODO can help clarify and define conditions of interest as well as aid in the understanding of relationships between disease concepts. We hope it improves accessibility of disease ontologies for a standard user. In addition, connecting different biological database (information on compounds, text mining, transcriptomics, etc.) through a disNet facilitates integration. It also ensures these resources are queried using equivalent identifiers of the disease of interest without the user being required to make decisions on these mappings. In addition, it also allows visualizing the connection between these resources directly.
 
 Through the aggregation of different ontologies and their mappings, DODO functions as a meta-database with easy access and possibility to estabblish a more exhaustive disease landscape. The code to build and query DODO is provided under open source license to allow further improvement by other developers.
-
---\textgreater{}
-
---\textgreater{}
 
 \hypertarget{software-availability}{%
 \section{Software availability}\label{software-availability}}
 
-This section will be generated by the Editorial Office before publication. Authors are asked to provide some initial information to assist the Editorial Office, as detailed below.
+The source code for parsing disease ontologies are available at:
 
-\begin{enumerate}
-\def\labelenumi{\arabic{enumi}.}
+\begin{itemize}
 \item
-  URL link to where the software can be downloaded from or used by a non-coder (AUTHOR TO PROVIDE; optional)
+  \url{https://github.com/Elysheba/Monarch}
 \item
-  URL link to the author's version control system repository containing the source code (AUTHOR TO PROVIDE; required)
+  \url{https://github.com/Elysheba/EFO}
 \item
-  Link to source code as at time of publication (\emph{F1000Research} TO GENERATE)
+  \url{https://github.com/Elysheba/Orphanet}
 \item
-  Link to archived source code as at time of publication (\emph{F1000Research} TO GENERATE)
+  \url{https://github.com/Elysheba/MedGen}
 \item
-  Software license (AUTHOR TO PROVIDE; required)
-\end{enumerate}
+  \url{https://github.com/Elysheba/MeSH}
+\item
+  \url{https://github.com/patzaw/HPO}
+\item
+  \url{https://github.com/patzaw/ClinVar}
+\item
+  \url{https://github.com/Elysheba/DO}
+\item
+  \url{https://github.com/Elysheba/ICD11}
+\end{itemize}
 
-\hypertarget{author-information}{%
-\section{Author information}\label{author-information}}
+The source code for DODO is available at:
+\url{https://github.com/Elysheba/DODO}
 
-In order to give appropriate credit to each author of an article, the individual contributions of each author to the manuscript should be detailed in this section. We recommend using author initials and then stating briefly how they contributed.
+A docker image of the DODO Neo4j instance is available at:
+\url{https://hub.docker.com/repository/docker/elysheba/dodo} (\url{tag:02.04.2020})
+Software is available to use under a GPL-3 license
 
 \hypertarget{competing-interests}{%
 \section{Competing interests}\label{competing-interests}}
 
-All financial, personal, or professional competing interests for any of the authors that could be construed to unduly influence the content of the article must be disclosed and will be displayed alongside the article. If there are no relevant competing interests to declare, please add the following: `No competing interests were disclosed'.
+No competing interests were disclosed.
 
 \hypertarget{grant-information}{%
 \section{Grant information}\label{grant-information}}
 
-Please state who funded the work discussed in this article, whether it is your employer, a grant funder etc. Please do not list funding that you have that is not relevant to this specific piece of research. For each funder, please state the funder's name, the grant number where applicable, and the individual to whom the grant was assigned. If your work was not funded by any grants, please include the line: `The author(s) declared that no grants were involved in supporting this work.'
-
-\hypertarget{acknowledgments}{%
-\section{Acknowledgments}\label{acknowledgments}}
-
-This section should acknowledge anyone who contributed to the research or the article but who does not qualify as an author based on the criteria provided earlier (e.g.~someone or an organization that provided writing assistance). Please state how they contributed; authors should obtain permission to acknowledge from all those mentioned in the Acknowledgments section.
-
-Please do not list grant funding in this section.
-
-\hypertarget{additional-advice-to-authors}{%
-\section{Additional advice to authors}\label{additional-advice-to-authors}}
-
-The content above is either taken directly from the F1000Research \LaTeX~template, or has been adpated to suit R Markdown. Here we provide some additional advice to authors based on our own and other users' experiences of article submission to F1000Research, which will hopefully make your own journey smoother. If you would like to contribute to this, please contact us at \url{https://github.com/grimbough/BiocWorkflowTools/issues/4}
-
-\begin{itemize}
-\item
-  When writing figure or tables captions do not use acronyms or abbreviations without explanation in the legend itself, even this has been addressed in the main text. F1000Research require each figure and table to be able to stand alone from the rest of the manuscript. \emph{Thanks to Mike Love \href{https://twitter.com/mikelove}{@mikelove}}
-\end{itemize}
+This work was entirely supported by UCB Pharma.
+The authors declared that no grants were involved in supporting this work.
 
 \bibliography{DODO.bib}
 

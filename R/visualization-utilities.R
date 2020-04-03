@@ -55,8 +55,8 @@ plot.disNet <- function(
                                              TRUE ~ "#8da0cb"),
                     title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
                     arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
-                                       BA == 1 ~ "from",
-                                       FA == 1 ~ "to",
+                                       BA == 1 ~ "to",
+                                       FA == 1 ~ "from",
                                        TRUE ~ "FALSE"))
   }
   if(any(c("child","parent") %in% relations) && !is.null(disNet$children)){
