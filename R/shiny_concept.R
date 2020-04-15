@@ -290,15 +290,17 @@ searchDODO <- function(searchTerm,
     
     ## query to get name, definition, label, synonym, level
     if(is.null(database)){
-      cql <- c('MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
+      cql <- c('MATCH (n:Concept)',
                'WHERE n.name IN $from',
+               'OPTIONAL MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
                'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
                'n.definition AS definition, ',
                's.value AS synonym, n.level AS level ORDER BY level DESC')
     }else{
       match.arg(database, list_database()$database, several.ok = FALSE)
-      cql <- c('MATCH (d:Database)<-[:is_in]-(n:Concept)-[:is_known_as]->(s:Synonym)',
+      cql <- c('MATCH (d:Database)<-[:is_in]-(n:Concept)',
                'WHERE n.name IN $from AND d.name IN $database',
+               'OPTIONAL MATCH (n:Concept)-[:is_known_as]->(s:Synonym)',
                'RETURN DISTINCT n.name AS id, n.label AS label, n.database as database,', 
                'n.definition AS definition, ',
                's.value AS synonym, n.level AS level ORDER BY level DESC')
