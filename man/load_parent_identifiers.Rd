@@ -17,6 +17,8 @@ parent identifiers (mandatory)
 }}
 
 \item{concept}{either "Disease" or "Phenotype"}
+
+\item{origin}{origin to add}
 }
 \description{
 Not exported to avoid unintended modifications of the DB.

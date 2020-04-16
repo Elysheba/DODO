@@ -14,6 +14,8 @@ load_concept_names(toImport, concept)
 taken (optional). If not provided or NA, the database field is used.
 \item shortID: \emph{character} short concept ID (mandatory)
 }}
+
+\item{concept}{concept type}
 }
 \description{
 Not exported to avoid unintended modifications of the DB.

@@ -7,6 +7,8 @@
 benchmark_remove_edges(type, concept)
 }
 \arguments{
+\item{type}{edge type}
+
 \item{concept}{either "Disease" or "Phenotype"}
 }
 \description{

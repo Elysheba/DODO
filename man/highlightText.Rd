@@ -6,6 +6,11 @@
 \usage{
 highlightText(text, value)
 }
+\arguments{
+\item{text}{text}
+
+\item{value}{value to highlight}
+}
 \description{
 Highlighting a term in a text with HTML
 }

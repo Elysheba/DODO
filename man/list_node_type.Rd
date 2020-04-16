@@ -13,6 +13,6 @@ Returns a list of all database in DODO
 Lists the different type of node present in the database
 }
 \examples{
-listType()
+list_node_type()
 
 }

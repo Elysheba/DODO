@@ -13,6 +13,6 @@ Returns a list of all database in DODO
 lists all databases present in the database
 }
 \examples{
-listDB()
+list_database()
 
 }

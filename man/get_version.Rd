@@ -13,6 +13,6 @@ Returns current version of DODO instance
 Returns the version of the current DODO database
 }
 \examples{
-getVersion()
+get_version()
 
 }

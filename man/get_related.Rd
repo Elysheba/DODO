@@ -12,8 +12,7 @@ get_related(
   deprecated = FALSE,
   transitive_ambiguity = 1,
   intransitive_ambiguity = NULL,
-  step = NULL,
-  verbose = FALSE
+  step = NULL
 )
 }
 \arguments{
@@ -33,7 +32,8 @@ to identify cross-references (default: 1)}
 \item{intransitive_ambiguity}{specification for backward ambiguity used
 in the final step of conversion (default: no filter)}
 
-\item{verbose}{show query input (default: FALSE)}
+\item{step}{number of steps to traverse when converting within concepts (default: NULL)
+(see details)}
 }
 \value{
 a dataframe with three columns:
@@ -61,6 +61,13 @@ where the same ambiguity specifications defined by
 \emph{intransitive_ambiguity}). Next the standard conversion is applied with a
 transitive mapping and final step where all cross-references one step removed
 are returned using both \emph{is_xref} and \emph{is_related} edges.
+}
+\examples{
+toRet <- get_related(from = "ICD10:G40.9",
+            to = "DOID",
+            from.concept = "Disease", 
+            to.concept = "Disease")
+
 }
 \seealso{
 convert_concept

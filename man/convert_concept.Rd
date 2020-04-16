@@ -12,8 +12,7 @@ convert_concept(
   deprecated = FALSE,
   transitive_ambiguity = 1,
   intransitive_ambiguity = NULL,
-  step = NULL,
-  verbose = FALSE
+  step = NULL
 )
 }
 \arguments{
@@ -35,8 +34,6 @@ step of conversion (default: no filter)}
 
 \item{step}{number of steps to traverse when converting within concepts (default: NULL)
 (see details)}
-
-\item{verbose}{show query input (default: FALSE)}
 }
 \value{
 a dataframe with three columns:
@@ -73,4 +70,10 @@ selecting edges below the ambiguity thresholds to traverse.
 If step = 1, only direct cross-references are returned using both \emph{is_xref} and \emph{is_related} edges.
 This is similar to the final step of the full conversion (step = NULL) and the intransitive_ambiguity
 can be used to specify the threshold on the backward ambiguity.
+}
+\examples{
+convert_concept(from = "MONDO:0005027",
+                to = "EFO", 
+                from.concept = "Disease",
+                to.concept = "Disease")
 }

@@ -6,6 +6,11 @@
 \usage{
 \method{dim}{disNet}(x, ...)
 }
+\arguments{
+\item{x}{disNet object}
+
+\item{...}{additional parameters}
+}
 \description{
 Returns the dimension of the nodes dataframe in a disNet object
 }

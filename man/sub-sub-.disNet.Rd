@@ -4,7 +4,12 @@
 \alias{[[.disNet}
 \title{Subset \code{[[}}
 \usage{
-\method{[[}{disNet}(x, i)
+\method{[[}{disNet}(x, ...)
+}
+\arguments{
+\item{x}{disNet object}
+
+\item{...}{additional parameters}
 }
 \description{
 Subset \code{[[}

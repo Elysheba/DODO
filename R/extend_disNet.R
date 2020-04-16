@@ -16,7 +16,6 @@
 #' @param intransitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: no filter)
 #' @param avoidNodes a vector of disease ids to be avoided in the search path
 # @param avoidOrigin: allows to avoid traversing parent/child edges from a particular ontology (default = NULL)
-#' @param verbose show query input (default = FALSE)
 #' 
 #' @details 
 #' 
@@ -42,10 +41,10 @@
 #' @return A normalized disease network 
 #' 
 #' @examples 
-#' disNet <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-#' extDisNet <- extendDisNet(disNet,relations = c("child","xref"), toAvoid = "MONDO:0100033")
+#' disNet <- build_disNet(term = "epilep")
+#' extDisNet <- extend_disNet(disNet, relations = c("child","xref"), avoidNodes = "MONDO:0100033")
 #' 
-#' @seealso buildDisNet
+#' @seealso build_disNet
 #' 
 #' @export
 #'
@@ -75,18 +74,18 @@ extend_disNet <- function(
   stopifnot(is.null(transitive.ambiguity) || transitive.ambiguity == 1,
             is.null(intransitive.ambiguity) || intransitive.ambiguity == 1)
   ## initiate empty df
-  pheno <- tibble(disease = character(),
+  pheno <- tibble::tibble(disease = character(),
                   phenotype = character())
-  syn <- tibble(id = character(),
+  syn <- tibble::tibble(id = character(),
                 synonym = character())
-  alt <- tibble(id = character(),
+  alt <- tibble::tibble(id = character(),
                 alt = character())
-  xref <- tibble(from = character(),
+  xref <- tibble::tibble(from = character(),
                  to = character(),
                  forwardAmbiguity = integer(),
                  backwardAmbiguity = integer(),
                  ur = character())
-  children = tibble(child = character(),
+  children = tibble::tibble(child = character(),
                     parent = character(),
                     origin = character())
   
@@ -142,7 +141,7 @@ extend_disNet <- function(
     ## run transitivity ----
     transitivity <- DODO::call_dodo(
         neo2R::cypher,
-        prepCql(cql.trans),
+        neo2R::prepCql(cql.trans),
         parameters = list(from = as.list(ids),
                           avoid = as.list(avoidNodes)),
         result = "row")
@@ -214,7 +213,7 @@ extend_disNet <- function(
     s <- grep("cql", ls(), value = TRUE)
     statements <- sapply(s,
                          function(x){
-                           prepCql(get(x))
+                           neo2R::prepCql(get(x))
                          },
                          USE.NAMES = FALSE,
                          simplify = FALSE)
@@ -273,7 +272,7 @@ extend_disNet <- function(
     )
     if(nrow(alt) != 0){
       alt <- call_dodo(cypher,
-                       prepCql(cql.alt),
+                       neo2R::prepCql(cql.alt),
                        result = "row",
                        parameters = list(from = as.list(ids))) %>%
         tibble::as_tibble() %>%
@@ -297,7 +296,7 @@ extend_disNet <- function(
             ls(), value = TRUE)
   statements <- sapply(s,
                        function(x){
-                         prepCql(get(x))
+                         neo2R::prepCql(get(x))
                        },
                        USE.NAMES = FALSE,
                        simplify = FALSE)

@@ -27,8 +27,6 @@ Possible values among combinations of: "xref", "child", "parent", and/or "pheno"
 \item{intransitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: no filter)}
 
 \item{avoidNodes}{a vector of disease ids to be avoided in the search path}
-
-\item{verbose}{show query input (default = FALSE)}
 }
 \value{
 A normalized disease network
@@ -60,10 +58,10 @@ However, obtaining diseases associated to a set of phenotype identifiers cannot 
 This can be done using the \emph{convertConcept} function first, then followed by \emph{extendDisNet} (see vignette).
 }
 \examples{
-disNet <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-extDisNet <- extendDisNet(disNet,relations = c("child","xref"), toAvoid = "MONDO:0100033")
+disNet <- build_disNet(term = "epilep")
+extDisNet <- extend_disNet(disNet, relations = c("child","xref"), avoidNodes = "MONDO:0100033")
 
 }
 \seealso{
-buildDisNet
+build_disNet
 }

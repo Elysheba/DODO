@@ -6,6 +6,11 @@
 \usage{
 \method{[}{disNet}(x, ...)
 }
+\arguments{
+\item{x}{disNet object}
+
+\item{...}{additional parameters}
+}
 \description{
 Subset \code{[}
 }

@@ -278,7 +278,7 @@ dodoCall <- function(f, ..., dodoCheck=FALSE){
 #' 
 #' lists all databases present in the database
 #' 
-#' @examples listDB()
+#' @examples list_database()
 #'
 #' @return Returns a list of all database in DODO
 #'
@@ -290,7 +290,7 @@ list_database <- function(){
            'RETURN n.name as database, count(r) as count')
   toRet <- call_dodo(
     neo2R::cypher,
-    prepCql(cql),
+    neo2R::prepCql(cql),
     result = "row"
   ) %>%
     tibble::as_tibble()
@@ -303,7 +303,7 @@ list_database <- function(){
 #' 
 #' Lists the different type of node present in the database
 #' 
-#' @examples listType()
+#' @examples list_node_type()
 #'
 #' @return Returns a list of all database in DODO
 #'
@@ -314,7 +314,7 @@ list_node_type <- function(){
            'RETURN labels(n) as type, count(n) as count')
   toRet <- call_dodo(
     neo2R::cypher,
-    prepCql(cql),
+    neo2R::prepCql(cql),
     result = "row"
   ) %>%
     tibble::as_tibble()
@@ -343,7 +343,7 @@ describe_concept <- function(ids){
            'RETURN n.name as id, n.label as label')
   toRet <- call_dodo(
     neo2R::cypher,
-    prepCql(cql),
+    neo2R::prepCql(cql),
     parameters = list(from = as.list(ids)),
     result = "row") %>%
     tibble::as_tibble()
@@ -363,7 +363,7 @@ describe_concept <- function(ids){
 #' @return Returns a database with id, origin, url, db, shortID
 #'  
 #' @examples
-#' getConceptUrl(ids = "MONDO:0005027")
+#' get_concept_url(ids = "MONDO:0005027")
 #' 
 #' @export
 #'
@@ -379,7 +379,7 @@ get_concept_url <- function(ids,
            'RETURN n.name as id, db.name as origin, db.idURL as url')
   toRet <- call_dodo(
     neo2R::cypher,
-    prepCql(cql),
+    neo2R::prepCql(cql),
     parameters = list(from = as.list(ids)),
     result = "row") %>%
     tibble::as_tibble() %>%
@@ -401,7 +401,7 @@ get_concept_url <- function(ids,
 #' 
 #' Returns the version of the current DODO database
 #'
-#' @examples getVersion()
+#' @examples get_version()
 #'
 #' @return Returns current version of DODO instance
 #'
@@ -412,7 +412,7 @@ get_version <- function(){
            'RETURN f.name as Name, f.instance as Instance, f.version as Version')
   toRet <- call_dodo(
     neo2R::cypher,
-    prepCql(cql),
+    neo2R::prepCql(cql),
     result = "row"
   ) %>%
     tibble::as_tibble()

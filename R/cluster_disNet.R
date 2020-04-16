@@ -15,9 +15,10 @@
 #' cross-reference or hierarchical edges.
 #' 
 #' @examples 
-#' setDisNet <- clusterDisNet(extDisNet,clusterOn = "xref")
+#' disNet <- build_disNet(term = "psoriasis")
+#' setDisNet <- cluster_disNet(disNet = disNet, clusterOn = "xref")
 #' 
-#' @seealso buildDisNet
+#' @seealso \code{\link{build_disNet}}
 #' @export
 #' 
 cluster_disNet <- function(disNet, 
@@ -65,25 +66,11 @@ cluster_disNet <- function(disNet,
     xref <- igraph::delete_edges(xref, 
                                  which(#igraph::E(xref)$forwardAmbiguity > forwardAmbiguity | 
                                          igraph::E(xref)$backwardAmbiguity > ambiguity))
-    ## Filter blacklist
-    # if(!all(is.na(avoidDB))){
-    #   edgeList <- igraph::as_edgelist(xref) %>%
-    #     tibble::as_tibble() %>%
-    #     dplyr::rename(from = V1,
-    #                   to = V2) %>%
-    #     dplyr::mutate(edge = paste(from, to, sep = "|"))
-    #   toRem <- edgeList %>%
-    #     dplyr::filter(grepl(paste(avoidDB, collapse = "|"),
-    #                         dplyr::pull(edgeList, edge))) 
-    #   toKeep <- edgeList %>%
-    #     dplyr::filter(!edge %in% toRem$edge)
-    #   xref <- igraph::induced_subgraph(xref, 
-    #                                    vids = which(igraph::V(xref)$name %in% toKeep$from))
-    # }
+
   }
   
   if(length(clusterOn) == 2){
-    pIgraph <- graph.union(child, xref)
+    pIgraph <- igraph::graph.union(child, xref)
   }else if (clusterOn == "children"){
     pIgraph <- child
   }else{
@@ -92,19 +79,12 @@ cluster_disNet <- function(disNet,
   
   ## Clustering
   cpIgraph <- igraph::clusters(pIgraph)
-  
-  # V(pIgraph)$color <- cpIgraph$membership+1
-  # pIgraph <- set_graph_attr(pIgraph, "layout", layout_with_kk(pIgraph))
-  # plot(pIgraph, layout=layout_nicely, vertex.label.dist=2)
-  # 
+
   ## Output clustering + add the blacklisted IDs back into each cluster
   if(cpIgraph$no == 0){
     toRet <- "NULL"
   }else if(cpIgraph$no == 1){
     cpIgraph <- names(cpIgraph$membership)
-    # if(any(cpIgraph %in% toRem$to)){
-    #   cpIgraph <- c(cpIgraph, unique(toRem$from[which(toRem$to %in% cpIgraph)]))
-    # }
     toRet <- list("1" = filter_by_id(disNet, cpIgraph))
     class(toRet) <- "setDisNet"
   }else{
@@ -113,7 +93,7 @@ cluster_disNet <- function(disNet,
       dplyr::pull(id)
     missing <- sapply(missing, function(x){x}, USE.NAMES = FALSE, simplify = FALSE)
     ##
-    cpIgraph <- unstack(
+    cpIgraph <- utils::unstack(
       data.frame(
         n=names(cpIgraph$membership),
         c=cpIgraph$membership,

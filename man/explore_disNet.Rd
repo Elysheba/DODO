@@ -12,6 +12,8 @@ explore_disNet(disNet, show = "label", terms = NULL, ...)
 \item{show}{the description to be returned (label, synonym, definition)}
 
 \item{terms}{the terms to be highlighted}
+
+\item{...}{additional parameters for DT}
 }
 \value{
 A \code{\link{datatable}} object.
@@ -21,6 +23,7 @@ Explore a disNet by a datatable highlighting a particular
 term within the information provided by label, synonym or definition.
 }
 \examples{
-exploreDisNet(extDisNet, show = c("label"), terms = "epilep")
+disNet <- build_disNet(term = "psoriasis")
+explore_disNet(disNet, show = c("label"), terms = "epilep")
 
 }

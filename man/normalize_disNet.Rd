@@ -7,7 +7,7 @@
 normalize_disNet(x)
 }
 \arguments{
-\item{disNet}{a disease network to normalize}
+\item{x}{a disease network to normalize}
 }
 \value{
 A normalized disease network, disNet

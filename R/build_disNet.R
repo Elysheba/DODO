@@ -10,12 +10,9 @@
 #' @param id disease id to include in the network
 #' @param term a character vector of terms to search (e.g. "epilepsy")
 #' @param fields the field(s) where to look for matches (default: c(label, synonym)).
-#' @param forwardAmbiguity level of forward ambiguity allowed
-#' (default: 10000 ==> ~no filter)
-#' @param backwardAmbiguity level of backward ambiguity allowed
+#' @param ambiguity level of backward ambiguity allowed
 #' (default: 1 ==> no ambiguity allowed)
-#' @param avoidOrigin: allows to avoid traversing parent/child edges from a particular ontology
-#' @param verbose show query input (default = FALSE)
+#' @param avoidOrigin avoid a particular origin 
 #' 
 #' @details 
 #' The disNet object is constructed around the return 
@@ -86,6 +83,7 @@
 #' 
 #' @examples 
 #' build_disNet(id = "MONDO:0005027")
+#' build_disNet(term = "epilepsy")
 #' 
 #' @export
 #' 
@@ -188,11 +186,11 @@ build_disNet <- function(id = NULL,
     cql.pheno <- c('MATCH (n:Disease)-[r:has_pheno]->(p:Phenotype)',
                    'WHERE n.name IN $from AND p.name IN $from',
                    'RETURN DISTINCT n.name AS disease, p.name AS phenotype')
-    statements <- list(nodes = prepCql(cql.nodes),
-                       syn = prepCql(cql.syn),
-                       xref = prepCql(cql.xref),
-                       child = prepCql(cql.child),
-                       pheno = prepCql(cql.pheno))
+    statements <- list(nodes = neo2R::prepCql(cql.nodes),
+                       syn = neo2R::prepCql(cql.syn),
+                       xref = neo2R::prepCql(cql.xref),
+                       child = neo2R::prepCql(cql.child),
+                       pheno = neo2R::prepCql(cql.pheno))
   
   #######################@
   # Send queries ----
@@ -284,6 +282,10 @@ build_disNet <- function(id = NULL,
 #========================================================================================@
 #========================================================================================@
 #' Check validity 
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 
 is.disNet <- function(x, ...){
@@ -294,6 +296,10 @@ is.disNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' Prints a disNet object
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 
 print.disNet <- function(x, ...){
@@ -305,18 +311,30 @@ print.disNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' format disNet
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 format.disNet <- function(x, ...){
-  toRet <-    c(capture.output(x$nodes),
+  toRet <-    c(utils::capture.output(x$nodes),
                 "",
                 "The disNet contains:",
                 paste(" - ", 
-                      x$nodes %>% dplyr::filter(grepl("Disease", type)) %>% nrow(), 
+                      x$nodes %>% 
+                        dplyr::filter(grepl("Disease", type)) %>% 
+                        nrow(), 
                       "disease nodes from", 
-                      length(unique(x$nodes %>% filter(grepl("Disease", type)) %>% pull(database))), 
+                      length(unique(x$nodes %>% 
+                                      dplyr::filter(grepl("Disease", type)) %>% 
+                                      dplyr::pull(database))), 
                       "ontologies and",
-                      x$nodes %>% dplyr::filter(grepl("Phenotype", type)) %>% nrow(), 
+                      x$nodes %>% 
+                        dplyr::filter(grepl("Phenotype", type)) %>% 
+                        nrow(), 
                       "phenotype nodes from", 
-                      length(unique(x$nodes %>% filter(grepl("Phenotype", type)) %>% pull(database))), 
+                      length(unique(x$nodes %>% 
+                                      dplyr::filter(grepl("Phenotype", type)) %>% 
+                                      dplyr::pull(database))), 
                       "ontologies "),
                 paste(" - ", nrow(x$synonyms), "synonyms of the disease nodes"),
                 paste(" - ", nrow(x$children), "parent/child edges"),
@@ -331,6 +349,10 @@ format.disNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' Returns the number of nodes in a disNet object
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 
 length.disNet <- function(x, ...){
@@ -342,6 +364,10 @@ length.disNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' Returns the dimension of the nodes dataframe in a disNet object
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 
 dim.disNet <- function(x, ...){
@@ -353,6 +379,10 @@ dim.disNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' Subset `[`
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 #' 
 '[.disNet' <- function(x, ...){
@@ -362,9 +392,13 @@ dim.disNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' Subset `[[`
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 #' 
-'[[.disNet' <- function(x, i){
+'[[.disNet' <- function(x, ...){
   
   stop("Action not allowed on a disNet object")
   
@@ -397,13 +431,14 @@ dim.disNet <- function(x, ...){
 #' Merge several disease networks
 #' 
 #' @param ... disease networks to merge
+#' @param list list object with disease networks to merge
 #'
 #' @return A normalized merged disease network 
 #' 
 #' @examples 
-#' disNet1 <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-#' disNet2 <- buildDisNetByTerm("alzheim",fields = c("synonym","label","definition"))
-#' mergeDisNet <- mergeDisNet(disNet1,disNet2)
+#' disNet1 <- build_disNet(term = "epilep")
+#' disNet2 <- build_disNet(term = "alzheim")
+#' mergeDisNet <- c(disNet1, disNet2)
 #' 
 #' @export
 c.disNet <- function(...,
@@ -435,7 +470,7 @@ c.disNet <- function(...,
 #' 
 #' This function ensure that disease network properties are fulfilled.
 #' 
-#' @param disNet a disease network to normalize
+#' @param x a disease network to normalize
 #' 
 #' @return A normalized disease network, disNet
 #' 

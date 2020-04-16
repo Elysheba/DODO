@@ -6,6 +6,11 @@
 \usage{
 is.setDisNet(x, ...)
 }
+\arguments{
+\item{x}{disNet object}
+
+\item{...}{additional parameters}
+}
 \description{
 Check validity of setDisNet object
 }

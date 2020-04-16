@@ -15,7 +15,6 @@
 #' step of conversion (default: no filter)
 #' @param step number of steps to traverse when converting within concepts (default: NULL) 
 #' (see details)
-#' @param verbose show query input (default: FALSE)
 #' 
 #' @details Conversion is performed in different steps, first identifiers are converted 
 #' (if requested) within a concept, otherwise stated, their cross-references are 
@@ -44,6 +43,11 @@
 #' - from: identifier to convert
 #' - to: returned conversion
 #' 
+#' @examples 
+#' convert_concept(from = "MONDO:0005027",
+#'                 to = "EFO", 
+#'                 from.concept = "Disease",
+#'                 to.concept = "Disease")
 #' @export
 #' 
 convert_concept <- function(from, 
@@ -53,8 +57,7 @@ convert_concept <- function(from,
                             deprecated = FALSE,
                             transitive_ambiguity = 1,
                             intransitive_ambiguity = NULL,
-                            step = NULL,
-                            verbose = FALSE){
+                            step = NULL){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    db.to <- match.arg(to, c(NULL, list_database()$database))
@@ -96,7 +99,7 @@ convert_concept <- function(from,
          )
          toRet <- call_dodo(
                neo2R::cypher,
-               prepCql(cql),
+               neo2R::prepCql(cql),
                parameters = list(from = as.list(from)),
                result = "row") %>%
             tibble::as_tibble()
@@ -116,14 +119,13 @@ convert_concept <- function(from,
             sprintf('MATCH (e)-[%s]->(e2)',
                     relationship),
             'RETURN DISTINCT',
-            's.name as from, e2.name as to'
-            # '(nodes(path))[0].name AS from, ',
-            # 'last(nodes(path)).name AS to, ',
-            # 'size(relationships(path)) AS hops'
-         )
+            's.name as from, e2.name as to')
+            # (nodes(path))[0].name AS from
+            # last(nodes(path)).name AS to
+            # size(relationships(path)) AS hops
          toRet <- call_dodo(
                neo2R::cypher,
-               prepCql(cql),
+               neo2R::prepCql(cql),
                parameters = list(from = as.list(from)),
                result = "row") %>%
             tibble::as_tibble()
@@ -133,7 +135,7 @@ convert_concept <- function(from,
          b1 <- toRet
       }
    }else{
-      b1 <- tibble(from = from,
+      b1 <- tibble::tibble(from = from,
                    to = from)
    }
    
@@ -217,7 +219,8 @@ convert_concept <- function(from,
 #' to identify cross-references (default: 1)
 #' @param intransitive_ambiguity specification for backward ambiguity used 
 #' in the final step of conversion (default: no filter)
-#' @param verbose show query input (default: FALSE)
+#' @param step number of steps to traverse when converting within concepts (default: NULL) 
+#' (see details)
 #' 
 #' @details The specific conversion procedure is recommended for the ontologies that 
 #' consider disease concepts that are (only) connected through *is_related* edges
@@ -239,6 +242,12 @@ convert_concept <- function(from,
 #' 
 #' @seealso convert_concept
 #' 
+#' @examples
+#' toRet <- get_related(from = "ICD10:G40.9",
+#'             to = "DOID",
+#'             from.concept = "Disease", 
+#'             to.concept = "Disease")
+#' 
 #' @export
 #' 
 get_related <- function(from, 
@@ -248,8 +257,7 @@ get_related <- function(from,
                         deprecated = FALSE,
                         transitive_ambiguity = 1,
                         intransitive_ambiguity = NULL,
-                        step = NULL,
-                        verbose = FALSE){
+                        step = NULL){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    db.to <- match.arg(to, c(NULL, list_database()$database))
@@ -279,8 +287,7 @@ get_related <- function(from,
                                to.concept = to.concept,
                                deprecated = deprecated,
                                transitive_ambiguity = transitive_ambiguity,
-                               intransitive_ambiguity = intransitive_ambiguity,
-                               verbose = verbose)
+                               intransitive_ambiguity = intransitive_ambiguity)
 
    finConv <- dodoConv %>%
       dplyr::left_join(relConv,

@@ -10,16 +10,16 @@
 #' @param relations relationships to plot, can take "xref","child" and/or "parent" as values
 #' @param number Number of nodes to plot without igraph. If the number of nodes exceeds, 
 #' igraph will be used (integer)
-#' @param igraph use visIgraphLayout() (default = TRUE)
+#' @param igraph use visIgraphLayout (default = TRUE)
 #' @param labelling use either disease identifier or both disease identifier and label 
 #' to label nodes (default = FALSE)
+#' @param ... additional parameters for visNetwork
 #'  
 #' @return A \code{\link{visNetwork}} object.
 #' 
 #' @examples 
-#' disNet <- extendDisNet(buildDisNetByID(id = "MONDO:0005027"))
-#' plot.disNet(disNet) 
-#' 
+#' disNet <- build_disNet(term = "psoriasis") 
+#' plot(disNet) 
 #' @export
 #' 
 plot.disNet <- function(
@@ -40,7 +40,7 @@ plot.disNet <- function(
   col <- DODO:::color_database(disNet = disNet)
   
   ## Edges
-  edges <- tibble(from = character(),
+  edges <- tibble::tibble(from = character(),
                   to = character(),
                   title = character(),
                   arrows = character())
@@ -54,7 +54,7 @@ plot.disNet <- function(
       dplyr::mutate(color = dplyr::case_when(grepl("is_related", type) ~ "#fc8d62",
                                              TRUE ~ "#8da0cb"),
                     title = paste(gsub("_nba", "", type), ", FA = ", FA, ", BA = ", BA),
-                    arrows = case_when(FA == 1 & BA == 1 ~ "to;from",
+                    arrows = dplyr::case_when(FA == 1 & BA == 1 ~ "to;from",
                                        BA == 1 ~ "to",
                                        FA == 1 ~ "from",
                                        TRUE ~ "FALSE"))
@@ -76,10 +76,10 @@ plot.disNet <- function(
                   database,
                   label) %>%
     dplyr::mutate(color = col[database],
-                  shape = case_when(id %in% disNet$seed ~ "triangle",
+                  shape = dplyr::case_when(id %in% disNet$seed ~ "triangle",
                                     TRUE ~ "dot"),
                   lbl = label,
-                  label = case_when(labelling ~ paste(id, lbl, sep = " | "),
+                  label = dplyr::case_when(labelling ~ paste(id, lbl, sep = " | "),
                                     TRUE ~ id),
                   title = paste(id, lbl, sep = " | ")) 
   
@@ -113,14 +113,16 @@ plot.disNet <- function(
 #' @param relations relationships to plot, can take "xref","child" and/or "parent" as values
 #' @param cluster cluster to plot
 #' @param number Number of nodes to plot without igraph. If the number of nodes exceeds, igraph will be used (integer)
-#' @param igraph use visIgraphLayout() (default = TRUE)
+#' @param igraph use visIgraphLayout (default = TRUE)
 #' @param labelling use either disease identifier or both disease identifier and label 
 #' to label nodes (default = FALSE)
+#' @param ... additional parameters for visNetwork
 #' 
 #' @return A \code{\link{visNetwork}} object.
 #' 
 #' @examples 
-#' disNet <- clusterDisNet(extendDisNet(buildDisNetByTerm(id = "ALS")), clusterOn = "xref")#' 
+#' disNet <- build_disNet(term = "psoriasis") 
+#' disNet <- cluster_disNet(disNet)
 #' plot(disNet, cluster = 1) 
 #' 
 #' @export
@@ -158,14 +160,11 @@ plot.setDisNet <- function(
 #' The initial identifier is represented by a triangle, each node is colored based on the database. The edges
 #' between nodes are colored based on the ambiguity equal to one or larger.
 #' 
-#' @param dbid concept identifier formatted as db:id
-#' @param relations the kind of relationships to take into account -> xref
+#' @param id concept identifier formatted as db:id
 #' @param step the depth of the search (default: 10000 ==> ~exhaustive)
 #' @param transitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
 # @param FA.non_transitivity forward ambiguity while using transitivity to identify cross-references (default: no filter)
 #' @param intransitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: no filter)
-#' @param blacklist a vector of databases to avoid when extending (default = NA)
-#' @param whitelist a vector of databases to trust when extending, only going through these database nodes (default = NA) 
 #' 
 #' @details 
 #' The edges are formatted based on forward ambiguity and type of the edge. 
@@ -174,7 +173,6 @@ plot.setDisNet <- function(
 #' The solid lines are used for *is_xref* edges, while dashed lines are
 #' used from *is_related* edges.
 #' 
-#' @seealso extendDisNet
 #' 
 #' @export
 
@@ -214,10 +212,10 @@ show_relations <- function(id,
                                            TRUE ~ "#7fcdbb"),
                   title = paste("Forward ambiguity = ", ambiguity),
                   type = gsub("_nba", "", type),
-                  dashes = case_when(type == "is_xref" ~ FALSE,
+                  dashes = dplyr::case_when(type == "is_xref" ~ FALSE,
                                      TRUE ~ TRUE),
                   arrows = "to") %>%
-    distinct()
+    dplyr::distinct()
   edges2 <- xref$xref %>%
     dplyr::select(to = from, 
                   from = to,
@@ -227,10 +225,10 @@ show_relations <- function(id,
                                            TRUE ~ "#7fcdbb"),
                   title = paste("Forward ambiguity = ", ambiguity),
                   type = gsub("_nba", "", type),
-                  dashes = case_when(type == "is_xref" ~ FALSE,
+                  dashes = dplyr::case_when(type == "is_xref" ~ FALSE,
                                      TRUE ~ TRUE),
                   arrows = "to") %>%
-    distinct()
+    dplyr::distinct()
   edges <- dplyr::bind_rows(edges1,
                             edges2) %>%
     dplyr::distinct()
@@ -255,6 +253,8 @@ show_relations <- function(id,
 #' 
 #' Function to return set colours for disease ontology resources
 #' 
+#' @param disNet disNet object
+#' 
 color_database <- function(disNet){
   ## file
   dodoDir <- file.path(Sys.getenv("HOME"),"R","DODO")
@@ -274,7 +274,7 @@ color_database <- function(disNet){
                       RColorBrewer::brewer.pal(n = 8, name = "Paired")))
       db <- list_database()
       col <- col[1:nrow(database)]
-      names(col) <- pull(database, database)
+      names(col) <- dplyr::pull(database, database)
       save(col, file = colFile)
     }
   }else{
@@ -288,7 +288,7 @@ color_database <- function(disNet){
                     RColorBrewer::brewer.pal(n = 8, name = "Paired")))
     db <- list_database()
     col <- col[1:nrow(db)]
-    names(col) <- pull(db, database)
+    names(col) <- dplyr::pull(db, database)
     save(col, file = colFile)
   }
   return(col)
@@ -304,11 +304,13 @@ color_database <- function(disNet){
 #' @param disNet a disease network
 #' @param show the description to be returned (label, synonym, definition) 
 #' @param terms the terms to be highlighted
+#' @param ... additional parameters for DT
 #' 
 #' @return A \code{\link{datatable}} object.
 #' 
 #' @examples 
-#' exploreDisNet(extDisNet, show = c("label"), terms = "epilep")
+#' disNet <- build_disNet(term = "psoriasis")
+#' explore_disNet(disNet, show = c("label"), terms = "epilep")
 #' 
 #' @export
 #' 
@@ -328,9 +330,9 @@ explore_disNet <- function(disNet,
       toShow <- disNet$synonyms
       if(nrow(toShow) > 1 & nrow(toShow) > length(unique(toShow$id))){
         if(length(unique(toShow$id)) > 1){
-          toShow <- unstack(x = toShow, synonym ~ id)
+          toShow <- utils::unstack(x = toShow, synonym ~ id)
           toShow <- lapply(toShow,function(x) paste(x,collapse = " <br> "))
-          toShow <- stack(toShow)
+          toShow <- utils::stack(toShow)
           toShow <- toShow[,c(2,1)]
         }else{
           toShow <- data.frame(ind = unique(toShow$id),
@@ -361,7 +363,7 @@ explore_disNet <- function(disNet,
                                  dplyr::arrange(level, label) %>%
                                  dplyr::mutate(clusterSize = length(id)) %>%
                                  dplyr::slice(1) %>%
-                                 dplyr::mutate(values = case_when(show == "label" ~ label,
+                                 dplyr::mutate(values = dplyr::case_when(show == "label" ~ label,
                                                                   show == "definition" ~ definition,
                                                                   TRUE ~ NA_character_),
                                                cluster = counter)
@@ -399,6 +401,9 @@ explore_disNet <- function(disNet,
 #' Highlight function 
 #' 
 #' Highlighting a term in a text with HTML
+#' 
+#' @param text text
+#' @param value value to highlight
 #' 
 #' 
 highlightText <- function(text, value){

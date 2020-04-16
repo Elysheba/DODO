@@ -6,6 +6,11 @@
 \usage{
 \method{print}{disNet}(x, ...)
 }
+\arguments{
+\item{x}{disNet object}
+
+\item{...}{additional parameters}
+}
 \description{
 Prints a disNet object
 }

@@ -2,21 +2,20 @@
 #' Shiny app to identify and browse indications
 #' 
 #' @import shiny
-#' @importFrom shinythemes shinytheme
 #' @importFrom DT DTOutput renderDT
 #' 
 #' @export
 
 shinyConcept <- function(){
-  library(shiny)
-  library(DT)
-  library(shinythemes)
+  # library(shiny)
+  # library(DT)
+  # library(shinythemes)
   
   if(!DODO:::check_dodo_connection()){
     stop("No connection to DODO instance")
   }
   
-  ui <- fluidPage(theme = shinytheme("cerulean"),
+  ui <- fluidPage(#theme = shinytheme("cerulean"),
                   # navbarPage(title = "UCB - New Medicines - Braine on bel040344",
                   fluidRow(column(11,
                                   conceptSearchInput(id = "query",
@@ -94,6 +93,11 @@ shinyConcept <- function(){
 #' Shiny ui module to search concepts
 #' 
 #' Shiny module to browse diseases and phenotypes by id (db:id) or term 
+#' 
+#' @param id id
+#' @param label search term
+#' @param internal Only provide reference ontology MONDO (TRUE) or allow choice in ontologies (FALSE)
+#' 
 #' @return disNet
 #' 
 #' @export
@@ -146,6 +150,12 @@ conceptSearchInput <- function(id,
 #' Shiny server module to search concepts
 #' 
 #' Shiny module to browse diseases and phenotypes by id (db:id) or term 
+#' 
+#' @param input input
+#' @param output output
+#' @param session session
+#' @param internal Only provide reference ontology MONDO (TRUE) or allow choice in ontologies (FALSE)
+#' 
 #' @return disNet
 #' @export
 #' @import stringr
@@ -258,6 +268,7 @@ conceptSearch <- function(input, output, session, internal = TRUE){
 #' @param database if provided, 
 #' @param type the type of the searchTerm, either id or name
 #' @param fields If a term is search, fields can be specified to label and synonym. By default all fields are used.
+#' @param exact exact match term
 #' 
 #' 
 searchDODO <- function(searchTerm,
@@ -286,7 +297,7 @@ searchDODO <- function(searchTerm,
     }
     
     ## Seed
-    seed <- find_id(id = searchTerm)
+    seed <- find_id(ids = searchTerm)
     
     ## query to get name, definition, label, synonym, level
     if(is.null(database)){
@@ -305,8 +316,8 @@ searchDODO <- function(searchTerm,
                'n.definition AS definition, ',
                's.value AS synonym, n.level AS level ORDER BY level DESC')
     }
-    toRet <- call_dodo(cypher,
-                       prepCql(cql),
+    toRet <- call_dodo(neo2R::cypher,
+                       neo2R::prepCql(cql),
                        result = "row",
                        parameters = list(from = as.list(seed),
                                          database = as.list(database))) %>%
@@ -342,14 +353,14 @@ searchDODO <- function(searchTerm,
                'n.definition AS definition, ',
                's.value AS synonym, n.level AS level ORDER BY level DESC')
     }
-    toRet <- call_dodo(cypher,
-                       prepCql(cql),
+    toRet <- call_dodo(neo2R::cypher,
+                       neo2R::prepCql(cql),
                        result = "row",
                        parameters = list(from = as.list(seed),
                                          database = as.list(database))) %>%
       tibble::as_tibble()
     if(nrow(toRet) == 0){
-      toRet <- tibble(id = character(),
+      toRet <- tibble::tibble(id = character(),
                       label = character(),
                       database = character(),
                       definition = character(),

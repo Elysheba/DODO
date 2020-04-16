@@ -18,6 +18,6 @@ Returns a database with id, origin, url, db, shortID
 Returns a vector of urls of the provided concept identifiers
 }
 \examples{
-getConceptUrl(ids = "MONDO:0005027")
+get_concept_url(ids = "MONDO:0005027")
 
 }

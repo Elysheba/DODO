@@ -16,12 +16,8 @@
 #' @return A normalized disease network 
 #' 
 #' @examples 
-#' 
-#' df <- as.data.frame(id = c("ORPHA:86814","MONDO:0005099"),
-#'                     database = c("ORPHA","MONDO"))
-#' buildDisNetByID(df = df)
-#' extDisNet <- extendDisNet(disNet,relations = c("child","xref"), toAvoid = "MONDO:0100033")
-#' focusDisNet <- focusNet(disNet = extDisNet,diseaseID = "MONDO:0015955",steps = 2)
+#' disNet <- build_disNet(term = "epilepsy")
+#' focusDisNet <- focus_disNet(disNet = disNet, diseaseID = "EFO:0000474", steps = 2)
 #' 
 #' @export
 #' 
@@ -34,18 +30,22 @@ focus_disNet <- function(disNet,
   edges <- data.frame()
   if("child" %in% relationship){
     edges <- rbind(edges, 
-                   setNames(disNet$children[,c("parent", "child")], 
-                            nm = c("from", "to")))
-  }
+                   dplyr::select(disNet$children,
+                                 from = parent,
+                                 to = child))
+    }
   if("parent" %in% relationship){
     edges <- rbind(edges, 
-                   setNames(disNet$children[,c("child", "parent")], 
-                            nm = c("from", "to")))
+                   dplyr::select(disNet$children,
+                                 from = child,
+                                 to = parent))
   }
   if("xref" %in% relationship){
     edges <- rbind(edges, 
                    disNet$xref[, c("from", "to")],
-                   setNames(disNet$xref[, c("from", "to")], nm = c("to","from")))
+                   dplyr::select(disNet$xref,
+                                 from = to,
+                                 to = from))
   }
   toTake <- diseaseID
   nsteps <- 0

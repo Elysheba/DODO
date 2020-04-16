@@ -6,6 +6,11 @@
 \usage{
 \method{format}{disNet}(x, ...)
 }
+\arguments{
+\item{x}{disNet object}
+
+\item{...}{additional parameters}
+}
 \description{
 format disNet
 }

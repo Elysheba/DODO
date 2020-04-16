@@ -26,9 +26,10 @@ connected components in a graph. These connected identifiers can identified usin
 cross-reference or hierarchical edges.
 }
 \examples{
-setDisNet <- clusterDisNet(extDisNet,clusterOn = "xref")
+disNet <- build_disNet(term = "psoriasis")
+setDisNet <- cluster_disNet(disNet = disNet, clusterOn = "xref")
 
 }
 \seealso{
-buildDisNet
+\code{\link{build_disNet}}
 }

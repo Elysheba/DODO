@@ -8,6 +8,8 @@
 }
 \arguments{
 \item{...}{disease networks to merge}
+
+\item{list}{list object with disease networks to merge}
 }
 \value{
 A normalized merged disease network
@@ -16,8 +18,8 @@ A normalized merged disease network
 Merge several disease networks
 }
 \examples{
-disNet1 <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-disNet2 <- buildDisNetByTerm("alzheim",fields = c("synonym","label","definition"))
-mergeDisNet <- mergeDisNet(disNet1,disNet2)
+disNet1 <- build_disNet(term = "epilep")
+disNet2 <- build_disNet(term = "alzheim")
+mergeDisNet <- c(disNet1, disNet2)
 
 }

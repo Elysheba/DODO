@@ -17,7 +17,7 @@ check_df_to_import <- function(toImport, tlc, mandatory){
   }
   for(cn in names(tlc)){
     values <- toImport[, cn, drop=TRUE]
-    if(!is(values, tlc[cn])){
+    if(!methods::is(values, tlc[cn])){
       stop(sprintf("%s should be a %s", cn, tlc[cn]))
     }
     if(cn %in% mandatory && any(is.na(values))){
@@ -93,7 +93,7 @@ load_dodo_model <- function(){
 #' depth (depth in the hierarchy), leaf, treeCode, parent (parent identifier)
 #' @param CortellisONT_ciIndicationXref dataframe from CortellisONT ciIndication with indicationId, source, 
 #' xref, dbRef, direct
-#' @param tkcon Connection to TKCat instance to check for missing identifiers
+#' @param checkMissing check for missing identifiers in provided file path (NULL don't check)
 #' 
 #' @return list with harmonized dataframes
 #' 
@@ -284,7 +284,7 @@ harmonize_Cortellis <- function(CortellisONT_siConditions,
     dplyr::mutate(dbid = str_c(DB, id, sep = ":"),
                   level = as.numeric(level)) %>%
     dplyr::select(dbid, level) %>%
-    dplyr::arrange(desc(level)) %>%
+    dplyr::arrange(dplyr::desc(level)) %>%
     dplyr::distinct(dbid, .keep_all = TRUE) %>%
     dplyr::mutate(level = level -1)
   
@@ -380,7 +380,7 @@ harmonize_HPO <- function(HPO_diseaseHP,
     dplyr::mutate(DB = "HP") %>%
     dplyr::mutate(dbid = str_c(DB, id, sep = ":")) %>%
     dplyr::filter(!is.na(syn)) %>%
-    dplyr::arrange(desc(canonical)) %>%
+    dplyr::arrange(dplyr::desc(canonical)) %>%
     dplyr::distinct(dbid, syn, .keep_all = TRUE)
   
   ## Entry Id: phenotype + disease ids
@@ -490,16 +490,10 @@ harmonize_HPO <- function(HPO_diseaseHP,
 #' Integrate disease identifiers from the ClinVar resource
 #' 
 #' @param DODO_entryId the object DODO_entryId to filter out existing identifiers
-#' @param path_clinvar path to ClinVar parsed files
+#' @param path_name path to ClinVar parsed files
 #' @param traitCref name of the file containing the dataframe with association ClinVar identifiers to external disease identifiers
 #' (columns t.id - ClinVar identifier, db - disease database, id - disease identifier, and type)
-#' @param traitNames name of the file containing dataframe with columns t.id (ClinVar identifier) and label
-#' @param MedGen_MGSTY if provided, file to filter MedGen disease identifiers
-#' 
-#' @details if MedGen_MGSTY is provided to the MedGen source file MGSTY.RFF, this file will be used to filter 
-#' out any MedGen identifiers that are not of type "Disease or Syndrome","Acquired Abnormality", 
-#' "Anatomical Abnormality", or "Congenital Abnormality". DODO focusses mainly on disease concepts, so
-#' other identifiers types are not considered within the resource.
+#' @param traitName name of the file containing dataframe with columns t.id (ClinVar identifier) and label
 #' 
 #' 
 #' @return list with harmonized files
@@ -509,7 +503,7 @@ load_ClinVar <- function(DODO_entryId,
                          traitName
                          # MedGen_MGSTY = NULL
                          ){
-  clinvar <- read.table(file.path(path_name, traitCref),
+  clinvar <- utils::read.table(file.path(path_name, traitCref),
                         header = TRUE, 
                         sep = "\t", 
                         quote = '"', 
@@ -539,7 +533,7 @@ load_ClinVar <- function(DODO_entryId,
   #   clinvar <- unique(clinvar[!clinvar$id %in% mg$X.CUI,])
   # }
   ## Only keep labels in clinvar
-  cv_idNames <- read.table(file.path(path_name, 
+  cv_idNames <- utils::read.table(file.path(path_name, 
                                      traitName),
                            header = TRUE, 
                            sep = "\t", 
@@ -562,7 +556,7 @@ load_ClinVar <- function(DODO_entryId,
   clinvar$def <- cv_idNames$name[match(clinvar$t.id, cv_idNames$t.id)]
   ## add missing ids in clinvar object
   clinvar <- cv_idNames %>%
-    dplyr::arrange(desc(canonical)) %>%
+    dplyr::arrange(dplyr::desc(canonical)) %>%
     dplyr::filter(!t.id %in% clinvar$t.id) %>%
     dplyr::distinct(t.id, .keep_all = TRUE) %>%
     dplyr::select(t.id,
@@ -674,6 +668,7 @@ load_db_names <- function(toImport){
 #' - origin: *character* name of the database from which the concept was
 #' taken (optional). If not provided or NA, the database field is used.
 #' - shortID: *character* short concept ID (mandatory)
+#' @param concept concept type
 #'
 load_concept_names <- function(toImport, concept){
   concept <- match.arg(concept, c("Concept", "Disease", "Phenotype"))
@@ -918,7 +913,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
     DODO:::import_in_dodo(neo2R::prepCql(cql), toImport[,c("f", "t")])
     
     ## Update ambiguity ----
-    DODO:::call_dodo(neo2R::cypher, query=prepCql(c(
+    DODO:::call_dodo(neo2R::cypher, query=neo2R::prepCql(c(
       sprintf('MATCH (c)-[f:%s]->(r)-[b:%s]->(c)', type, type),
       'MATCH (r)-[:is_in]->(d:Database)',
       'WITH c.name AS cname, d.name AS refDB,',
@@ -929,7 +924,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
     )))
     DODO:::call_dodo(
       neo2R::cypher,
-      query=prepCql(c(
+      query=neo2R::prepCql(c(
         sprintf(
           'MATCH (f:%s)-[r1:%s {BA:1}]->(t:%s)',
           concept, type, concept
@@ -942,7 +937,7 @@ load_cross_references <- function(toImport, xrefDB, concept){
     ## the old _nba edge might be deprecated and needs to be deleted
     DODO:::call_dodo(
       neo2R::cypher,
-      query=prepCql(c(
+      query=neo2R::prepCql(c(
         sprintf(
           'MATCH (f:%s)-[r:%s]->(t:%s) WHERE r.BA > 1',
           concept, type, concept
@@ -1042,12 +1037,15 @@ load_db_definitions <- function(toImport){
 #'
 #' Not exported to avoid unintended modifications of the DB.
 #'
+#' @param concept concept type
+#' @param nodes nodes to set label for
+#' 
 set_labels <- function(concept, nodes){
   concept <- match.arg(concept, c("Phenotype", "Disease"), several.ok = FALSE)
   cql <- c('MATCH (p:Concept) WHERE p.name in $from',
            sprintf('SET p:%s', concept))
-  DODO:::call_dodo(cypher,
-            prepCql(cql),
+  DODO:::call_dodo(neo2R::cypher,
+            neo2R::prepCql(cql),
             parameters = list(from = as.list(nodes)))
 }
 
@@ -1110,6 +1108,7 @@ load_has_phenotypes <- function(toImport){
 #' parent identifiers (mandatory)
 #' - parentid: *character* parent short concept identifiers (mandatory)
 #' @param concept either "Disease" or "Phenotype"
+#' @param origin origin to add
 #'
 load_parent_identifiers <- function(toImport, concept, origin){
   ## Checks ----

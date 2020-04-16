@@ -6,7 +6,7 @@
 #' @return A character vector of concept identfiers in DODO
 #' 
 #' @examples 
-#' findID(id = c("MONDO:0005027","MONDO:0100033"))
+#' toRet <- find_id(ids = c("MONDO:0005027","MONDO:0100033"))
 #' 
 #' @export
 #' 
@@ -17,7 +17,7 @@ find_id <- function(ids){
   )
   
   toRet <- call_dodo(neo2R::cypher,
-                     prepCql(cql),
+                     neo2R::prepCql(cql),
                      parameters = list(from = as.list(ids)),
                      result = "row")
   
@@ -33,6 +33,7 @@ find_id <- function(ids){
 #' @param fields the field(s) where to look for matches (label, synonym).
 #'  
 #' @return A character vector of concept identfiers in DODO
+#' 
 #' 
 #' @export
 
@@ -69,7 +70,7 @@ find_term <- function(term,
            query,
            'RETURN DISTINCT n.name')
   toRet <- call_dodo(neo2R::cypher,
-                     prepCql(cql),
+                     neo2R::prepCql(cql),
                      parameters = NULL,
                      result = "row")
   return(unname(unlist(toRet)))

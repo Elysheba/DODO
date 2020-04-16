@@ -25,10 +25,6 @@ benchmark_convert_concept(
 \item{deprecated}{include deprecated identifiers (default: false)}
 
 \item{verbose}{show query input (default: FALSE)}
-
-\item{transitive_ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
-
-\item{intransitive_ambiguity}{specification for backward ambiguity used in the final step of conversion (default: no filter)}
 }
 \value{
 a dataframe with three columns:

@@ -9,8 +9,8 @@
 #' @return A normalized disease network 
 #' 
 #' @examples 
-#' disNet2 <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-#' filtDisNet <- filtDisNetByID(disNet2, databases = "HP")
+#' disNet <- build_disNet(term = "epilep")
+#' filtDisNet <- filter_by_database(disNet, databases = "EFO")
 #' 
 #' @export
 #' 
@@ -30,9 +30,9 @@ filter_by_database <- function(disNet, databases){
 #' 
 #' @return A normalized disease network 
 #' 
-#' filtId <- disNet1$nodes$id
-#' disNet2 <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-#' filtDisNet <- filtDisNetByID(disNet2, filtId)
+#' @examples
+#' disNet <- build_disNet(term = "epilep")
+#' filtDisNet <- filter_by_id(disNet, diseaseID = c("MONDO:0005027", "EFO:0000474"))
 #' 
 #' @export
 #'

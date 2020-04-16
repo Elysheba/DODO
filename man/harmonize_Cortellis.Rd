@@ -33,7 +33,7 @@ depth (depth in the hierarchy), leaf, treeCode, parent (parent identifier)}
 \item{CortellisONT_ciIndicationXref}{dataframe from CortellisONT ciIndication with indicationId, source,
 xref, dbRef, direct}
 
-\item{tkcon}{Connection to TKCat instance to check for missing identifiers}
+\item{checkMissing}{check for missing identifiers in provided file path (NULL don't check)}
 }
 \value{
 list with harmonized dataframes

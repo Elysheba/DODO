@@ -13,8 +13,8 @@ output:
         toc: yes
         toc_float: yes
 params:
-  type: "public"
-  name: "public-dodo"
+  type: "internal"
+  name: "dodo"
 editor_options: 
   chunk_output_type: console
 ---
@@ -93,9 +93,12 @@ for(s in src){
     x <- read.table(file.path(ddir,i),header = TRUE, sep = "\t", 
                     quote = '"', comment.char = "", 
                     colClasses= c("character"))
+    
     if(grepl("entryId",i)){
       if(grepl("OMIM", i)){
         x$origin <- "OMIM"
+      }else if(grepl("ICD10_", i)){
+        x$origin <- "ICD10"
       }else{
         x$origin <- s
       }
@@ -457,7 +460,8 @@ DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "UMLS") %>%
 ## Add ICD10CM entries as ICD10 entries (double entry)
 DODO_entryId <- filter(DODO_entryId,DB == "ICD10CM") %>% 
   mutate(DB =  str_replace_all(DB, "ICD10CM","ICD10"),
-         dbid = str_replace_all(dbid, "ICD10CM","ICD10")) %>%
+         dbid = str_replace_all(dbid, "ICD10CM","ICD10"),
+         origin = str_replace_all(origin, "ICD10CM","ICD10")) %>%
   bind_rows(DODO_entryId) %>%
   distinct()
 ##
@@ -595,7 +599,7 @@ connect_to_dodo(
 Do not go further if your DODO DB is not empty.
 
 ```{r, message=FALSE}
-dbSize <- call_dodo(cypher, 'MATCH (n) RETURN count(n)')[,1]
+dbSize <- call_dodo(neo2R::cypher, 'MATCH (n) RETURN count(n)')[,1]
 # if(dbSize!=0){
 #     stop("DODO DB is not empty ==> clean it before loading the content below")
 # }
@@ -639,6 +643,19 @@ toImport <- DODO_entryId %>%
   arrange(desc(level)) %>%
   filter(database == origin) %>% ## First only DB = origin, to add original DBs, later add additional databases
   distinct(name, .keep_all = T)
+toAdd <-  DODO_entryId %>%
+  select(
+    database = DB,
+    shortID = id,
+    definition= def,
+    label = syn,
+    name = dbid,
+    level,
+    origin
+  ) %>%
+  arrange(desc(level)) %>%
+  filter(database != origin) %>%
+  filter(!name %in% toImport$name)
 # toImport$origin <- db
 concept <- "Concept"
 stopifnot(nrow(distinct(toImport, name))==nrow(toImport))

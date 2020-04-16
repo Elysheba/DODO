@@ -20,6 +20,8 @@ searchDODO(
 \item{type}{the type of the searchTerm, either id or name}
 
 \item{fields}{If a term is search, fields can be specified to label and synonym. By default all fields are used.}
+
+\item{exact}{exact match term}
 }
 \description{
 Search concept

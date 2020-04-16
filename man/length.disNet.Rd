@@ -6,6 +6,11 @@
 \usage{
 \method{length}{disNet}(x, ...)
 }
+\arguments{
+\item{x}{disNet object}
+
+\item{...}{additional parameters}
+}
 \description{
 Returns the number of nodes in a disNet object
 }

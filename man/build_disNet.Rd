@@ -19,15 +19,10 @@ build_disNet(
 
 \item{fields}{the field(s) where to look for matches (default: c(label, synonym)).}
 
-\item{forwardAmbiguity}{level of forward ambiguity allowed
-(default: 10000 ==> ~no filter)}
-
-\item{backwardAmbiguity}{level of backward ambiguity allowed
+\item{ambiguity}{level of backward ambiguity allowed
 (default: 1 ==> no ambiguity allowed)}
 
-\item{avoidOrigin:}{allows to avoid traversing parent/child edges from a particular ontology}
-
-\item{verbose}{show query input (default = FALSE)}
+\item{avoidOrigin}{avoid a particular origin}
 }
 \value{
 A disease network is a list with the following elements
@@ -104,5 +99,6 @@ by specifiying \emph{avoidOrigin}.
 }
 \examples{
 build_disNet(id = "MONDO:0005027")
+build_disNet(term = "epilepsy")
 
 }

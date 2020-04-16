@@ -27,11 +27,7 @@ disNet. This doesn't require a connection to a database instance and will only c
 provided disNet object.
 }
 \examples{
-
-df <- as.data.frame(id = c("ORPHA:86814","MONDO:0005099"),
-                    database = c("ORPHA","MONDO"))
-buildDisNetByID(df = df)
-extDisNet <- extendDisNet(disNet,relations = c("child","xref"), toAvoid = "MONDO:0100033")
-focusDisNet <- focusNet(disNet = extDisNet,diseaseID = "MONDO:0015955",steps = 2)
+disNet <- build_disNet(term = "epilepsy")
+focusDisNet <- focus_disNet(disNet = disNet, diseaseID = "EFO:0000474", steps = 2)
 
 }

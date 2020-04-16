@@ -6,6 +6,15 @@
 \usage{
 conceptSearch(input, output, session, internal = TRUE)
 }
+\arguments{
+\item{input}{input}
+
+\item{output}{output}
+
+\item{session}{session}
+
+\item{internal}{Only provide reference ontology MONDO (TRUE) or allow choice in ontologies (FALSE)}
+}
 \value{
 disNet
 }

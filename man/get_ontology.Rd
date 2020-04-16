@@ -2,10 +2,16 @@
 % Please edit documentation in R/get_ontology.R
 \name{get_ontology}
 \alias{get_ontology}
-\title{Embryonic function to get full ontology}
+\title{Return entire disease ontology}
 \usage{
 get_ontology(database)
 }
+\arguments{
+\item{database}{disease ontology to return.}
+}
 \description{
-Embryonic function to get full ontology
+Return all nodes for a particular disease ontology
+}
+\seealso{
+\code{\link{list_database}}
 }

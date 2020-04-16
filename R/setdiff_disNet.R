@@ -8,11 +8,6 @@
 #' 
 #' @param disNet1 the original disease network
 #' @param disNet2 the disease network to substract
-#' @param keepAllNodes if FALSE (default) all nodes of disNet2 are substracted.
-#' If TRUE all nodes of disNet1 are kept even if not involved in final children
-#' or xref relationships.
-#' @param keepAllSeed if TRUE (default) all seed are kept in nodes after
-#' filtering.
 #'
 #' @return A normalized disease network 
 #' 
@@ -20,8 +15,6 @@
 #' 
 setdiff_disNet <- function(disNet1, 
                           disNet2
-                          # keepAllNodes = FALSE, 
-                          # keepAllSeed = TRUE
 ){
   disNet <- disNet1
   disNet$nodes <- disNet$nodes[-which(disNet$nodes$id %in% disNet2$nodes$id),]

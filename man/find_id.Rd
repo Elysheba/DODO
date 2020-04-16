@@ -16,6 +16,6 @@ A character vector of concept identfiers in DODO
 Find concept by identifier
 }
 \examples{
-findID(id = c("MONDO:0005027","MONDO:0100033"))
+toRet <- find_id(ids = c("MONDO:0005027","MONDO:0100033"))
 
 }

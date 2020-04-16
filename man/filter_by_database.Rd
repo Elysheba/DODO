@@ -18,7 +18,7 @@ A normalized disease network
 Filter a disNet to keep only identifiers of databases of interest
 }
 \examples{
-disNet2 <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-filtDisNet <- filtDisNetByID(disNet2, databases = "HP")
+disNet <- build_disNet(term = "epilep")
+filtDisNet <- filter_by_database(disNet, databases = "EFO")
 
 }

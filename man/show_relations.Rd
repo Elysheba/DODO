@@ -12,19 +12,13 @@ show_relations(
 )
 }
 \arguments{
+\item{id}{concept identifier formatted as db:id}
+
 \item{step}{the depth of the search (default: 10000 ==> ~exhaustive)}
 
 \item{transitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: 1)}
 
 \item{intransitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: no filter)}
-
-\item{dbid}{concept identifier formatted as db:id}
-
-\item{relations}{the kind of relationships to take into account -> xref}
-
-\item{blacklist}{a vector of databases to avoid when extending (default = NA)}
-
-\item{whitelist}{a vector of databases to trust when extending, only going through these database nodes (default = NA)}
 }
 \description{
 Takes a identifier (full length, e.g. "MONDO:0005027") as input and will query all cross-reference edges.
@@ -39,7 +33,4 @@ The colour of the edges is based on ambiguity equal to one or larger than one.
 This information is encoded when hovering over the edge.
 The solid lines are used for \emph{is_xref} edges, while dashed lines are
 used from \emph{is_related} edges.
-}
-\seealso{
-extendDisNet
 }

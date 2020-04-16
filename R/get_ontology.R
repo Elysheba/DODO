@@ -1,4 +1,12 @@
-#' Embryonic function to get full ontology
+#========================================================================================@
+#========================================================================================@
+#' Return entire disease ontology
+#' 
+#' Return all nodes for a particular disease ontology
+#' 
+#' @param database disease ontology to return.
+#' 
+#' @seealso \code{\link{list_database}}
 #' 
 #' @export
 #' 
@@ -13,7 +21,7 @@ get_ontology <- function(database){
    
    ont <- call_dodo(
       neo2R::cypher,
-      prepCql(cql),
+      neo2R::prepCql(cql),
       parameters=list(database=database),
       result="row"
    )
@@ -33,13 +41,13 @@ get_ontology <- function(database){
             "WHERE n.name in $from AND d.name in $database",
             "RETURN n.name as id, r.level as level")
    l <- call_dodo(
-      cypher,
-      prepCql(cql),
+      neo2R::cypher,
+      neo2R::prepCql(cql),
       result = "row",
       parameters = list(from = as.list(toRet$nodes$id),
                         database = as.list(database)))
    toRet$nodes <- toRet$nodes %>%
-      mutate(level = l$level[match(id, l$id)])
+      dplyr::mutate(level = l$level[match(id, l$id)])
 
    ## Return all results ----
    return(toRet)

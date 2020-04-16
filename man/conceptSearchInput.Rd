@@ -6,6 +6,13 @@
 \usage{
 conceptSearchInput(id, label = "Enter search term", internal = TRUE)
 }
+\arguments{
+\item{id}{id}
+
+\item{label}{search term}
+
+\item{internal}{Only provide reference ontology MONDO (TRUE) or allow choice in ontologies (FALSE)}
+}
 \value{
 disNet
 }

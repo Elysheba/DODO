@@ -6,6 +6,11 @@
 \usage{
 set_labels(concept, nodes)
 }
+\arguments{
+\item{concept}{concept type}
+
+\item{nodes}{nodes to set label for}
+}
 \description{
 Not exported to avoid unintended modifications of the DB.
 }

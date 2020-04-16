@@ -21,10 +21,12 @@
 \item{number}{Number of nodes to plot without igraph. If the number of nodes exceeds,
 igraph will be used (integer)}
 
-\item{igraph}{use visIgraphLayout() (default = TRUE)}
+\item{igraph}{use visIgraphLayout (default = TRUE)}
 
 \item{labelling}{use either disease identifier or both disease identifier and label
 to label nodes (default = FALSE)}
+
+\item{...}{additional parameters for visNetwork}
 }
 \value{
 A \code{\link{visNetwork}} object.
@@ -35,7 +37,6 @@ show only a particular edge type
 and by default only 500 disease nodes are plotted.
 }
 \examples{
-disNet <- extendDisNet(buildDisNetByID(id = "MONDO:0005027"))
-plot.disNet(disNet) 
-
+disNet <- build_disNet(term = "psoriasis") 
+plot(disNet) 
 }

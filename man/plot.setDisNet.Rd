@@ -23,10 +23,12 @@
 
 \item{number}{Number of nodes to plot without igraph. If the number of nodes exceeds, igraph will be used (integer)}
 
-\item{igraph}{use visIgraphLayout() (default = TRUE)}
+\item{igraph}{use visIgraphLayout (default = TRUE)}
 
 \item{labelling}{use either disease identifier or both disease identifier and label
 to label nodes (default = FALSE)}
+
+\item{...}{additional parameters for visNetwork}
 }
 \value{
 A \code{\link{visNetwork}} object.
@@ -36,7 +38,8 @@ Visualize one cluster of a setDisNet object as a visNetwork plot. It can be spec
 and by default only 500 disease nodes are plotted.
 }
 \examples{
-disNet <- clusterDisNet(extendDisNet(buildDisNetByTerm(id = "ALS")), clusterOn = "xref")#' 
+disNet <- build_disNet(term = "psoriasis") 
+disNet <- cluster_disNet(disNet)
 plot(disNet, cluster = 1) 
 
 }

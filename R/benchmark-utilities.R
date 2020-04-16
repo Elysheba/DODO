@@ -83,7 +83,7 @@ benchmark_cross_references <- function(toImport, xrefDB, concept){
     DODO:::import_in_dodo(neo2R::prepCql(cql), toImport[,c("f", "t")])
     
     ## Update ambiguity ----
-    DODO:::call_dodo(neo2R::cypher, query=prepCql(c(
+    DODO:::call_dodo(neo2R::cypher, query=neo2R::prepCql(c(
       sprintf('MATCH (c)-[f:%s]->(r)-[b:%s]->(c)', type, type),
       'MATCH (r)-[:is_in]->(d:Database)',
       'WITH c.name AS cname, d.name AS refDB,',
@@ -94,7 +94,7 @@ benchmark_cross_references <- function(toImport, xrefDB, concept){
     )))
     DODO:::call_dodo(
       neo2R::cypher,
-      query=prepCql(c(
+      query=neo2R::prepCql(c(
         sprintf(
           'MATCH (f:%s)-[r1:%s {BA:1}]->(t:%s)',
           concept, type, concept
@@ -107,7 +107,7 @@ benchmark_cross_references <- function(toImport, xrefDB, concept){
     ## the old _nba edge might be deprecated and needs to be deleted
     DODO:::call_dodo(
       neo2R::cypher,
-      query=prepCql(c(
+      query=neo2R::prepCql(c(
         sprintf(
           'MATCH (f:%s)-[r:%s]->(t:%s) WHERE r.BA > 1',
           concept, type, concept
@@ -132,11 +132,12 @@ benchmark_cross_references <- function(toImport, xrefDB, concept){
 #' Not exported to avoid unintended modifications of the DB.
 #' 
 #' @param concept either "Disease" or "Phenotype"
+#' @param type edge type
 benchmark_remove_edges <- function(type, concept){
   ## Remove old benchmarking edges before adding new ones
   call_dodo(
     neo2R::cypher,
-    query=prepCql(c(
+    query=neo2R::prepCql(c(
       sprintf(
         paste0('MATCH (f:%s)-[r:', paste(type, paste0(type, "_nba"), sep = "|"),']->(t:%s)'),
         concept, concept
@@ -161,8 +162,6 @@ benchmark_remove_edges <- function(type, concept){
 #' @param from.concept concept (disease or phenotype) of from
 #' @param to.concept concept (disease or phenotype) to convert to
 #' @param deprecated include deprecated identifiers (default: false)
-#' @param transitive_ambiguity backward ambiguity while using transitivity to identify cross-references (default: 1)
-#' @param intransitive_ambiguity specification for backward ambiguity used in the final step of conversion (default: no filter)
 #' @param verbose show query input (default: FALSE)
 #' 
 #' @return a dataframe with three columns:
@@ -222,7 +221,7 @@ benchmark_convert_concept <- function(from,
   )
   b1 <- call_dodo(
     neo2R::cypher,
-    prepCql(cql),
+    neo2R::prepCql(cql),
     parameters = list(from = as.list(from)),
     result = "row")
   
@@ -243,7 +242,7 @@ benchmark_convert_concept <- function(from,
     )
     b2 <- call_dodo(
       neo2R::cypher,
-      prepCql(cql),
+      neo2R::prepCql(cql),
       parameters = list(from = as.list(from)),
       result = "row"
     )
@@ -269,7 +268,7 @@ benchmark_convert_concept <- function(from,
     )
     b3 <- call_dodo(
       neo2R::cypher,
-      prepCql(cql),
+      neo2R::prepCql(cql),
       parameters = list(from = as.list(from)),
       result = "row"
     ) %>%
@@ -311,7 +310,7 @@ calculate_ambiguity <- function(DODO_crossId){
   ## Count REF per ID and per DB ----
   dbByRef <- DODO_crossId %>%
     dplyr::select(node = dbid1, refdb = dbid2) %>%
-    dplyr::bind_rows(DODO_crossId %>% select(node = dbid2, refdb = dbid1)) %>%
+    dplyr::bind_rows(DODO_crossId %>% dplyr::select(node = dbid2, refdb = dbid1)) %>%
     dplyr::distinct() %>%
     dplyr::mutate(refdb = stringr::str_remove(refdb, ":.*")) %>%
     dplyr::add_count(node, refdb) %>%

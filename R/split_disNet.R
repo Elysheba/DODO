@@ -22,6 +22,10 @@ split_disNet <- function(disNet,
 #========================================================================================@
 #========================================================================================@
 #' Check validity of setDisNet object
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 
 is.setDisNet <- function(x, ...){
@@ -31,6 +35,10 @@ is.setDisNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' Prints a setDisNet object
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 #' @export
 
 print.setDisNet <- function(x, ...){
@@ -42,6 +50,10 @@ print.setDisNet <- function(x, ...){
 #========================================================================================@
 #========================================================================================@
 #' format disNet
+#' 
+#' @param x disNet object
+#' @param ... additional parameters
+#' 
 format.setDisNet <- function(x, ...){
   
   toRet <-    paste("The setDisNet contains",

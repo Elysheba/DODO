@@ -1,6 +1,12 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
-^build$
+^.git.*$
+^build/DODO-images$
+^build/data$
+^build/ARCHIVE$
+^build/plugins$
+^build/working$
 ^bck$
 ^tmp$
 ^test$
+^inst/documentation/DODO-F1000-publication$

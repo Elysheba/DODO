@@ -10,13 +10,6 @@ setdiff_disNet(disNet1, disNet2)
 \item{disNet1}{the original disease network}
 
 \item{disNet2}{the disease network to substract}
-
-\item{keepAllNodes}{if FALSE (default) all nodes of disNet2 are substracted.
-If TRUE all nodes of disNet1 are kept even if not involved in final children
-or xref relationships.}
-
-\item{keepAllSeed}{if TRUE (default) all seed are kept in nodes after
-filtering.}
 }
 \value{
 A normalized disease network

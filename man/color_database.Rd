@@ -6,6 +6,9 @@
 \usage{
 color_database(disNet)
 }
+\arguments{
+\item{disNet}{disNet object}
+}
 \description{
 Function to return set colours for disease ontology resources
 }

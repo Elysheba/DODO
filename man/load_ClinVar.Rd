@@ -9,24 +9,16 @@ load_ClinVar(DODO_entryId, path_name, traitCref, traitName)
 \arguments{
 \item{DODO_entryId}{the object DODO_entryId to filter out existing identifiers}
 
+\item{path_name}{path to ClinVar parsed files}
+
 \item{traitCref}{name of the file containing the dataframe with association ClinVar identifiers to external disease identifiers
 (columns t.id - ClinVar identifier, db - disease database, id - disease identifier, and type)}
 
-\item{path_clinvar}{path to ClinVar parsed files}
-
-\item{traitNames}{name of the file containing dataframe with columns t.id (ClinVar identifier) and label}
-
-\item{MedGen_MGSTY}{if provided, file to filter MedGen disease identifiers}
+\item{traitName}{name of the file containing dataframe with columns t.id (ClinVar identifier) and label}
 }
 \value{
 list with harmonized files
 }
 \description{
 Integrate disease identifiers from the ClinVar resource
-}
-\details{
-if MedGen_MGSTY is provided to the MedGen source file MGSTY.RFF, this file will be used to filter
-out any MedGen identifiers that are not of type "Disease or Syndrome","Acquired Abnormality",
-"Anatomical Abnormality", or "Congenital Abnormality". DODO focusses mainly on disease concepts, so
-other identifiers types are not considered within the resource.
 }

@@ -13,11 +13,12 @@ filter_by_id(disNet, diseaseID)
 }
 \value{
 A normalized disease network
-
-filtId <- disNet1$nodes$id
-disNet2 <- buildDisNetByTerm("epilep",fields = c("synonym","label","definition"))
-filtDisNet <- filtDisNetByID(disNet2, filtId)
 }
 \description{
 Filtering a disNet to keep only diseases of interest
+}
+\examples{
+disNet <- build_disNet(term = "epilep")
+filtDisNet <- filter_by_id(disNet, diseaseID = c("MONDO:0005027", "EFO:0000474"))
+
 }
