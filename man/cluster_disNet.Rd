@@ -9,7 +9,8 @@ cluster_disNet(disNet, clusterOn = c("xref"), ambiguity = 1)
 \arguments{
 \item{disNet}{the disease network to cluster and split}
 
-\item{clusterOn}{clustering taking either or both descendants and cross-references (values = "children","xref)}
+\item{clusterOn}{clustering taking either or both descendants and cross-references
+(values = "child", "parent", and/or "xref")}
 
 \item{ambiguity}{level of backward ambiguity allowed
 (default: 1 ==> no ambiguity allowed)}

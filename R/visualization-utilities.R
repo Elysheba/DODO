@@ -34,7 +34,8 @@ plot.disNet <- function(
             c("xref","child","parent"),
             several.ok = T)
   stopifnot(is.disNet(disNet),
-            is.logical(labelling))
+            is.logical(labelling),
+            relations %in% c("xref","child","parent"))
   
   ## Colors
   col <- DODO:::color_database(disNet = disNet)
@@ -273,8 +274,8 @@ color_database <- function(disNet){
                       RColorBrewer::brewer.pal(n = 8, name = "Pastel1"),
                       RColorBrewer::brewer.pal(n = 8, name = "Paired")))
       db <- list_database()
-      col <- col[1:nrow(database)]
-      names(col) <- dplyr::pull(database, database)
+      col <- col[1:nrow(db)]
+      names(col) <- dplyr::pull(db, database)
       save(col, file = colFile)
     }
   }else{

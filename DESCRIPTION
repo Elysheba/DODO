@@ -11,12 +11,12 @@ Description: DODO is a Neo4j database that collects the information of
     between databases or the construction of a disease landscape.
 License: TBD
 LazyData: TRUE
-Depends:  R (>= 3.5.0), dplyr
+Depends: R (>= 3.5.0), dplyr
 Imports: shiny, stringr, DT, igraph, neo2R (>= 2.1.0), utils, methods
 Suggests: knitr, rmarkdown, BiocStyle, readr, RColorBrewer, glue,  visNetwork, kableExtra, here
 Encoding: UTF-8
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
 NeedsCompilation: no
 Packaged: 2020-04-15 12:55:33 UTC; lfrancois

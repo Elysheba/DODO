@@ -418,19 +418,19 @@ Some resources use either "MedGen" or "UMLS" as database name for NCI Metathesau
 ##################################################################@
 ## Modify DB names and entries ----
 ## Add UMLS entries as MedGen entries (double entry)
-DODO_entryId <- filter(DODO_entryId,DB == "UMLS") %>% 
-  mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
-         origin =  str_replace_all(origin, "UMLS","MedGen"),
-         dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
+DODO_entryId <- filter(DODO_entryId,DB == "MedGen") %>% 
+  mutate(DB =  str_replace_all(DB, "MedGen","UMLS"),
+         origin =  str_replace_all(origin, "MedGen","UMLS"),
+         dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_entryId) 
 tmp <- DODO_entryId %>%
-  filter(grepl("UMLS", dbid)) %>%
+  filter(grepl("MedGen", dbid)) %>%
   mutate(DB1 = DB,
          id1 = id,
          dbid1 = dbid,
-         DB2 = "MedGen",
+         DB2 = "UMLS",
          id2 = id,
-         dbid2 = str_replace_all(dbid, "UMLS","MedGen")) %>%
+         dbid2 = str_replace_all(dbid, "MedGen","UMLS")) %>%
   select(DB1, 
          id1 = id, 
          DB2, 
@@ -438,22 +438,22 @@ tmp <- DODO_entryId %>%
          dbid1, 
          dbid2)
 ##
-DODO_crossId <- filter(DODO_crossId,(DB1 == "UMLS" | DB2 == "UMLS")) %>% 
-  mutate(DB1 =  str_replace_all(DB1, "UMLS","MedGen"),
-         dbid1 = str_replace_all(dbid1, "UMLS","MedGen"), 
-         DB2 =  str_replace_all(DB2, "UMLS","MedGen"),
-         dbid2 = str_replace_all(dbid2, "UMLS","MedGen")) %>%
+DODO_crossId <- filter(DODO_crossId,(DB1 == "MedGen" | DB2 == "MedGen")) %>% 
+  mutate(DB1 =  str_replace_all(DB1, "MedGen","UMLS"),
+         dbid1 = str_replace_all(dbid1, "MedGen","UMLS"), 
+         DB2 =  str_replace_all(DB2, "MedGen","UMLS"),
+         dbid2 = str_replace_all(dbid2, "MedGen","UMLS")) %>%
   bind_rows(DODO_crossId) %>%
   bind_rows(tmp)
 ##
-DODO_idNames <- filter(DODO_idNames,DB == "UMLS") %>% 
-  mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
-         dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
+DODO_idNames <- filter(DODO_idNames,DB == "MedGen") %>% 
+  mutate(DB =  str_replace_all(DB, "MedGen","UMLS"),
+         dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_idNames)
 ##
-DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "UMLS") %>% 
-  mutate(disDB =  str_replace_all(disDB, "UMLS","MedGen"),
-         ddbid = str_replace_all(ddbid, "UMLS","MedGen")) %>%
+DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "MedGen") %>% 
+  mutate(disDB =  str_replace_all(disDB, "MedGen","UMLS"),
+         ddbid = str_replace_all(ddbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_pheno2dis)
 ##
 
@@ -579,7 +579,6 @@ DODO_entryId <- DODO_entryId %>%
   mutate(level = as.integer(level))
 ```
 
-
 # Load into Neo4j
 
 The workflow for importing information into the Neo4j instance by assigning all sisease and phenotype identifiers the "Concept" label. First the respective database nodes are created (or matched), where after the information on the nodes, their cross-reference, parent-child, phenotype, and alternative identifier relationships are added. Finally, the label "Phenotype" is added for all phenotype nodes while all others are assigned the "Disease" label.
@@ -656,6 +655,8 @@ toAdd <-  DODO_entryId %>%
   arrange(desc(level)) %>%
   filter(database != origin) %>%
   filter(!name %in% toImport$name)
+toImport <- bind_rows(toImport, toAdd) %>%
+  distinct()
 # toImport$origin <- db
 concept <- "Concept"
 stopifnot(nrow(distinct(toImport, name))==nrow(toImport))

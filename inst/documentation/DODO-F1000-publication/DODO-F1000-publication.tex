@@ -1,40 +1,25 @@
-\PassOptionsToPackage{unicode=true}{hyperref} % options for packages loaded elsewhere
-\PassOptionsToPackage{hyphens}{url}
-%
 \documentclass[9pt,a4paper,]{extarticle}
-\usepackage{lmodern}
-\usepackage{amssymb,amsmath}
-\usepackage{ifxetex,ifluatex}
-\usepackage{fixltx2e} % provides \textsubscript
-\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
-  \usepackage[T1]{fontenc}
-  \usepackage[utf8]{inputenc}
-  \usepackage{textcomp} % provides euro and other symbols
-\else % if luatex or xelatex
-  \usepackage{unicode-math}
-  \defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
-\fi
-% use upquote if available, for straight quotes in verbatim environments
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
-% use microtype if available
-\IfFileExists{microtype.sty}{%
-\usepackage[]{microtype}
-\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
-}{}
-\IfFileExists{parskip.sty}{%
-\usepackage{parskip}
-}{% else
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{6pt plus 2pt minus 1pt}
+
+\usepackage{f1000_styles}
+
+\usepackage[pdfborder={0 0 0}]{hyperref}
+
+\usepackage[numbers]{natbib}
+\bibliographystyle{unsrtnat}
+
+
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
 }
-\usepackage{hyperref}
-\hypersetup{
-            pdftitle={Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies},
-            pdfkeywords={disease ontologies, diseases, phenotypes, database, identifiers},
-            pdfborder={0 0 0},
-            breaklinks=true}
-\urlstyle{same}  % don't use monospace font for urls
-\usepackage[margin=1in]{geometry}
+\makeatother
+
 \usepackage{color}
 \usepackage{fancyvrb}
 \newcommand{\VerbBar}{|}
@@ -75,36 +60,26 @@
 \newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
 \newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
 \newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
-\usepackage{longtable,booktabs}
-% Fix footnotes in tables (requires footnote package)
-\IfFileExists{footnote.sty}{\usepackage{footnote}\makesavenoteenv{longtable}}{}
-\usepackage{graphicx,grffile}
-\makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
-\setlength{\emergencystretch}{3em}  % prevent overfull lines
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-\setcounter{secnumdepth}{0}
-% Redefines (sub)paragraphs to behave more like sections
-\ifx\paragraph\undefined\else
-\let\oldparagraph\paragraph
-\renewcommand{\paragraph}[1]{\oldparagraph{#1}\mbox{}}
-\fi
-\ifx\subparagraph\undefined\else
-\let\oldsubparagraph\subparagraph
-\renewcommand{\subparagraph}[1]{\oldsubparagraph{#1}\mbox{}}
-\fi
 
-% set default figure placement to htbp
-\makeatletter
-\def\fps@figure{htbp}
-\makeatother
+% disable code chunks background
+%\renewenvironment{Shaded}{}{}
+
+% disable section numbers
+\setcounter{secnumdepth}{0}
+
+%% added by MLS, this is not in the F1000 style by default %%
+
+\hypersetup{unicode=true,
+            pdftitle={Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies},
+            pdfkeywords={disease ontologies, diseases, phenotypes, database, identifiers},
+            pdfborder={0 0 0},
+            breaklinks=true}
+
+%% End added by MLS %%
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+
 
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -118,18 +93,31 @@
 \usepackage[normalem]{ulem}
 \usepackage{makecell}
 \usepackage{xcolor}
-\usepackage[]{natbib}
-\bibliographystyle{plainnat}
-
-\title{Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies}
-\author{Liesbeth Francois, Jonathan van Eyll and Patrice Godard}
-\date{}
 
 \begin{document}
+\pagestyle{front}
+
+\title{Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies}
+
+\author[1]{Liesbeth François}
+\author[2]{Jonathan van Eyll}
+\author[2]{Patrice Godard}
+\affil[1]{Corresponding author. UCB Pharma, Braine-l’Alleud, 1420, Belgium. liesbeth.francois@ucb.com}
+\affil[2]{UCB Pharma, Braine-l’Alleud, 1420, Belgium}
+
 \maketitle
+\thispagestyle{front}
+
 \begin{abstract}
 Disease ontologies assign diseases to a more formal classification that facilate the connection to biological databases containing drug information, transcriptomics and genomics information, and others. However, different ontologies employ independent identifiers and use heterogenous decisions on disease definitions. Despite ongoing efforts on integration, two challenges can still be identified. First, no resource provides a complete mapping across the multitude of disease ontologies and there is no ready to use software available to interact and explore with ontologies on the standard bioinformatics platforms. In this paper, the DODO (Dictionary of Disease Ontology) database and accompagnying R package are presented. DODO aims to deal with these two challenges by constructing a meta-database incorporating information of different publically available disease ontology resources and their annotations. Through the use of transitivity mappings build on the cross-reference relationships provided by the ontologies, indirect relations between disease and phenotype identifiers can be retrieved. The accompagnying R package contains several functions to build and interact with disease networks or convert concept identifiers between ontologies. It specifically aims to facilitate access and the exhaustive extraction of information from life science databases without the need to harmonize these upfront. The workflow for local adaption and extension of the DODO database is available as well as a docker image of the DODO database for convenience.
 \end{abstract}
+
+\section*{Keywords}
+disease ontologies, diseases, phenotypes, database, identifiers
+
+
+\clearpage
+\pagestyle{main}
 
 \textbf{R version}: R version 3.6.0 (2019-04-26)
 
@@ -159,7 +147,7 @@ In this section, an overview is presented of the DODO database and the accompagn
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/data-model/DODO} 
+{\centering \includegraphics[width=0.5\linewidth]{../data-model/DODO} 
 
 }
 
@@ -391,12 +379,12 @@ ClinVar:823 & Coffin-Lowry syndrome\\
 \rowcolor{gray!6}  MedGen:C0265252 & Coffin-Lowry syndrome\\
 DOID:3783 & Coffin-Lowry syndrome\\
 \rowcolor{gray!6}  UMLS:C0265252 & Coffin-Lowry syndrome\\
-MedGen:C0795900 & Coffin syndrome 1\\
+UMLS:C0795900 & Coffin syndrome 1\\
 \addlinespace
-\rowcolor{gray!6}  MeSH:C536435 & \\
-SNOMEDCT:15182000 & \\
-\rowcolor{gray!6}  OMIM:300075 & \\
-UMLS:C0795900 & \\
+\rowcolor{gray!6}  MedGen:C0795900 & Coffin syndrome 1\\
+MeSH:C536435 & \\
+\rowcolor{gray!6}  SNOMEDCT:15182000 & \\
+OMIM:300075 & \\
 \rowcolor{gray!6}  GTR:GTRT000007048 & \\
 \addlinespace
 ICD9:759.89 & \\
@@ -418,7 +406,7 @@ In addition to the concept of \emph{ambiguity}, two types of cross-reference edg
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/heatmap_ambiguity} 
+{\centering \includegraphics[width=0.5\linewidth]{fig/heatmap_ambiguity} 
 
 }
 
@@ -429,7 +417,7 @@ The number of conversions per identifier is shown on Figure \ref{fig:boxplotAmbi
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/boxplot_ambiguity_conversion_mondo} 
+{\centering \includegraphics[width=0.5\linewidth]{fig/boxplot_ambiguity_conversion_mondo} 
 
 }
 
@@ -441,11 +429,11 @@ By comparing the results and relationship between the different ontologies with 
 \hypertarget{results}{%
 \section{Results}\label{results}}
 
-The table below shows the number of nodes available through each disease ontology, in total there are 586468 nodes (Figure @ref\{fig:listDB)) in this DODO instance.
+The table below shows the number of nodes available through each disease ontology, in total there are 457543 nodes (Figure @ref\{fig:listDB)) in this DODO instance.
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth,height=0.75\textheight]{DODO-F1000-publication_files/figure-latex/listDB-1} 
+{\centering \includegraphics[width=0.5\linewidth]{DODO-F1000-publication_files/figure-latex/listDB-1} 
 
 }
 
@@ -466,7 +454,7 @@ This conversion can be used to get all identifiers around a disease concept whet
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.75\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNetExtension} 
+{\centering \includegraphics[width=0.75\linewidth]{fig/disNetExtension} 
 
 }
 
@@ -479,7 +467,7 @@ A third use case can be identified when the aim of conversion is to only return 
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_equivalence} 
+{\centering \includegraphics[width=0.5\linewidth]{fig/disNet_equivalence} 
 
 }
 
@@ -490,7 +478,7 @@ Finally, a specific conversion procedure is recommended for the ontologies that 
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/get_related_ambiguity_NULL_G409} 
+{\centering \includegraphics[width=1\linewidth]{fig/get_related_ambiguity_NULL_G409} 
 
 }
 
@@ -514,12 +502,12 @@ Conversion can also be used to convert between concept, i.e.~from disease identi
 ## # A tibble: 6 x 3
 ##   from          to         deprecated
 ##   <chr>         <chr>      <lgl>     
-## 1 MONDO:0012391 HP:0000737 FALSE     
+## 1 MONDO:0012391 HP:0002376 FALSE     
 ## 2 MONDO:0012391 HP:0002069 FALSE     
-## 3 MONDO:0012391 HP:0001249 FALSE     
-## 4 MONDO:0012391 HP:0001272 FALSE     
-## 5 MONDO:0012391 HP:0000529 FALSE     
-## 6 MONDO:0012391 HP:0002059 FALSE
+## 3 MONDO:0012391 HP:0001272 FALSE     
+## 4 MONDO:0012391 HP:0002074 FALSE     
+## 5 MONDO:0012391 HP:0000708 FALSE     
+## 6 MONDO:0012391 HP:0001268 FALSE
 \end{verbatim}
 
 \begin{Shaded}
@@ -534,14 +522,14 @@ Conversion can also be used to convert between concept, i.e.~from disease identi
 
 \begin{verbatim}
 ## # A tibble: 6 x 3
-##   from       to            deprecated
-##   <chr>      <chr>         <lgl>     
-## 1 HP:0002384 HP:0002384    FALSE     
-## 2 HP:0002384 ClinVar:17141 FALSE     
-## 3 HP:0002384 UMLS:C0270834 FALSE     
-## 4 HP:0002384 MONDO:0009697 FALSE     
-## 5 HP:0002384 MONDO:0009079 FALSE     
-## 6 HP:0002384 MONDO:0016825 FALSE
+##   from       to              deprecated
+##   <chr>      <chr>           <lgl>     
+## 1 HP:0002384 HP:0002384      FALSE     
+## 2 HP:0002384 ClinVar:17141   FALSE     
+## 3 HP:0002384 MedGen:C0270834 FALSE     
+## 4 HP:0002384 MONDO:0009697   FALSE     
+## 5 HP:0002384 MONDO:0009079   FALSE     
+## 6 HP:0002384 MONDO:0016825   FALSE
 \end{verbatim}
 
 Finally, conversion can also be used to return deprecated identifiers when these are available.
@@ -560,8 +548,8 @@ Finally, conversion can also be used to return deprecated identifiers when these
 ## # A tibble: 2 x 3
 ##   from       to         deprecated
 ##   <chr>      <chr>      <lgl>     
-## 1 HP:0009638 HP:0004079 TRUE      
-## 2 HP:0009638 HP:0006073 TRUE
+## 1 HP:0009638 HP:0006073 TRUE      
+## 2 HP:0009638 HP:0004079 TRUE
 \end{verbatim}
 
 \hypertarget{building-a-disnet}{%
@@ -633,9 +621,9 @@ It may be required to review the returned \emph{disNet} after building and/or ex
 \toprule
 cluster & clusterSize & id & label\\
 \midrule
-\rowcolor{gray!6}  1 & 150 & ICD10CM:G12.21 & Amyotrophic lateral sclerosis\\
+\rowcolor{gray!6}  1 & 150 & ICD10:G12.21 & Amyotrophic lateral sclerosis\\
 2 & 22 & MONDO:0017161 & frontotemporal dementia with motor neuron disease\\
-\rowcolor{gray!6}  3 & 2 & MedGen:C1862940 & Amyotrophic Lateral Sclerosis, Autosomal Recessive\\
+\rowcolor{gray!6}  3 & 2 & UMLS:C1862940 & Amyotrophic Lateral Sclerosis, Autosomal Recessive\\
 4 & 9 & ORPHA:357043 & Amyotrophic lateral sclerosis type 4\\
 \rowcolor{gray!6}  5 & 3 & MedGen:C3542025 & Amyotrophic lateral sclerosis 1, autosomal recessive\\
 \addlinespace
@@ -643,17 +631,17 @@ cluster & clusterSize & id & label\\
 \rowcolor{gray!6}  7 & 6 & MONDO:0014640 & FTDALS3\\
 8 & 5 & MONDO:0008781 & juvenile amyotrophic lateral sclerosis with dementia\\
 \rowcolor{gray!6}  9 & 6 & MONDO:0011632 & amyotrophic lateral sclerosis type 21\\
-10 & 2 & MedGen:C4302169 & Amyotrophic lateral sclerosis plus syndrome\\
+10 & 2 & UMLS:C4302169 & Amyotrophic lateral sclerosis plus syndrome\\
 \addlinespace
 \rowcolor{gray!6}  11 & 3 & UMLS:C2750729 & Amyotrophic lateral sclerosis 6, autosomal recessive\\
 12 & 3 & UMLS:CN239196 & Amyotrophic Lateral Sclerosis, Recessive\\
-\rowcolor{gray!6}  13 & 2 & MedGen:CN260033 & Amyotrophic lateral sclerosis 10, with or without FTD\\
+\rowcolor{gray!6}  13 & 2 & UMLS:CN260033 & Amyotrophic lateral sclerosis 10, with or without FTD\\
 14 & 4 & ORPHA:52430 & Inclusion body myopathy with Paget disease of bone and frontotemporal dementia\\
 \rowcolor{gray!6}  15 & 3 & UMLS:C2931441 & Infantile-onset ascending hereditary spastic paralysis\\
 \addlinespace
-16 & 2 & MedGen:C2931786 & Amyotrophic lateral sclerosis, type 6\\
+16 & 2 & UMLS:C2931786 & Amyotrophic lateral sclerosis, type 6\\
 \rowcolor{gray!6}  17 & 3 & ORPHA:98756 & Spinocerebellar ataxia type 2\\
-18 & 2 & MedGen:C3662062 & Restrictive lung disease due to amyotrophic lateral sclerosis\\
+18 & 2 & UMLS:C3662062 & Restrictive lung disease due to amyotrophic lateral sclerosis\\
 \rowcolor{gray!6}  19 & 3 & MedGen:CN239175 & Amyotrophic Lateral Sclerosis, Dominant\\
 20 & 2 & MedGen:C4551993 & Amyotrophic Lateral Sclerosis, Familial\\
 \addlinespace
@@ -691,7 +679,7 @@ The \emph{disNet} and consequent extension around ``amyotrophic lateral sclerosi
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.75\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_extension} 
+{\centering \includegraphics[width=0.75\linewidth]{fig/disNet_als_extension} 
 
 }
 
@@ -840,7 +828,7 @@ This disease is a child term identified through extending the \emph{disNet} (Fig
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_chembl} 
+{\centering \includegraphics[width=0.5\linewidth]{fig/disNet_als_chembl} 
 
 }
 
@@ -853,7 +841,7 @@ All entrez gene identifiers identified by querying the ClinVar resource directly
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/disNet_als_clinvar} 
+{\centering \includegraphics[width=0.5\linewidth]{fig/disNet_als_clinvar} 
 
 }
 
@@ -866,7 +854,7 @@ Understanding the relation between disease identifiers obtained when querying a 
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/trace_connections} 
+{\centering \includegraphics[width=0.5\linewidth]{fig/trace_connections} 
 
 }
 
@@ -935,6 +923,6 @@ No competing interests were disclosed.
 This work was entirely supported by UCB Pharma.
 The authors declared that no grants were involved in supporting this work.
 
-\bibliography{DODO.bib}
+{\small\bibliography{DODO.bib}}
 
 \end{document}

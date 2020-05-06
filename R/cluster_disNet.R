@@ -4,7 +4,8 @@
 #' Cluster a disNet object based on cross-references and/or parend/child information.  
 #' 
 #' @param disNet the disease network to cluster and split
-#' @param clusterOn clustering taking either or both descendants and cross-references (values = "children","xref)
+#' @param clusterOn clustering taking either or both descendants and cross-references 
+#' (values = "child", "parent", and/or "xref")
 #' @param ambiguity level of backward ambiguity allowed
 #' (default: 1 ==> no ambiguity allowed) 
 #' @return A list of normalized disease networks: setDisNet object
@@ -26,11 +27,12 @@ cluster_disNet <- function(disNet,
                            ambiguity = 1
                            ){
   match.arg(clusterOn, 
-            c("children","xref"),
+            c("child","parent", "xref"),
             several.ok = T)
-  stopifnot(is.disNet(disNet))
+  stopifnot(is.disNet(disNet),
+            clusterOn %in% c("child", "parent", "xref"))
   
-  if("children" %in% clusterOn){
+  if("child" %in% clusterOn){
     child <- igraph::graph.data.frame(
       d = dplyr:: select(disNet$children,
                          from = parent,
@@ -71,7 +73,7 @@ cluster_disNet <- function(disNet,
   
   if(length(clusterOn) == 2){
     pIgraph <- igraph::graph.union(child, xref)
-  }else if (clusterOn == "children"){
+  }else if (clusterOn == "child"){
     pIgraph <- child
   }else{
     pIgraph <- xref

@@ -441,7 +441,7 @@ dim.disNet <- function(x, ...){
 #' mergeDisNet <- c(disNet1, disNet2)
 #' 
 #' @export
-c.disNet <- function(...,
+merge_disNet <- function(...,
                      list = NULL
 ){
   if(is.null(list)){

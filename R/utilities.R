@@ -340,7 +340,7 @@ describe_concept <- function(ids){
   
   cql <- c('MATCH (n)',
            'WHERE n.name IN $from',
-           'RETURN n.name as id, n.label as label')
+           'RETURN n.name as id, n.label as label, n.level as level, n.definition as definition')
   toRet <- call_dodo(
     neo2R::cypher,
     neo2R::prepCql(cql),
