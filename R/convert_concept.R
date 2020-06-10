@@ -155,6 +155,44 @@ convert_concept <- function(from,
          parameters = list(from = as.list(unique(b1$to))),
          result = "row"
       ) %>% tibble::as_tibble()
+      
+      # if(isTRUE(step == 1)){
+      #    cql <- c(
+      #       sprintf('MATCH (f:%s)-[:has_pheno]-(t:%s)',
+      #               from.concept,
+      #               relationship,
+      #               from.concept),
+      #       'WHERE f.name IN $from',
+      #       "RETURN DISTINCT f.name as from, t.name as to"
+      #    )
+      #    b2 <- call_dodo(
+      #       neo2R::cypher,
+      #       neo2R::prepCql(cql),
+      #       parameters = list(from = as.list(from)),
+      #       result = "row") %>%
+      #       tibble::as_tibble()
+      #    
+      # }else{
+      #    cql <- c(
+      #       sprintf('MATCH (f:%s)-[:has_pheno]-(t:%s) WHERE f.name IN $from',
+      #               from.concept,
+      #               relationship,
+      #               from.concept),
+      #       'CALL apoc.path.expandConfig(',
+      #       'f, {uniqueness:"NODE_GLOBAL", relationshipFilter:":has_pheno>"}',
+      #       ') YIELD path',
+      #       'WITH f as f, (nodes(path))[0] as s, last(nodes(path)) as e',
+      #       'MATCH (e)-[:has_pheno]->(e2)',
+      #       'RETURN DISTINCT',
+      #       's.name as from, e2.name as to')
+      #    b2 <- call_dodo(
+      #       neo2R::cypher,
+      #       neo2R::prepCql(cql),
+      #       parameters = list(from = as.list(from)),
+      #       result = "row") %>%
+      #       tibble::as_tibble()
+      # }
+      
    }
    
    if(nrow(b2) != 0){

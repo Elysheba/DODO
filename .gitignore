@@ -5,7 +5,6 @@ doc
 .RData
 tmp/*.rda
 *.Rproj
-vignettes/*.html
 vignettes/DODO.R
 build/working
 build/working1
