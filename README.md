@@ -32,10 +32,6 @@ The graph database has been implemented with Neo4j 3.4.9 [@Neo4j2020], the DODO 
 -  igraph
 -  shiny
 
-## Availability
-
-The DODO instance build using the workflow described above is provided as a Docker image here.
-
 ## Implementation and usage
 
 Please refer to the (DODO paper)[https://github.com/Elysheba/DODO/tree/master/inst/documentation/DODO-F1000-publication/DODO-F1000-publication.Rmd] for more information.
@@ -57,7 +53,7 @@ To construct a DODO instance, a set of script is available to load and feed a Ne
 |Disease Ontology (DO) | https://github.com/Elysheba/DO |
 |International Classification of Diseases (ICD11) | https://github.com/Elysheba/ICD11 |
 
-## DODO instance as docker image
+## Docker image
 
 This docker image provides an image of the DODO (Dictionary of Disease Ontologies) graph database. It aims to provide a more complete mapping across the multitude of disease ontologies and a comprehensive way to explore and interact with disease ontologies. It includes the ontologies listed below: 
 

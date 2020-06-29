@@ -20,3 +20,5 @@ inst/documentation/DODO-F1000-publication/data/ambiguity_between_ontologies.csv
 inst/documentation/DODO-F1000-publication/data/bck_als_direct_chembl_clinvar_results.rda
 inst/documentation/DODO-F1000-publication/data/bck_als_disNet_to_externalResources.rda
 tmp
+vignettes/data/chembl_25
+vignettes/data/clinvar_2020-03-27

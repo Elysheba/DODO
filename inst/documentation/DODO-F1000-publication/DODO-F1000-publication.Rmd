@@ -1286,11 +1286,9 @@ Archived source code as at time of publication:
 
 http://doi.org/10.5281/zenodo.1244150 (Godard, 2018a)
 
-http://doi.org/10.5281/zenodo.1167670 (Godard, 2018b)
-
 Archived database docker image as at time of publication:
 
-http://doi.org/10.5281/zenodo.1311362 (Godard, 2018c)
+http://doi.org/10.5281/zenodo.3921874 (François, 2020c)
 
 Software is available to use under a GPL-3 license
 
