@@ -3,7 +3,7 @@ doc
 .Rproj.user
 .Rhistory
 .RData
-tmp/*.rda
+*rda
 *.Rproj
 vignettes/DODO.R
 build/working
@@ -14,3 +14,9 @@ build/data
 build/plugins
 bck/
 test/
+inst/documentation/DODO-F1000-publication/data/clinvar_2020-03-27/
+inst/documentation/DODO-F1000-publication/data/chembl_25/
+inst/documentation/DODO-F1000-publication/data/ambiguity_between_ontologies.csv
+inst/documentation/DODO-F1000-publication/data/bck_als_direct_chembl_clinvar_results.rda
+inst/documentation/DODO-F1000-publication/data/bck_als_disNet_to_externalResources.rda
+tmp

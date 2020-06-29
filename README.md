@@ -31,7 +31,6 @@ The graph database has been implemented with Neo4j 3.4.9 [@Neo4j2020], the DODO 
 -  DT
 -  igraph
 -  shiny
--  BiocStyle
 
 ## Availability
 
@@ -57,4 +56,42 @@ To construct a DODO instance, a set of script is available to load and feed a Ne
 |ClinVar | https://github.com/patzaw/ClinVar |
 |Disease Ontology (DO) | https://github.com/Elysheba/DO |
 |International Classification of Diseases (ICD11) | https://github.com/Elysheba/ICD11 |
+
+## DODO instance as docker image
+
+This docker image provides an image of the DODO (Dictionary of Disease Ontologies) graph database. It aims to provide a more complete mapping across the multitude of disease ontologies and a comprehensive way to explore and interact with disease ontologies. It includes the ontologies listed below: 
+
+- Monarch Ontology
+- EFO
+- DO
+- ICD11
+- MedGen
+- MeSH
+- HPO
+- ClinVar
+
+The docker image has been made available on Docker Hub: Updates will be made available on https://hub.docker.com/repository/docker/elysheba/public-dodo
+
+
+Run the image
+
+```
+docker run -d \
+--name public-dodo\
+--restart always \
+--publish=7476:7474 \
+--publish=7689:7687 \
+--env=NEO4J_dbms_memory_heap_initial__size=4G \
+--env=NEO4J_dbms_memory_heap_max__size=4G \
+--env=NEO4J_dbms_memory_pagecache_size=2G \
+--env=NEO4J_dbms_query__cache__size=0 \
+--env=NEO4J_cypher_min__replan__interval=100000000ms \
+--env=NEO4J_cypher_statistics__divergence__threshold=1 \
+--env=NEO4J_dbms_security_procedures_unrestricted=apoc.\\\* \
+--env=NEO4J_dbms_directories_import=import \
+--env NEO4J_AUTH=none\
+elysheba/public-dodo:20.04.2020
+```
+
+
 

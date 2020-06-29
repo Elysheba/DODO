@@ -1,0 +1,420 @@
+---
+title: "Benchmarking cross-references"
+author: "Liesbeth François"
+date: "3/11/2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(DODO)
+library(here)
+library(dplyr)
+library(reshape2)
+library(heatmaply)
+library(DT)
+```
+
+Currently, *is_xref* and *is_related* edges are defined based on experience of working with the different ontologies. This benchmarking effort is an attempt to rationalize the choice between *is_xref* and *is_related* edges by trying to assess the similarity and general ambiguity between ontologies.
+
+First a summary of the backward ambiguity of all cross-reference edges (before assigning either *is_xref* or *is_related) by ontology is calculated. To assess the similarity or general ambiguity between ontologies, the maximum backward ambiguity between ontologies is used. 
+
+# Ambiguity 
+
+```{r}
+load(here("build/data/dodo-neo4j-input-files.rda"))
+tmp <- DODO:::calculate_ambiguity(DODO_crossId)
+
+a <- tmp %>% 
+  filter(DB1 %in% c("EFO", "MONDO", "DOID", "ClinVar", "Cortellis_condition","Cortellis_indication", "ORPHA", "UMLS", "MedGen", "MeSH", "OMIM", "ICD10", "ICD9", "SNOMEDCT", "MEDDRA", "GARD", "MetaBase_disease", "NCIt") & 
+           DB2 %in% c("EFO", "MONDO", "DOID", "ClinVar", "Cortellis_condition","Cortellis_indication", "ORPHA", "UMLS", "MedGen", "MeSH", "OMIM", "ICD10", "ICD9", "SNOMEDCT", "MEDDRA", "GARD", "MetaBase_disease", "NCIt")) %>%
+  select(DB1, DB2, FA, BA) %>%
+  mutate(ambiguity = FA + BA)
+
+a1 <- sapply(unique(a$DB1),
+             function(x){
+               t <- a %>% filter(DB1 == x)
+               b <- do.call(rbind,
+                            by(data = t, 
+                               INDICES = t$DB2, 
+                               function(y) summary(y$ambiguity)))
+               nm <- rownames(b)
+               toRet <- cbind(DB = nm, as.data.frame(b)) %>%
+                 arrange(Max.)
+               return(toRet)
+             },
+             simplify = FALSE,
+             USE.NAMES = TRUE)
+toShow <- do.call(rbind, 
+                  sapply(names(a1),
+                         function(x){
+                    toRet <- a1[[x]] %>%
+                      mutate(DB1 = x) %>%
+                      rename(DB2 = DB) 
+                    head(toRet)
+                    return(toRet)
+                  },
+                  simplify = FALSE,
+                  USE.NAMES = TRUE))
+toShow <- toShow %>%
+  mutate(DB1 = as.factor(DB1),
+         DB2 = as.factor(DB2)) %>%
+  select(DB1, DB2, Median, Mean, Third_Quantile = `3rd Qu.`, Max = Max.)
+```
+
+```{r, include = TRUE}
+datatable(toShow,
+          filter = "top",
+          rownames = FALSE) %>%
+  DT::formatRound(c("Mean"), digits = 2)
+```
+
+
+As the backward ambiguity is not a symmetric measure, the direction of the edge can be used to assess how different ontologies relate to each other or employ different level of concept definitions. 
+
+```{r}
+max_amb <- do.call(rbind,sapply(names(a1),
+               function(x){
+                 toRet <- a1[[x]] %>%
+                   mutate(DB1 = x) %>%
+                   select(DB1,
+                          DB2 = DB,
+                          Min., 
+                          `1st Qu.`, 
+                          Median,
+                          Mean,
+                          `3rd Qu.`,
+                          Max.)
+                 return(toRet)
+               },
+               simplify = FALSE,
+               USE.NAMES = TRUE)) %>% 
+  filter(!DB1 %in% c("MetaBase_disease", "Cortellis_indication", "Cortellis_condition") & 
+           !DB2 %in% c("MetaBase_disease", "Cortellis_indication", "Cortellis_condition"))
+readr::write_csv(max_amb, path = here("vignettes/ambiguity_between_ontologies.csv"))
+oriAmb <- reshape2::acast(max_amb, formula = DB1 ~ DB2, value.var = "Max.")  %>%
+  log10()
+heatmaply(x = oriAmb)
+```
+
+To assess the general similarity between ontologies, the backward ambiguities between two ontologies (from either direction) are summed. This allows the visualization of ontologies that are more or less similar compared to those that are dissimilar based on the direction of the edge. 
+
+
+```{r}
+# symmAmb <- max_amb %>%
+#    mutate_if(is.factor,as.character) %>%
+#    mutate(db1_db2 = paste(pmin(DB1, DB2), pmax(DB1, DB2), sep = "|"))  %>%
+#    group_by(db1_db2) %>%
+#    summarise(totalAmbiguity = sum(Max.)) %>%
+#    mutate(DB1 = stringr::str_remove(string = db1_db2, pattern = "\\|.*"),
+#           DB2 = stringr::str_remove(string = db1_db2, pattern = ".*\\|")) %>%
+#    select(-db1_db2)
+# toShow <- bind_rows(symmAmb,
+#                      symmAmb %>% select(DB1 = DB2, DB2 = DB1, totalAmbiguity)) %>%
+#    distinct() %>%
+#    arrange(DB1, desc(DB2))
+# toShow <- reshape2::acast(toShow, drop = FALSE, formula = DB1 ~ DB2, value.var = "totalAmbiguity") %>%
+#   log10()
+# heatmaply(x = toShow) #, Rowv = NULL, Colv = NULL)
+```
+
+
+```{r, include = TRUE}
+# datatable(symmAmb %>% select(DB1, DB2, totalAmbiguity),
+#           filter = "top",
+#           rownames = FALSE)
+```
+
+
+Finally, a "benchmarking" is used based on different cutoffs ranging from 1 to 10 of maximum ambiguity between the ontologies based on the tables above. For DO, Monarch, Cortellis_indication, Cortellis_condition this comparison has been done. Specific edges are created (*is_xref_bm* and *is_related_bm*) and all identifiers from these resources are converted (Concept -> Concept, not specifying a resource to conver to). Finally, the distribution of the number of conversions per identifier is shown below by ontology. The aim is to identify a particular cutoff that shows a strong increase in the number of conversions. 
+
+```{r}
+load(here("tmp/All_benchmark_ambiguities.rda"))
+efo <- lapply(results_benchmark, function(x){x$EFO})
+names(efo) <- 1:20
+efo <- plyr::compact(efo)
+monarch <- lapply(results_benchmark, function(x){x$Monarch})
+names(monarch) <- 1:20
+monarch <- plyr::compact(monarch)
+do <- lapply(results_benchmark, function(x){x$DO})
+names(do) <- 1:20
+do <- plyr::compact(do)
+clinvar <- lapply(results_benchmark, function(x){x$ClinVar})
+names(clinvar) <- 1:20
+clinvar <- plyr::compact(clinvar)
+orphanet <- lapply(results_benchmark, function(x){x$Orphanet})
+names(orphanet) <- 1:20
+orphanet <- plyr::compact(orphanet)
+medgen <- lapply(results_benchmark, function(x){x$MedGen})
+names(medgen) <- 1:20
+medgen <- plyr::compact(medgen)
+mesh <- lapply(results_benchmark, function(x){x$MeSH})
+names(mesh) <- 1:20
+mesh <- plyr::compact(mesh)
+icd11 <- lapply(results_benchmark, function(x){x$ICD11})
+names(icd11) <- 1:20
+icd11 <- plyr::compact(icd11)
+load(here("tmp/Cortellis_condition_benchmark_ambiguities.rda"))
+cort_cond <- results_benchmark
+load(here("tmp/Cortellis_indication_benchmark_ambiguities.rda"))
+cort_ind <- results_benchmark
+```
+
+## Cortellis_condition
+
+```{r}
+lapply(cort_cond, function(x){x %>% arrange(desc(n))})
+toShow_cortcond <- lapply(results_benchmark, function(x) x$n)
+boxplot(toShow_cortcond,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = Cortellis_condition" )
+```
+
+```{r}
+max_conv <- do.call(rbind, sapply(1:length(cort_cond), function(x){
+  tibble(amb = x,
+         max = head(sort(cort_cond[[x]]$n, decreasing = T)))
+},
+simplify = FALSE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+      # log = "y", 
+      xlab = "Maximum ambiguity allowed to define is_xref", 
+      ylab = "Number of converted IDs", 
+      main = "Ontology = Cortellis_condition" )
+```
+
+## Cortellis_indication
+
+```{r}
+lapply(cort_ind, function(x){x %>% arrange(desc(n)) %>% head()})
+toShow_cortind <- lapply(results_benchmark, function(x) x$n)
+boxplot(toShow_cortind,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = Cortellis_indication" )
+```
+
+```{r}
+max_conv <- do.call(rbind, sapply(1:length(cort_ind), function(x){
+  tibble(amb = x,
+         max = head(sort(cort_ind[[x]]$n, decreasing = T)))
+},
+simplify = FALSE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = Cortellis_indication" )
+```
+
+## DO
+
+```{r}
+do <- plyr::compact(do)
+lapply(do, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(do, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = DO" )
+```
+
+```{r}
+max_conv <- do.call(rbind,sapply(names(do), function(x){
+  tibble(amb = x,
+         max = head(sort(do[[x]]$n, decreasing = T)))
+}, simplify = FALSE,
+USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = Disease ontology" )
+```
+
+## EFO
+
+```{r}
+lapply(efo, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(efo, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = EFO" )
+```
+
+```{r}
+max_conv <- do.call(rbind,sapply(names(efo), function(x){
+  tibble(amb = x,
+         max = head(sort(efo[[x]]$n, decreasing = T)))
+}, simplify = FALSE, USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = EFO" )
+```
+
+## Monarch
+
+```{r}
+lapply(monarch, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(monarch, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of conversions for each identifier",
+        main = "Ontology = Monarch" )
+```
+
+```{r}
+max_conv <- do.call(rbind,
+                    sapply(names(monarch), function(x){
+                      print(x)
+    tibble(amb = x,
+           max = head(sort(monarch[[x]]$n, decreasing = T)))}, 
+  simplify = FALSE,
+  USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = Monarch" )
+```
+
+## Orphanet
+
+```{r}
+lapply(orphanet, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(orphanet, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = Orphanet" )
+```
+
+```{r}
+max_conv <- do.call(rbind, sapply(names(orphanet), function(x){
+  tibble(amb = x,
+         max = head(sort(orphanet[[x]]$n, decreasing = T)))
+}, simplify = FALSE, USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = Orphanet" )
+```
+
+## ClinVar
+
+```{r}
+lapply(clinvar, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(clinvar, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = ClinVar" )
+```
+
+```{r}
+max_conv <- do.call(rbind, sapply(names(clinvar), function(x){
+  tibble(amb = x,
+         max = head(sort(clinvar[[x]]$n, decreasing = T)))
+}, simplify = FALSE, USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = ClinVar" )
+```
+
+## MedGen
+
+```{r}
+lapply(medgen, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(medgen, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = MedGen" )
+```
+
+```{r}
+max_conv <- do.call(rbind,sapply(names(medgen), function(x){
+  tibble(amb = x,
+         max = head(sort(medgen[[x]]$n, decreasing = T)))
+}, simplify = FALSE, USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = MedGen" )
+```
+
+## MeSH
+
+```{r}
+lapply(mesh, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(mesh, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = MeSH" )
+```
+
+```{r}
+max_conv <- do.call(rbind, sapply(names(mesh), function(x){
+  tibble(amb = x,
+         max = head(sort(mesh[[x]]$n, decreasing = T)))
+}, simplify = FALSE, USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = MeSH" )
+```
+
+## ICD10
+
+```{r}
+lapply(icd11, function(x){x %>% dplyr::arrange(desc(n))})
+toPlot <- lapply(icd11, function(x) x$n)
+boxplot(toPlot,
+        log = "y",
+        xlab = "Maximum ambiguity allowed to define is_xref",
+        ylab = "Number of converted IDs",
+        main = "Ontology = ICD10" )
+```
+
+```{r}
+max_conv <- do.call(rbind, sapply(names(icd11), function(x){
+  tibble(amb = x,
+         max = head(sort(icd11[[x]]$n, decreasing = T)))
+}, simplify = FALSE, USE.NAMES = TRUE))
+plot(x = max_conv$amb,
+     y = max_conv$max,
+        # log = "y", 
+        xlab = "Maximum ambiguity allowed to define is_xref", 
+        ylab = "Number of converted IDs", 
+        main = "Ontology = ICD10" )
+```

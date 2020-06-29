@@ -8,25 +8,54 @@
 \bibitem[Gruber(1993)]{Gruber1993}
 Thomas~R Gruber.
 \newblock {A Translation Approach to Portable Ontology Specifications}.
-\newblock \emph{Knowledge Aquisition}, 5\penalty0 (2):\penalty0 199--220, 1993.
-\newblock URL \url{https://ebiquity.umbc.edu/get/a/publication/501.pdf}.
+\newblock \emph{Knowl. Aquis.}, 5\penalty0 (2):\penalty0 199--220, 1993.
 
 \bibitem[Haendel et~al.(2018)Haendel, Mcmurry, Relevo, Mungall, Peter, and
   Chute]{Haendel2018}
 Melissa~A Haendel, Julie~A Mcmurry, Rose Relevo, Christopher~J Mungall,
   N~Peter, and Christopher~G Chute.
 \newblock {A Census of Disease Ontologies}.
-\newblock \emph{Annual Review of Biomedical Data Science}, 1:\penalty0
-  305--331, 2018.
+\newblock \emph{Annu. Rev. Biomed. Data Sci.}, 1:\penalty0 305--331, 2018.
 
 \bibitem[Hoehndorf et~al.(2013)Hoehndorf, Dumontier, and
   Gkoutos]{Hoehndorf2013}
 Robert Hoehndorf, Michel Dumontier, and Georgios~V. Gkoutos.
 \newblock {Evaluation of research in biomedical ontologies}.
-\newblock \emph{Briefings in Bioinformatics}, 14\penalty0 (6):\penalty0
-  696--712, 2013.
-\newblock ISSN 14675463.
-\newblock \doi{10.1093/bib/bbs053}.
+\newblock \emph{Brief. Bioinform.}, 14\penalty0 (6):\penalty0 696--712, 2013.
+
+\bibitem[Hasnain et~al.(2014)Hasnain, Kamdar, Hasapis, Zeginis, Warren, Deus,
+  Ntalaperas, Tarabanis, Mehdi, and Decker]{Hasnain2014}
+Ali Hasnain, Maulik~R. Kamdar, Panagiotis Hasapis, Dimitris Zeginis, Claude~N.
+  Warren, Helena~F. Deus, Dimitrios Ntalaperas, Konstantinos Tarabanis,
+  Muntazir Mehdi, and Stefan Decker.
+\newblock {Linked biomedical dataspace: Lessons learned integrating data for
+  drug discovery}.
+\newblock \emph{Lect. Notes Comput. Sci. (including Subser. Lect. Notes Artif.
+  Intell. Lect. Notes Bioinformatics)}, 8796:\penalty0 114--130, 2014.
+
+\bibitem[Kibbe et~al.(2015)Kibbe, Arze, Felix, Mitraka, Bolton, Fu, Mungall,
+  Binder, Malone, Vasant, Parkinson, and Schriml]{Kibbe2015}
+Warren~A. Kibbe, Cesar Arze, Victor Felix, Elvira Mitraka, Evan Bolton, Gang
+  Fu, Christopher~J. Mungall, Janos~X. Binder, James Malone, Drashtti Vasant,
+  Helen Parkinson, and Lynn~M. Schriml.
+\newblock {Disease Ontology 2015 update: An expanded and updated database of
+  Human diseases for linking biomedical knowledge through disease data}.
+\newblock \emph{Nucleic Acids Res.}, 43\penalty0 (D1):\penalty0 D1071--D1078,
+  2015.
+
+\bibitem[Livingston et~al.(2015)Livingston, Bada, Baumgartner, and
+  Hunter]{Livingston2015}
+Kevin~M Livingston, Michael Bada, William~A. Baumgartner, and Lawrence~E
+  Hunter.
+\newblock {KaBOB: ontology-based semantic integration of biomedical databases}.
+\newblock \emph{BMC Bioinformatics}, 16\penalty0 (1):\penalty0 1--21, 2015.
+
+\bibitem[Malone et~al.(2010)Malone, Holloway, Adamusiak, Kapushesky, Zheng,
+  Kolesnikov, Zhukova, Brazma, and Parkinson]{Malone2010}
+James Malone, Ele Holloway, Tomasz Adamusiak, Misha Kapushesky, Jie Zheng,
+  Nikolay Kolesnikov, Anna Zhukova, Alvis Brazma, and Helen Parkinson.
+\newblock {Modeling sample variables with an Experimental Factor Ontology}.
+\newblock \emph{Bioinformatics}, 26\penalty0 (8):\penalty0 1112--1118, 2010.
 
 \bibitem[Rappaport et~al.(2013)Rappaport, Nativ, Stelzer, Twik, Guan-Golan,
   Stein, Bahir, Belinky, Morrey, Safran, and Lancet]{Rappaport2013}
@@ -36,59 +65,11 @@ Noa Rappaport, Noam Nativ, Gil Stelzer, Michal Twik, Yaron Guan-Golan,
 \newblock {MalaCards: An integrated compendium for diseases and their
   annotation}.
 \newblock \emph{Database}, 2013:\penalty0 1--14, 2013.
-\newblock ISSN 17580463.
-\newblock \doi{10.1093/database/bat018}.
-
-\bibitem[Hasnain et~al.(2014)Hasnain, Kamdar, Hasapis, Zeginis, Warren, Deus,
-  Ntalaperas, Tarabanis, Mehdi, and Decker]{Hasnain2014}
-Ali Hasnain, Maulik~R. Kamdar, Panagiotis Hasapis, Dimitris Zeginis, Claude~N.
-  Warren, Helena~F. Deus, Dimitrios Ntalaperas, Konstantinos Tarabanis,
-  Muntazir Mehdi, and Stefan Decker.
-\newblock {Linked biomedical dataspace: Lessons learned integrating data for
-  drug discovery}.
-\newblock \emph{Lecture Notes in Computer Science (including subseries Lecture
-  Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)},
-  8796:\penalty0 114--130, 2014.
-\newblock ISSN 16113349.
-\newblock \doi{10.1007/978-3-319-11964-9}.
-
-\bibitem[Kibbe et~al.(2015)Kibbe, Arze, Felix, Mitraka, Bolton, Fu, Mungall,
-  Binder, Malone, Vasant, Parkinson, and Schriml]{Kibbe2015}
-Warren~A. Kibbe, Cesar Arze, Victor Felix, Elvira Mitraka, Evan Bolton, Gang
-  Fu, Christopher~J. Mungall, Janos~X. Binder, James Malone, Drashtti Vasant,
-  Helen Parkinson, and Lynn~M. Schriml.
-\newblock {Disease Ontology 2015 update: An expanded and updated database of
-  Human diseases for linking biomedical knowledge through disease data}.
-\newblock \emph{Nucleic Acids Research}, 43\penalty0 (D1):\penalty0
-  D1071--D1078, 2015.
-\newblock ISSN 13624962.
-\newblock \doi{10.1093/nar/gku1011}.
-
-\bibitem[Livingston et~al.(2015)Livingston, Bada, Baumgartner, and
-  Hunter]{Livingston2015}
-Kevin~M Livingston, Michael Bada, William~A. Baumgartner, and Lawrence~E
-  Hunter.
-\newblock {KaBOB: ontology-based semantic integration of biomedical databases}.
-\newblock \emph{BMC Bioinformatics}, 16\penalty0 (1):\penalty0 1--21, 2015.
-\newblock ISSN 14712105.
-\newblock \doi{10.1186/s12859-015-0559-3}.
-
-\bibitem[Malone et~al.(2010)Malone, Holloway, Adamusiak, Kapushesky, Zheng,
-  Kolesnikov, Zhukova, Brazma, and Parkinson]{Malone2010}
-James Malone, Ele Holloway, Tomasz Adamusiak, Misha Kapushesky, Jie Zheng,
-  Nikolay Kolesnikov, Anna Zhukova, Alvis Brazma, and Helen Parkinson.
-\newblock {Modeling sample variables with an Experimental Factor Ontology}.
-\newblock \emph{Bioinformatics}, 26\penalty0 (8):\penalty0 1112--1118, 2010.
-\newblock ISSN 13674803.
-\newblock \doi{10.1093/bioinformatics/btq099}.
 
 \bibitem[Hu et~al.(2017)Hu, Qiu, Huang, and Dumontier]{Hu2017}
 Wei Hu, Honglei Qiu, Jiacheng Huang, and Michel Dumontier.
 \newblock {BioSearch: a semantic search engine for Bio2RDF}.
-\newblock \emph{Database : the journal of biological databases and curation},
-  2017:\penalty0 1--13, 2017.
-\newblock ISSN 17580463.
-\newblock \doi{10.1093/database/bax059}.
+\newblock \emph{Database (Oxford).}, 2017:\penalty0 1--13, 2017.
 
 \bibitem[Mungall et~al.(2017)Mungall, McMurry, Kohler, Balhoff, Borromeo,
   Brush, Carbon, Conlin, Dunn, Engelstad, Foster, Gourdine, Jacobsen, Keith,
@@ -102,10 +83,8 @@ Christopher~J. Mungall, Julie~A. McMurry, Sebastian Kohler, James~P. Balhoff,
   Damian Smedley, Peter~N. Robinson, and Melissa~A. Haendel.
 \newblock {The Monarch Initiative: An integrative data and analytic platform
   connecting phenotypes to genotypes across species}.
-\newblock \emph{Nucleic Acids Research}, 45\penalty0 (D1):\penalty0 D712--D722,
+\newblock \emph{Nucleic Acids Res.}, 45\penalty0 (D1):\penalty0 D712--D722,
   2017.
-\newblock ISSN 13624962.
-\newblock \doi{10.1093/nar/gkw1128}.
 
 \bibitem[Shefchek et~al.(2019)Shefchek, Harris, Gargano, Matentzoglu, Unni,
   Brush, Keith, Conlin, Vasilevsky, Zhang, Balhoff, Babb, Bello, Blau,
@@ -130,32 +109,25 @@ Kent~A Shefchek, Nomi~L Harris, Michael Gargano, Nicolas Matentzoglu, Deepak
   Osumi-sutherland.
 \newblock {The Monarch Initiative in 2019 : an integrative data and analytic
   platform connecting phenotypes to genotypes across species}.
-\newblock \emph{Nucleic Acids Research}, 1:\penalty0 1--12, 2019.
-\newblock \doi{10.1093/nar/gkz997}.
+\newblock \emph{Nucleic Acids Res.}, 1:\penalty0 1--12, 2019.
 
 \bibitem[Cheng et~al.(2013)Cheng, Wang, Li, Zhang, Xu, and Wang]{Cheng2013}
 Liang Cheng, Guohua Wang, Jie Li, Tianjiao Zhang, Peigang Xu, and Yadong Wang.
 \newblock {SIDD: A Semantically Integrated Database towards a Global View of
   Human Disease}.
-\newblock \emph{PLoS ONE}, 8\penalty0 (10):\penalty0 1--9, 2013.
-\newblock ISSN 19326203.
-\newblock \doi{10.1371/journal.pone.0075504}.
+\newblock \emph{PLoS One}, 8\penalty0 (10):\penalty0 1--9, 2013.
 
 \bibitem[Schriml and Mitraka(2015)]{Schriml2015}
 Lynn~M Schriml and Elvira Mitraka.
 \newblock {The Disease Ontology : fostering interoperability between biological
   and clinical human disease-related data}.
-\newblock \emph{Mammalian Genome}, 26\penalty0 (9):\penalty0 584--589, 2015.
-\newblock ISSN 1432-1777.
-\newblock \doi{10.1007/s00335-015-9576-9}.
+\newblock \emph{Mamm. Genome}, 26\penalty0 (9):\penalty0 584--589, 2015.
 
 \bibitem[Yu et~al.(2015)Yu, Wang, Yan, and He]{Yu2015}
 Guangchuang Yu, Li~Gen Wang, Guang~Rong Yan, and Qing~Yu He.
 \newblock {DOSE: An R/Bioconductor package for disease ontology semantic and
   enrichment analysis}.
 \newblock \emph{Bioinformatics}, 31\penalty0 (4):\penalty0 608--609, 2015.
-\newblock ISSN 14602059.
-\newblock \doi{10.1093/bioinformatics/btu684}.
 
 \bibitem[Ochoa(2019)]{EFO2019}
 David Ochoa.
@@ -168,19 +140,16 @@ David Ochoa.
 Mansoor Saqi, Artem Lysenko, Yi-ke Guo, Tatsuhiko Tsunoda, and Charles Auffray.
 \newblock {Navigating the disease landscape: knowledge representations for
   contextualizing molecular signatures}.
-\newblock \emph{Briefings In Bioinformatics}, \penalty0 (November
-  2017):\penalty0 1--15, 2018.
-\newblock ISSN 1467-5463.
-\newblock \doi{10.1093/bib/bby025}.
-\newblock URL
-  \url{http://fdslive.oup.com/www.oup.com/pdf/production{\_}in{\_}progress.pdf}.
+\newblock \emph{Brief. Bioinform.}, \penalty0 (November 2017):\penalty0 1--15,
+  2018.
+\newblock ISSN 1467-.
 
-\bibitem[Inc.(2019)]{Docker2019}
-Docker Inc.
+\bibitem[{Docker Inc.}(2019)]{Docker2019}
+{Docker Inc.}
 \newblock {Docker Community Edition}, 2019.
 
-\bibitem[Inc.(2020)]{Neo4j2020}
-Neo4j Inc.
+\bibitem[{Neo4J Inc}(2020)]{Neo4j2020}
+{Neo4J Inc}.
 \newblock {Neo4j Community Edition}, 2020.
 
 \bibitem[{R Core Team}(2019)]{R2019}
@@ -204,8 +173,6 @@ Patrice Godard and Jonathan van Eyll.
 \newblock {BED: A Biological Entity Dictionary based on a graph data model
   [version 2; referees: 2 approved]}.
 \newblock \emph{F1000Research}, 7:\penalty0 1--32, 2018.
-\newblock ISSN 1759796X.
-\newblock \doi{10.12688/f1000research.13925.2}.
 
 \bibitem[Ren(2016)]{Ren2016}
 Kun Ren.
