@@ -1,0 +1,49 @@
+---
+title: "Compare DODO instances"
+author: "Liesbeth François"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+abstract: "This report compares the content of two DODO instances."
+output:
+    html_document:
+        fig_width: 9
+        fig_height: 5
+        keep_md: yes
+        number_sections: yes
+        theme: cerulean
+        toc: yes
+        toc_float: yes
+params:
+  type: "internal"
+  name: "dodo"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r}
+library(DODO)
+library(knitr)
+library(here)
+library(dplyr)
+library(readr)
+library(tibble)
+library(stringr)
+library(DT)
+library(ReDaMoR)
+
+if(params$type == "internal"){
+  url <- "http://localhost:7475"
+}else{
+  url <- "http://localhost:7476"
+}
+```
+
+
+```{r}
+connect_to_dodo(url = url, remember = FALSE)
+##
+od_node_type <- list_node_type()
+od_db <- list_database()
+
+match (n:Database)<-[r:is_in]-(d:Concept)-[r1:is_xref]->(d1:Concept)
+return n.name as database, count(d1) as count LIMIT 10
+```

@@ -1,4 +1,4 @@
-\begin{thebibliography}{30}
+\begin{thebibliography}{33}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{\texttt{#1}}
 \expandafter\ifx\csname urlstyle\endcsname\relax
@@ -129,20 +129,11 @@ Guangchuang Yu, Li~Gen Wang, Guang~Rong Yan, and Qing~Yu He.
   enrichment analysis}.
 \newblock \emph{Bioinformatics}, 31\penalty0 (4):\penalty0 608--609, 2015.
 
-\bibitem[Ochoa(2019)]{EFO2019}
-David Ochoa.
-\newblock {EFO3: A community-driven ontology to advance clinical discoveries},
-  2019.
-\newblock URL
-  \url{https://blog.opentargets.org/2019/12/19/efo3-a-community-driven-ontology-to-advance-clinical-discoveries/}.
-
-\bibitem[Saqi et~al.(2018)Saqi, Lysenko, Guo, Tsunoda, and Auffray]{Saqi2018}
-Mansoor Saqi, Artem Lysenko, Yi-ke Guo, Tatsuhiko Tsunoda, and Charles Auffray.
-\newblock {Navigating the disease landscape: knowledge representations for
+\bibitem[Saqi et~al.(2019)Saqi, Lysenko, Guo, Tsunoda, and Auffray]{Saqi2019}
+Mansoor Saqi, Artem Lysenko, Yi~Ke Guo, Tatsuhiko Tsunoda, and Charles Auffray.
+\newblock {Navigating the disease landscape: Knowledge representations for
   contextualizing molecular signatures}.
-\newblock \emph{Brief. Bioinform.}, \penalty0 (November 2017):\penalty0 1--15,
-  2018.
-\newblock ISSN 1467-.
+\newblock \emph{Brief. Bioinform.}, 20\penalty0 (2):\penalty0 609--623, 2019.
 
 \bibitem[{Docker Inc.}(2019)]{Docker2019}
 {Docker Inc.}
@@ -216,5 +207,46 @@ Gabor Csardi and Tamas Nepusz.
 Winston Chang, Joe Cheng, JJ~Allaire, Yihui Xie, and Jonathan McPherson.
 \newblock {shiny: Web Application Framework for R}, 2019.
 \newblock URL \url{https://cran.r-project.org/package=shiny}.
+
+\bibitem[Landrum et~al.(2018)Landrum, Lee, Benson, Brown, Chao, Chitipiralla,
+  Gu, Hart, Hoffman, Jang, Karapetyan, Katz, Liu, Maddipatla, Malheiro,
+  McDaniel, Ovetsky, Riley, Zhou, Holmes, Kattman, and Maglott]{Landrum2018}
+Melissa~J. Landrum, Jennifer~M. Lee, Mark Benson, Garth~R. Brown, Chen Chao,
+  Shanmuga Chitipiralla, Baoshan Gu, Jennifer Hart, Douglas Hoffman, Wonhee
+  Jang, Karen Karapetyan, Kenneth Katz, Chunlei Liu, Zenith Maddipatla, Adriana
+  Malheiro, Kurt McDaniel, Michael Ovetsky, George Riley, George Zhou,
+  J.~Bradley Holmes, Brandi~L. Kattman, and Donna~R. Maglott.
+\newblock {ClinVar: Improving access to variant interpretations and supporting
+  evidence}.
+\newblock \emph{Nucleic Acids Res.}, 46\penalty0 (D1):\penalty0 D1062--D1067,
+  2018.
+\newblock ISSN 13624962.
+\newblock \doi{10.1093/nar/gkx1153}.
+
+\bibitem[Mendez et~al.(2019)Mendez, Gaulton, Bento, Chambers, {De Veij},
+  F{\'{e}}lix, Magari{\~{n}}os, Mosquera, Mutowo, Nowotka,
+  Gordillo-Mara{\~{n}}{\'{o}}n, Hunter, Junco, Mugumbate, Rodriguez-Lopez,
+  Atkinson, Bosc, Radoux, Segura-Cabrera, Hersey, and Leach]{Mendez2019}
+David Mendez, Anna Gaulton, A.~Patr{\'{i}}cia Bento, Jon Chambers, Marleen {De
+  Veij}, Eloy F{\'{e}}lix, Mar{\'{i}}a~Paula Magari{\~{n}}os, Juan~F. Mosquera,
+  Prudence Mutowo, Micha{\l} Nowotka, Mar{\'{i}}a Gordillo-Mara{\~{n}}{\'{o}}n,
+  Fiona Hunter, Laura Junco, Grace Mugumbate, Milagros Rodriguez-Lopez, Francis
+  Atkinson, Nicolas Bosc, Chris~J. Radoux, Aldo Segura-Cabrera, Anne Hersey,
+  and Andrew~R. Leach.
+\newblock {ChEMBL: Towards direct deposition of bioassay data}.
+\newblock \emph{Nucleic Acids Res.}, 47\penalty0 (D1):\penalty0 D930--D940,
+  2019.
+\newblock ISSN 13624962.
+\newblock \doi{10.1093/nar/gky1075}.
+
+\bibitem[Fran{\c{c}}ois(2020{\natexlab{a}})]{Francois2020}
+Liesbeth Fran{\c{c}}ois.
+\newblock {Elysheba/DODO: publication (v1) release}.
+\newblock \emph{Zenodo}, 2020{\natexlab{a}}.
+
+\bibitem[Fran{\c{c}}ois(2020{\natexlab{b}})]{Francois2020b}
+Liesbeth Fran{\c{c}}ois.
+\newblock docker-ucb-public-dodo-20.04.2020 (version 20/04/2020).
+\newblock \emph{Zenodo}, 2020{\natexlab{b}}.
 
 \end{thebibliography}

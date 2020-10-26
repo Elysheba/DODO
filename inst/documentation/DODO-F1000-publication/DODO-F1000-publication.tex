@@ -130,9 +130,9 @@ disease ontologies, diseases, phenotypes, database, identifiers
 
 Ontologies have been developed to structure, classify, and describe diseases \citep{Gruber1993, Haendel2018, Hoehndorf2013}. As ontologies were independently created to support different biomedical databases dealing with genetics, treatments, and demographics, they differ in granularity and organization and define diseases in different ways \citep{Haendel2018, Hasnain2014, Hoehndorf2013, Kibbe2015, Livingston2015, Malone2010, Rappaport2013}. While this stimulated the construction of integrated biological knowledgebases, the use of independent, ontology-specific identifiers, heterogeneous decisions on disease definitions, and the inherent presence of errors complicates integrating disease ontologies \citep{Livingston2015, Rappaport2013}. In addition, the navigation of these large integrated knowledgebases with often an inherently complicated data model, is difficult for most, non-expert users \citep{Hasnain2014, Hu2017, Livingston2015}.
 
-Efforts have been made to establish new integrative disease ontologies \citep{Mungall2017, Shefchek2019, Rappaport2013}. Using semantic similarity, the Monarch Disease Ontology (MonDO) aggregates different sources including OMIM, Orphanet, NCiT, GARD, DO, and MF \citep{Mungall2017, Shefchek2019}. The Disease Ontology (DO) resource aims to standardize disease descriptions and classifications from a clinical perspective using equivalence mappings \citep{Cheng2013, Schriml2015, Yu2015}. Finally, the Experimental Factor Ontology (EFO) also establishes a unified ontology (not limited to diseases) by re-using several reference ontologies that lie within its scope. It subsequently enriches these classes with additional axioms when needed (Malone et al.~2010). Currently, it combines information from OMIM, Orphanet, ICD9/10 and SNOMEDCT, HPO, UBERON, and MonDO \citep{EFO2019}.
+Efforts have been made to establish new integrative disease ontologies \citep{Mungall2017, Shefchek2019, Rappaport2013}. Using semantic similarity, the Monarch Disease Ontology (MonDO) aggregates different sources including OMIM, Orphanet, NCiT, GARD, DO, and MF \citep{Mungall2017, Shefchek2019}. The Disease Ontology (DO) resource aims to standardize disease descriptions and classifications from a clinical perspective using equivalence mappings \citep{Cheng2013, Schriml2015, Yu2015}. Finally, the \href{https://blog.opentargets.org/2019/12/19/efo3-a-community-driven-ontology-to-advance-clinical-discoveries/}{Experimental Factor Ontology (EFO)} also establishes a unified ontology (not limited to diseases) by re-using several reference ontologies that lie within its scope. It subsequently enriches these classes with additional axioms when needed (Malone et al.~2010). Currently, it combines information from OMIM, Orphanet, ICD9/10 and SNOMEDCT, HPO, UBERON, and MonDO.
 
-Despite these ongoing efforts, two bottlenecks hamper the connection of information around disease ontologies efficiently: (1) no resource provides a complete mapping across the multitude of ontologies and (2) there is no software available to comprehensively explore and interact with disease ontologies. The Dictionary of Disease Ontologies (DODO) was developed to address these two challenges. (1) While efforts such as MonDO and EFO try to integrate different disease ontologies through semantic learning and manual curation, these resources, like the different disease ontologies themselves, are currently not providing a complete mapping across all diseases ontologies \citep{Hu2017, Rappaport2013}. In addition, the existing efforts for integration are not flexible to extend easily to proprietary disease ontologies. DODO combines the information provided by the different ontologies and allows connecting ontologies to one another, even if they don't have direct cross-references. This is achieved by transitive mapping and carefully considering some indirect cross-reference relationships. (2) The second challenge addressed by DODO is the lack of an efficient and straightforward manner to access disease information through well-established bioinformatics platforms (such as R or python) \citep{Rappaport2013, Saqi2018}. Such access would facilitate a more flexible connection to the different life science resources and create a more complete biomedical knowledge landscape. Currently, the programmatic access provided by many ontologies often requires expertise in creating SPARQL queries and a high level of understanding of the underlying databases or data model to be able to generate more complex queries \citep{Hasnain2014, Hu2017, Rappaport2013}. The DODO R package allows easier access, exploration, and definition of disease concepts of interest. It can work as an intermediate layer to facilitate access and ensure exhaustive extraction of information from life science databases without the need to harmonize upfront. Here, the DODO graph database and R package are introduced, and we exemplify their added value by going through some use cases.
+Despite these ongoing efforts, two bottlenecks hamper the connection of information around disease ontologies efficiently: (1) no resource provides a complete mapping across the multitude of ontologies and (2) there is no software available to comprehensively explore and interact with disease ontologies. The Dictionary of Disease Ontologies (DODO) was developed to address these two challenges. (1) While efforts such as MonDO and EFO try to integrate different disease ontologies through semantic learning and manual curation, these resources, like the different disease ontologies themselves, are currently not providing a complete mapping across all diseases ontologies \citep{Hu2017, Rappaport2013}. In addition, the existing efforts for integration are not flexible to extend easily to proprietary disease ontologies. DODO combines the information provided by the different ontologies and allows connecting ontologies to one another, even if they don't have direct cross-references. This is achieved by transitive mapping and carefully considering some indirect cross-reference relationships. (2) The second challenge addressed by DODO is the lack of an efficient and straightforward manner to access disease information through well-established bioinformatics platforms (such as R or python) \citep{Rappaport2013, Saqi2019}. Such access would facilitate a more flexible connection to the different life science resources and create a more complete biomedical knowledge landscape. Currently, the programmatic access provided by many ontologies often requires expertise in creating SPARQL queries and a high level of understanding of the underlying databases or data model to be able to generate more complex queries \citep{Hasnain2014, Hu2017, Rappaport2013}. The DODO R package allows easier access, exploration, and definition of disease concepts of interest. It can work as an intermediate layer to facilitate access and ensure exhaustive extraction of information from life science databases without the need to harmonize upfront. Here, the DODO graph database and R package are introduced, and we exemplify their added value by going through some use cases.
 
 \hypertarget{methods}{%
 \section{Methods}\label{methods}}
@@ -149,7 +149,7 @@ In this section, an overview of the DODO database and the R package is presented
 
 \begin{figure}
 
-{\centering \includegraphics[width=0.5\linewidth]{/data/lfrancois/Development/DODO/inst/documentation/DODO-F1000-publication/fig/Figure1} 
+{\centering \includegraphics[width=0.5\linewidth]{DODO-F1000-publication_files/figure-latex/Figure1} 
 
 }
 
@@ -198,7 +198,7 @@ A R markdown document showing how to construct a new instance is provided alongs
 \item
   Start a new Neo4j instance and load data model
 \item
-  Information is imported into Neo4j by type. First, information around database nodes and concept nodes is imported. Next, information on the different relationships are loaded into the instance (cross-references, parent/child, alternative identifiers, phenotype mappings). For cross-reference identifiers, the type of edge is defined based on Supplementary Table 1 and subsequently imported into Neo4j. After import, the forward and backward ambiguity is calculated on each edge and assigned as property values to that edge.
+  Information is imported into Neo4j by type. First, information around database nodes and concept nodes is imported. Next, information on the different relationships are loaded into the instance (cross-references, parent/child, alternative identifiers, phenotype mappings). For cross-reference identifiers, the type of edge is defined based on (see Extended Data) and subsequently imported into Neo4j. After import, the forward and backward ambiguity is calculated on each edge and assigned as property values to that edge.
 \end{enumerate}
 
 \hypertarget{database-instance-availability}{%
@@ -282,7 +282,7 @@ The graph database has been implemented with Neo4j 3.5.14 \citep{Neo4j2020} with
 \hypertarget{querying-the-database}{%
 \subsubsection{Querying the database}\label{querying-the-database}}
 
-The DODO R package combines several functions to construct, interact, and explore the relationships between disease and phenotype identifiers. These can be divided in five different scopes (see Supplementary table 2):
+The DODO R package combines several functions to construct, interact, and explore the relationships between disease and phenotype identifiers. These can be divided in five different scopes (see Extended Data):
 
 \begin{itemize}
 \item
@@ -305,7 +305,7 @@ The DODO R package combines several functions to construct, interact, and explor
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{fig/Figure3} 
+{\centering \includegraphics[width=1\linewidth]{DODO-F1000-publication_files/figure-latex/Figure3} 
 
 }
 
@@ -316,7 +316,7 @@ The DODO R package combines several functions to construct, interact, and explor
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{fig/Figure4} 
+{\centering \includegraphics[width=1\linewidth]{DODO-F1000-publication_files/figure-latex/Figure4} 
 
 }
 
@@ -362,7 +362,7 @@ To assign relations to either type, a threshold is applied on the maximum total 
 
 When choosing a conservative and low threshold, the conversions may be more precise but will hamper the ability of the transitive mappings to identify the most relevant mappings. It may therefore not return all cross-reference identifiers whereas a too high threshold impacts strongly the number of converted nodes at the cost of some inaccurate conversions. Especially the effect of on a limited set of identifiers is strong with the return of many, more distantly related and less precise cross-reference identifiers as can be seen by looking at the tail of the boxplot shown on Figure \ref{fig:boxplotAmbiguity}.
 
-After having compared the results of the different ontologies, the threshold on the maximum total ambiguity value has been arbitrarily set to 4: cross-references between ontology with a maximum total ambiguity below 4 were considered as \emph{is\_xref} and others as \emph{is\_related} edges. However, two exceptions are ICD9/ICD10 and OMIM/Orphanet. Both ICD9 and ICD10 use higher level disease definitions, and therefore, these will never be connected through an \emph{is\_xref} edge except between themselves. OMIM and Orphanet on the other hand, use very narrow subtypes of diseases or mention specific variants. This results in a higher ambiguity as a general disease may have many relations to subtypes but as these ontologies use a higher granularity their relationships are still encoded as an \emph{is\_xref} edge. Supplementary table 2 shows the ontologies among which any cross-reference relationship will be encoded as \emph{is\_xref}.
+After having compared the results of the different ontologies, the threshold on the maximum total ambiguity value has been arbitrarily set to 4: cross-references between ontology with a maximum total ambiguity below 4 were considered as \emph{is\_xref} and others as \emph{is\_related} edges (see Extended Data). However, two exceptions are ICD9/ICD10 and OMIM/Orphanet. Both ICD9 and ICD10 use higher level disease definitions, and therefore, these will never be connected through an \emph{is\_xref} edge except between themselves. OMIM and Orphanet on the other hand, use very narrow subtypes of diseases or mention specific variants. This results in a higher ambiguity as a general disease may have many relations to subtypes but as these ontologies use a higher granularity their relationships are still encoded as an \emph{is\_xref} edge.
 
 \hypertarget{use-cases}{%
 \section{Use cases}\label{use-cases}}
@@ -636,7 +636,7 @@ Finally, conversion can also be used to return previous version (deprecated) ide
 
 \begin{figure}
 
-{\centering \includegraphics[width=1\linewidth]{fig/Figure9} 
+{\centering \includegraphics[width=1\linewidth]{DODO-F1000-publication_files/figure-latex/Figure9} 
 
 }
 
@@ -980,7 +980,7 @@ ORPHA:98756 & 2\\
 
 \begin{figure}
 
-{\centering \includegraphics[width=1.2\linewidth]{DODO-F1000-publication_files/figure-latex/disnetALSclinvar-1} 
+{\centering \includegraphics[width=0.7\linewidth]{DODO-F1000-publication_files/figure-latex/Figure13} 
 
 }
 
@@ -989,7 +989,7 @@ ORPHA:98756 & 2\\
 
 The aim of DODO is to facilitate the connection with external resources. As described above, DODO allows the creation of a structured disease network around diseases of interest and their relationships and information. The use of this disease network facilitates the connection and exploration of different biomedical knowledge resources as it also allows tracing their connections more easily.
 
-It is exemplified below by connecting two different external resources: ClinVar and CHEMBL using ``amyotrophic lateral sclerosis'' (ALS) as an example. We start by building a disease network around the term ``amyotrophic lateral sclerosis'' and extending through both cross-reference and parent/child relationships as described in the previous section.
+It is exemplified below by connecting two different external resources: ClinVar (release 2020-03) and CHEMBL (release 25) using ``amyotrophic lateral sclerosis'' (ALS) as an example \citep{Landrum2018, Mendez2019}. We start by building a disease network around the term ``amyotrophic lateral sclerosis'' and extending through both cross-reference and parent/child relationships as described in the previous section.
 For comparison, CHEMBL and ClinVar are queried directly using the same search term. Each of these resources uses a different ontology as reference. CHEMBL uses both EFO and MeSH to annotate compounds to indication. ClinVar uses a variety of ontologies to connect variants and diseases, such as SNOMEDCT, MedGen, Orphanet or OMIM.
 
 Through the use a disease network, 96 unique compounds were identified in CHEMBL for ALS connected to four different disease identifiers (Table \ref{tab:chemblDisNetind}). The same set of compounds is identified by querying the resource directly, demonstrating the performance of DODO to properly map those different ontologies. One associated disease is missing in CHEMBL, namely the identifier ``ORPHA:98756''. This term was identified as a child term of `EFO:0001356' with the extension of the \emph{disNet} using DODO and providing more granularity (Figure \ref{fig:disnetALSchembl}). The disease can not be identified using a free-text query in CHEMBL directly as it's labelled `Spinocerebellar ataxia type 2'. However, while different resources such as Monarch Initiative and EFO report ALS as a parent term, it is unclear whether this can be considered as ALS disease. OMIM does report a genetic overlap between spinocerebellar ataxia and amyotrophic lateral sclerosis type 13. The information integrated in the DODO graph database is based on the original information provided by ontologies such as EFO and MonDO without any additional curation. Errors in disease definitions and provided mappings will inherently be present in these ontologies and will therefore persist within DODO as well. While it was not within the initial scope of DODO, it may help to assess and identify underlying issues present in the ontologies.
@@ -1042,6 +1042,17 @@ DODO helps clarifying and defining conditions of interest in addition to help in
 
 Through the aggregation of different ontologies and their mappings, DODO facilitates the generation of exhaustive descriptions of disease landscapes. The code to build and query DODO is provided under open source license to allow further improvement by other developers.
 
+\hypertarget{extended-data}{%
+\section{Extended data}\label{extended-data}}
+
+This archive contains the extended data. This includes two sheet within the ``ExtendedData.xlsx'' file:
+\url{https://doi.org/10.5281/zenodo.3922210}
+
+\textbf{Table1:} List of all functions available in DODO R package with description and scope details.
+\textbf{Table2:} List of ontologies among which the cross-reference relations are encoded as is\_xref
+
+Data are available under the terms of the Creative Commons Zero ``No rights reserved'' data waiver (CC0 1.0 Public domain dedication).
+
 \hypertarget{software-availability}{%
 \section{Software availability}\label{software-availability}}
 
@@ -1072,6 +1083,16 @@ The source code for DODO is available at: \url{https://github.com/Elysheba/DODO}
 
 A docker image of the DODO Neo4j instance is available at: \url{https://hub.docker.com/repository/docker/elysheba/dodo} (\url{tag:02.04.2020}) Software is available to use under a GPL-3 license.
 
+Archived source code as at time of publication:
+
+\url{https://doi.org/10.5281/zenodo.3922143} \citep{Francois2020}
+
+Archived database docker image as at time of publication:
+
+\url{http://doi.org/10.5281/zenodo.3921874} \citep{Francois2020b}
+
+Software is available to use under a GPL-3 license
+
 \hypertarget{competing-interests}{%
 \section{Competing interests}\label{competing-interests}}
 
@@ -1081,122 +1102,6 @@ L.F., J.v.E., and P.G. are employees of UCB Pharma. J.v.E. and P.G. own stocks a
 \section{Grant information}\label{grant-information}}
 
 This work was entirely supported by UCB Pharma. The authors declared that no grants were involved in supporting this work.
-
-\hypertarget{supplementary-tables}{%
-\section{Supplementary tables}\label{supplementary-tables}}
-
-\begin{table}
-
-\caption{\label{tab:functions}List of all functions available in DODO R package with description and scope details.}
-\centering
-\resizebox{\linewidth}{!}{
-\begin{tabular}[t]{lll}
-\toprule
-Function & Description & scope\\
-\midrule
-\rowcolor{gray!6}  build\_disNet & Building a network of disease identifiers & Disease network functions\\
-extend\_disNet & Extending a disNet by different edges & Disease network functions\\
-\rowcolor{gray!6}  filter\_by\_id & Filtering a disNet by id & Disease network functions\\
-filter\_by\_database & Filtering a disNet by database & Disease network functions\\
-\rowcolor{gray!6}  focus\_disNet & Focus on identifiers of interest and its neighbors & Disease network functions\\
-\addlinespace
-cluster\_disNet & Clustering a disNet, generates a setDisNet & Disease network functions\\
-\rowcolor{gray!6}  setdiff\_disNet & Substract one disNet from another & Disease network functions\\
-split\_disNet & Split a disNet based on a list of identifiers into a setDisNet & Disease network functions\\
-\rowcolor{gray!6}  explore\_disNet & Visualizes a datatable to explore a disNet & Visualization and exploration\\
-show\_relations & Visualizes cross-reference relationships for the provided identifier & Visualization and exploration\\
-\addlinespace
-\rowcolor{gray!6}  plot.disNet & Visualizes a disNet using visNetwork & Visualization and exploration\\
-convert\_concept & Convert the provided set of identifiers to another ontology or between concepts & Conversion\\
-\rowcolor{gray!6}  get\_related & Convert function for ontologies separated by *is\_related* edges mainly & Conversion\\
-check\_dodo\_connection & Check connection with DODO graphical database & Connection and low-level interactions\\
-\rowcolor{gray!6}  connect\_to\_dodo & Establish connection with DODO graphical database & Connection and low-level interactions\\
-\addlinespace
-forget\_dodo\_connection & Forget a saved connection to DODO & Connection and low-level interactions\\
-\rowcolor{gray!6}  list\_dodo\_connections & List all saved connections to DODO & Connection and low-level interactions\\
-call\_dodo & Calls a function on the DODO graphical database & Connection and low-level interactions\\
-\rowcolor{gray!6}  show\_dodo\_model & Return DODO data model & Connection and low-level interactions\\
-get\_version & Return DODO database version & Connection and low-level interactions\\
-\addlinespace
-\rowcolor{gray!6}  get\_concept\_url & Returns concept url & Connection and low-level interactions\\
-list\_database & Lists databases in DODO & Connection and low-level interactions\\
-\rowcolor{gray!6}  list\_node\_type & Lists node type in DODO & Data information\\
-get\_ontology & Returns whole ontology & Data information\\
-\rowcolor{gray!6}  describe\_concept & Returns concept description & Data information\\
-\bottomrule
-\end{tabular}}
-\end{table}
-
-
-
-\begin{table}
-
-\caption{\label{tab:unnamed-chunk-26}List of ontologies among which the cross-reference relations are encoded as is\_xref}
-\centering
-\begin{tabular}[t]{ll}
-\toprule
-DB1 & DB2\\
-\midrule
-EFO & ClinVar\\
-MedGen & ClinVar\\
-OPRHA & ClinVar\\
-ORPHA & Cortellis\_condition\\
-Cortellis\_condition & Cortellis\_indication\\
-\addlinespace
-ORPHA & Cortellis\_indication\\
-ORPHA & DOID\\
-ORPHA & EFO\\
-DOID & GARD\\
-EFO & GARD\\
-\addlinespace
-ORPHA & GARD\\
-ICD10 & ICD9\\
-Cortellis\_indication & MEDDRA\\
-ORPHA & MedGen\\
-ClinVar & MeSH\\
-\addlinespace
-Cortellis\_indication & MeSH\\
-MONDO & MeSH\\
-ORPHA & MeSH\\
-Cortellis\_condition & MeSH\\
-EFO & MeSH\\
-\addlinespace
-DOID & MeSH\\
-OMIM & MeSH\\
-MedGen & MeSH\\
-UMLS & MeSH\\
-Cortellis\_condition & MetaBase\_disease\\
-\addlinespace
-Cortellis\_indication & MetaBase\_disease\\
-DOID & MONDO\\
-EFO & MONDO\\
-ORPHA & MONDO\\
-ClinVar & NCIt\\
-\addlinespace
-MedGen & NCIt\\
-MONDO & NCIt\\
-ORPHA & NCIt\\
-UMLS & NCIt\\
-ClinVar & OMIM\\
-\addlinespace
-DOID & OMIM\\
-EFO & OMIM\\
-MedGen & OMIM\\
-MONDO & OMIM\\
-ORPHA & OMIM\\
-\addlinespace
-UMLS & OMIM\\
-ClinVar & SNOMEDCT\\
-DOID & SNOMEDCT\\
-MONDO & SNOMEDCT\\
-ORPHA & SNOMEDCT\\
-\addlinespace
-ClinVar & UMLS\\
-MedGen & UMLS\\
-ORPHA & UMLS\\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \renewcommand\refname{References}
 {\small\bibliography{DODO.bib}}

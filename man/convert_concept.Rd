@@ -24,7 +24,7 @@ convert_concept(
 
 \item{to.concept}{concept (disease or phenotype) to convert to}
 
-\item{deprecated}{include deprecated identifiers (default: false)}
+\item{deprecated}{If deprecated = TRUE, only the deprecated identifiers of the original input (from) are returned (default: false)}
 
 \item{transitive_ambiguity}{backward ambiguity while using transitivity to identify
 cross-references (default: 1)}

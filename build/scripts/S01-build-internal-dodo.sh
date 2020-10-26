@@ -12,6 +12,7 @@
 ## Type of report and instance to generate (public / internal)
 export TYPE=internal
 export NAME=dodo
+export TMP=tmpdodo
 ## version
 export DODO_VERSION=`date +%d.%m.%Y`
 # export CONTAINER=neoDODO
@@ -29,7 +30,7 @@ export NJ_HOME=/data/lfrancois/Development/DODO/build/working
 export NJ_ROOT=/data/lfrancois/Development/DODO/build
 
 ## Authorization
-NJ_AUTH=none # set to 'neo4j/1234' if you want to set the 'neo4j' user with the '1234' password.
+export NJ_AUTH=none # set to 'neo4j/1234' if you want to set the 'neo4j' user with the '1234' password.
 
 ## APOC download
 export NJ_APOC_LOC=/data/lfrancois/Development/DODO/build/plugins

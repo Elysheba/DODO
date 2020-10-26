@@ -8,7 +8,7 @@
 #' @param to database to convert to (default = NULL, no filtering)
 #' @param from.concept concept (disease or phenotype) of from
 #' @param to.concept concept (disease or phenotype) to convert to
-#' @param deprecated include deprecated identifiers (default: false)
+#' @param deprecated If deprecated = TRUE, only the deprecated identifiers of the original input (from) are returned (default: false)
 #' @param transitive_ambiguity backward ambiguity while using transitivity to identify 
 #' cross-references (default: 1)
 #' @param intransitive_ambiguity specification for backward ambiguity used in the final 
@@ -151,7 +151,7 @@ convert_concept <- function(from,
       )
       b2 <- call_dodo(
          neo2R::cypher,
-         prepCql(cql),
+         neo2R::prepCql(cql),
          parameters = list(from = as.list(unique(b1$to))),
          result = "row"
       ) %>% tibble::as_tibble()
@@ -218,7 +218,7 @@ convert_concept <- function(from,
       )
       b3 <- call_dodo(
          neo2R::cypher,
-         prepCql(cql),
+         neo2R::prepCql(cql),
          parameters = list(from = as.list(from)),
          result = "row"
       ) %>%
