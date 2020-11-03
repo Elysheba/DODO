@@ -319,8 +319,23 @@ extend_disNet <- function(
    synonyms <- toRet$syn %>%
       tibble::as_tibble()
   }
-
-
+  
+  ##############################################@
+  ## Annotate missing fields
+  rel_info <- build_disNet(id = ids)
+  if(nrow(xref) == 0){
+    xref <- rel_info$xref
+  }
+  if(nrow(children) == 0){
+    children <- rel_info$children
+  }
+  if(nrow(pheno) == 0){
+    pheno <- rel_info$pheno
+  }
+  if(nrow(alt) == 0){
+    alt <- rel_info$alt
+  }
+  
   ##############################################@
   ## Reset rownames ----
   rownames(nodes) <- NULL

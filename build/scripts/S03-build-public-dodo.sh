@@ -12,6 +12,8 @@
 ## Type of report and instance to generate (public / internal)
 export TYPE=public
 export NAME=public-dodo
+export TMP=tmpdodo
+
 ## version
 export DODO_VERSION=`date +%d.%m.%Y`
 # export CONTAINER=neoDODO
