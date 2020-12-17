@@ -97,7 +97,7 @@ Cross-references between *Concepts* are managed through two types of relationshi
 
 ### Feeding the database
  
-A DODO instance is built on data from external resources that should be pre-processed to organize the information. This work was done for several public ontologies and the scripts can be found in the corresponding GitHub repositories (Table \@ref(tab:githubOntology)).
+A DODO instance is built on data from external resources that should be pre-processed to organize the information. This work was done for several public ontologies and the scripts can be found in the corresponding GitHub repositories (Table \@ref(tab:githubOntology)). Some ontologies such as [EFO](https://www.ebi.ac.uk/efo/faq.html#whatisefo) and [MeSH](https://www.nlm.nih.gov/mesh/qualifiers_scopenotes.html) extend their ontology to include information like anatomy, disease and chemical compounds. In the scope of DODO only the relevant information on disease identifiers is extracted from these ontologies.
 
 ```{r githubOntology, include = TRUE, echo = FALSE}
 do <- c("Monarch Disease Ontology (Mondo)", "Experimental Factor Ontology (EFO)", "Orphanet", "MedGen", "Medical Subject Headings (MeSH)", "Human Phenotype Ontology (HPO)", "ClinVar", "Disease Ontology (DO)", "International Classification of Diseases (ICD11)")
@@ -260,10 +260,11 @@ nodes <- tibble(id = disNet$nodes$id,
   distinct() %>%
   mutate(color = col[database],
          shape =  "dot",
-         lbl = label,
-         label = case_when(is.na(lbl) ~ id,
-                      TRUE ~ paste(id, paste0(stringr::str_sub(lbl, start = 1, end = 21), "..."), 
-                                   sep = "\n")),)
+         label = label)
+         # label = case_when(is.na(lbl) ~ id,
+         #              TRUE ~ paste(id, paste0(stringr::str_sub(lbl, start = 1, 
+         #                                                       end = 21), "..."), 
+         #                           sep = "\n")),)
 
 ## Visnetwork
 visNetwork::visNetwork(nodes = nodes,
@@ -274,7 +275,7 @@ visNetwork::visNetwork(nodes = nodes,
   # visNetwork::visIgraphLayout(smooth = TRUE)
 ``` 
 
-(ref:fig4) Subset of a disease network around Coffin-Lowry syndrome (ORPHA:192). The network shows equivalent cross-reference relations and ambiguous cross-reference relation to ICD10:Q87.0. This ICD10 disease identifier connects to 283 additional disease identifiers. The colors refer to different databases. *Is_xref* and *is_related* edges are indicated in blue and orange respectively. The arrows on the edge refer to the backward ambiguity: the identifier at the arrow destination has only one cross-reference in the database of the identifier at the arrow start. A double arrow indicates an unambiguous mapping between the 2 databases for the 2 identifiers in both directions. An edge should be considered transitive only in the direction of the arrow otherwise it can only be the final edge of a conversion path.
+(ref:fig4) Partial disease network around Coffin-Lowry syndrome (ORPHA:192). The network shows equivalent cross-reference relations and ambiguous cross-reference relation to ICD10:Q87.0. Not all cross-references of the disease network are shown to increase visibility of the figure. This ICD10 disease identifier connects to 283 additional disease identifiers. The colors refer to different databases. *Is_xref* and *is_related* edges are indicated in blue and orange respectively. The arrows on the edge refer to the backward ambiguity: the identifier at the arrow destination has only one cross-reference in the database of the identifier at the arrow start. A double arrow indicates an unambiguous mapping between the 2 databases for the 2 identifiers in both directions. An edge should be considered transitive only in the direction of the arrow otherwise it can only be the final edge of a conversion path.
 ```{r ICD10q87, echo = FALSE, out.width="100%", include = TRUE, fig.cap="(ref:fig4)"}
 knitr::include_graphics("DODO-F1000-publication_files/figure-latex/Figure4.png")
 ```
@@ -1201,7 +1202,7 @@ The aim of DODO is to facilitate the connection with external resources. As desc
 It is exemplified below by connecting two different external resources: ClinVar (release 2020-03) and CHEMBL (release 25) using “amyotrophic lateral sclerosis” (ALS) as an example [@Landrum2018; @Mendez2019]. We start by building a disease network around the term "amyotrophic lateral sclerosis" and extending through both cross-reference and parent/child relationships as described in the previous section. 
 For comparison, CHEMBL and ClinVar are queried directly using the same search term. Each of these resources uses a different ontology as reference. CHEMBL uses both EFO and MeSH to annotate compounds to indication. ClinVar uses a variety of ontologies to connect variants and diseases, such as SNOMEDCT, MedGen, Orphanet or OMIM. 
 
-Through the use a disease network, 96 unique compounds were identified in CHEMBL for ALS connected to four different disease identifiers (Table \@ref(tab:chemblDisNetind)). The same set of compounds is identified by querying the resource directly, demonstrating the performance of DODO to properly map those different ontologies. One associated disease is missing in CHEMBL, namely the identifier “ORPHA:98756”. This term was identified as a child term of 'EFO:0001356' with the extension of the *disNet* using DODO and providing more granularity (Figure \@ref(fig:disnetALSchembl)). The disease can not be identified using a free-text query in CHEMBL directly as it’s labelled ‘Spinocerebellar ataxia type 2’. However, while different resources such as Mondo and EFO report "familial amyotrophic lateral sclerosis" as a parent term, it is unclear whether this can be considered as ALS disease clinically. [OMIM](https://www.omim.org/entry/183090) does report a genetic overlap between spinocerebellar ataxia and amyotrophic lateral sclerosis type 13. The information integrated in the DODO graph database is based on the original information provided by ontologies such as EFO and Mondo without any additional curation. Errors in disease definitions and provided mappings will inherently be present in these ontologies and will therefore persist within DODO as well. While it was not within the initial scope of DODO, it may help to assess and identify underlying issues present in the ontologies.
+Through the use a disease network, 96 unique compounds were identified in CHEMBL for ALS connected to four different disease identifiers (Table \@ref(tab:chemblDisNetind)). The same set of compounds is identified by querying the resource directly, demonstrating the performance of DODO to properly map those different ontologies. One associated disease is missing in CHEMBL, namely the identifier “ORPHA:98756”. This term was identified as a child term of 'EFO:0001356' with the extension of the *disNet* using DODO and providing more granularity (Figure \@ref(fig:disnetALSchembl)). The disease can not be identified using a free-text query in CHEMBL directly as it’s labelled ‘Spinocerebellar ataxia type 2’. However, while EFO reports "familial amyotrophic lateral sclerosis" as a parent term, it is unclear whether this can be considered as ALS disease clinically. [OMIM](https://www.omim.org/entry/183090) does report a genetic overlap between spinocerebellar ataxia and amyotrophic lateral sclerosis type 13. The information integrated in the DODO graph database is based on the original information provided by ontologies such as EFO and Mondo without any additional curation. Errors in disease definitions and provided mappings will inherently be present in these ontologies and will therefore persist within DODO as well. While it was not within the initial scope of DODO, it may help to assess and identify underlying issues present in the ontologies.
 
 
 ```{r, echo = TRUE, include = FALSE, eval = FALSE}
