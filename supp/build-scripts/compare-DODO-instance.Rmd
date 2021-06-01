@@ -1,0 +1,167 @@
+---
+title: "Compare DODO instances"
+author: "Liesbeth François"
+date: "`r format(Sys.time(), '%B %d %Y')`"
+abstract: "This report compares the content of two DODO instances."
+output: 
+   html_document: 
+     self_contained: yes
+     fig_height: 6
+     fig_width: 8
+     keep_md: yes
+     number_sections: yes
+     theme: cerulean
+     toc: yes
+     toc_float: yes
+editor_options: 
+  chunk_output_type: console
+params:
+  type: "internal"
+  name: "dodo"
+---
+
+```{r setup, echo = FALSE, include = FALSE}
+library(DODO)
+library(knitr)
+library(here)
+library(dplyr)
+library(readr)
+library(tibble)
+library(stringr)
+library(DT)
+library(ReDaMoR)
+
+if(params$type == "internal"){
+  url <- "http://localhost:7475"
+}else{
+  url <- "http://localhost:7476"
+}
+```
+
+# Previous DODO instance
+
+```{r,echo = FALSE, include=FALSE}
+connect_to_dodo(url = url, remember = FALSE)
+##
+od_node_type <- list_node_type()
+od_db <- list_database()
+od_version <- get_version()
+
+cql <- c("match (db)<-[r:is_in]-(n:Concept)-[r1:is_xref|is_related|has_pheno]-(n1:Concept)",
+       "return db.name as database, n.name as n1, type(r1) as type, count(n1) as count")
+toRet <- call_dodo(
+      neo2R::cypher,
+      neo2R::prepCql(cql),
+      result = "row") %>%
+    tibble::as_tibble()
+old_dodo <- toRet %>%
+  group_by(type, database) %>%
+  summarise(mean_old = mean(count), 
+            max_old = max(count),
+            median_old = median(count))
+```
+
+*Version: `r od_version$Version`*
+
+# New DODO instance
+
+```{r, echo = FALSE, include = FALSE}
+connect_to_dodo(url = "http://localhost:7470", remember = FALSE)
+##
+nd_node_type <- list_node_type()
+nd_db <- list_database()
+nd_version <- get_version()
+
+## Relationships
+cql <- c("match (db)<-[r:is_in]-(n:Concept)-[r1:is_xref|is_related|has_pheno]-(n1:Concept)",
+       "return db.name as database, n.name as n1, type(r1) as type, count(n1) as count")
+toRet <- call_dodo(
+      neo2R::cypher,
+      neo2R::prepCql(cql),
+      result = "row") %>%
+    tibble::as_tibble()
+new_dodo <- toRet %>%
+  group_by(type, database) %>%
+  summarise(mean_new = mean(count), 
+            max_new = max(count),
+            median_new = median(count))
+```
+
+*Version: `r nd_version$Version`*
+
+# Comparison 
+
+## Type
+
+```{r, echo = FALSE, include = TRUE}
+toShow <- full_join(od_node_type %>% select(type, count_old = count), 
+                    nd_node_type %>% select(type, count_new = count),
+                    by = "type") %>%
+  arrange(type)
+datatable(toShow, 
+          rownames = FALSE,
+          filter = "top") 
+```
+
+## Nodes
+
+```{r, echo = FALSE, include = TRUE}
+toShow <- full_join(od_db %>% select(database, count_old = count), 
+                    nd_db %>% select(database, count_new = count),
+                    by = "database") %>%
+  arrange(database)
+datatable(toShow, 
+          rownames = FALSE,
+          filter = "top") 
+```
+
+## is_xref relationships
+
+```{r, echo = FALSE, include = TRUE}
+toShow <- full_join(old_dodo,
+                    new_dodo,
+                    by = c("type", "database")) %>%
+  select(database,
+         type, 
+         mean_old,
+         mean_new,
+         median_old,
+         median_new,
+         max_old,
+         max_new) %>%
+  arrange(type, database)
+datatable(toShow %>%
+            filter(type == "is_xref"),
+          rownames = FALSE,
+          filter = "top") %>%
+  formatStyle(c("mean_old", "mean_new"), backgroundColor = "#fb8072") %>%
+  formatStyle(c("median_old", "median_new"), backgroundColor = "#8dd3c7") %>%
+  formatStyle(c("max_old", "max_new"), backgroundColor = "#ffed6f") %>%
+  formatRound(3:8, 2)
+```
+
+## is_related relationships
+
+```{r, echo = FALSE,  include = TRUE}
+datatable(toShow %>%
+            filter(type == "is_related"),
+          rownames = FALSE,
+          filter = "top") %>%
+  formatStyle(c("mean_old", "mean_new"), backgroundColor = "#fb8072") %>%
+  formatStyle(c("median_old", "median_new"), backgroundColor = "#8dd3c7") %>%
+  formatStyle(c("max_old", "max_new"), backgroundColor = "#ffed6f") %>%
+  formatRound(3:8, 2)
+```
+
+## has_pheno relationships
+
+```{r, echo = FALSE,  include = TRUE}
+datatable(toShow %>%
+            filter(type == "has_pheno"),
+          rownames = FALSE,
+          filter = "top") %>%
+  formatStyle(c("mean_old", "mean_new"), backgroundColor = "#fb8072") %>%
+  formatStyle(c("median_old", "median_new"), backgroundColor = "#8dd3c7") %>%
+  formatStyle(c("max_old", "max_new"), backgroundColor = "#ffed6f") %>%
+  formatRound(3:8, 2)
+```
