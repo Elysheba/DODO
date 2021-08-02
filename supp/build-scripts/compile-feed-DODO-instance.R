@@ -10,12 +10,12 @@ stopifnot(length(args) <= 2)
   message("###################################")
   message("Compiling ", print(file))
   fn = paste("building",args[2], args[1], "report", sep = "-")
-  
+
   ## Compile markdown
-  rmarkdown::render(input = file, 
+  rmarkdown::render(input = file,
                     params = list(type = args[1],
                                   name = args[2]),
-                    output_file = fn)     
+                    output_file = fn)
   
   ## Comparison
   file = here::here(paste0('supp/build-scripts/compare-DODO-instance.Rmd'))

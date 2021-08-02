@@ -26,7 +26,7 @@ export NJ_HTTP_PORT=7475
 export NJ_BOLT_PORT=7688
 
 ## Change the location of the Neo4j directory
-export NJ_HOME=/data/lfrancois/Development/
+export NJ_HOME=/data/lfrancois/Development
 export NJ_ROOT=/data/lfrancois/Development/DODO/supp
 
 ## Authorization

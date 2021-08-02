@@ -395,6 +395,8 @@ DODO_crossId <- DODO_crossId %>%
 
 ## Medgen Disease concepts only
 
+Semantic types related to "Disease or Syndrome","Acquired Abnormality", "Anatomical Abnormality","Congenital Abnormality", "Neoplastic Process", "Mental or Behavioral Dysfunction" are retained. 
+
 ```{r}
 mg <- read.table("/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/MedGen/sources/MGSTY.RFF",
                  sep = "|", 
@@ -403,17 +405,53 @@ mg <- read.table("/home/lfrancois/Shared/Data-Science/Data-Source-Model-Reposito
                  quote = "",
                  fill = TRUE, 
                  colClasses = c("character"))
-## Some ideas have double designation
+## Some identifiers have double designation
+## Pathologic Function  
+## Mental or Behavioral Dysfunction
+## Cell or Molecular Dysfunction
 toKeep <- mg %>% filter(grepl(paste("Disease or Syndrome","Acquired Abnormality",
                                 "Anatomical Abnormality","Congenital Abnormality",
-                                "Neoplastic Process",
+                                "Neoplastic Process","Mental or Behavioral Dysfunction",
                                 sep = "|"), STY)) 
-toRem <- mg %>% filter(!X.CUI %in% toKeep$X.CUI)
+## Keep all ClinVar MedGen ids
+cv_mg <- cv_crossId %>% 
+  filter(DB2 == "UMLS") %>% 
+  mutate(DB2 = "MedGen",
+         dbid2 = gsub("UMLS", "MedGen", dbid2)) %>% 
+  as_tibble()
+# toShow <- mg %>% 
+#   filter(X.CUI %in% cv_mg$id2)
+# sort(table(toShow$STY))
+toKeep2 <- mg %>% 
+  filter(X.CUI %in% cv_mg$id2)
+toRem <- mg %>% 
+  filter(!X.CUI %in% c(toKeep$X.CUI, toKeep2$X.CUI))
+
+##
 DODO_crossId <- DODO_crossId %>% 
   filter(!dbid2 %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
                        paste("UMLS", toRem$X.CUI, sep = ":"))) %>%
   distinct()
 dim(DODO_crossId)
+DODO_entryId <- DODO_entryId %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_idNames <- DODO_idNames %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_parentId <- DODO_parentId %>% 
+  filter(!pdbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":"))) %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_altId <- DODO_altId %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":"))) %>% 
+  filter(!adbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_pheno2dis <- DODO_pheno2dis %>% 
+  filter(!ddbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
 ```
 
 ## Modify database name
@@ -425,7 +463,8 @@ Some resources use either "MedGen" or "UMLS" as database name for NCI Metathesau
 ##################################################################@
 ## Modify DB names and entries ----
 ## Add UMLS entries as MedGen entries (double entry)
-DODO_entryId <- filter(DODO_entryId,DB == "MedGen") %>% 
+DODO_entryId <- DODO_entryId %>% 
+  filter(DB == "MedGen") %>% 
   mutate(DB =  str_replace_all(DB, "MedGen","UMLS"),
          origin =  str_replace_all(origin, "MedGen","UMLS"),
          dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
@@ -526,7 +565,7 @@ d <- which(duplicated(DODO_entryId[,c("dbid", "origin")]))
 DODO_entryId <- DODO_entryId[-d,]
 dim(DODO_entryId)
 sum(duplicated(DODO_entryId))
-sum(duplicated(DODO_entryId[,c("dbid")]))
+sum(duplicated(DODO_entryId[,c("dbid")])) ## MedGen UMLS will be duplicated
 
 # 
 sum(duplicated(DODO_crossId))

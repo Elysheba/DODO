@@ -259,7 +259,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Building DODO database</h1>
 <h4 class="author">Liesbeth François</h4>
-<h4 class="date">June 01 2021</h4>
+<h4 class="date">August 02 2021</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
 This report records the process the load the different disease ontologies into a single DODO instance and return an RDF table as well as RData objects with all parsed information.
@@ -356,9 +356,14 @@ for(s in src){
     }
     assign(gsub(&quot;.txt&quot;,&quot;&quot;,i), x) 
   }
-}
-
-## Some issues in the first lines of HPO files
+}</code></pre>
+<pre><code>## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec = dec, :
+## EOF within quoted string</code></pre>
+<pre><code>## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec = dec, :
+## number of items read is not a multiple of the number of columns</code></pre>
+<pre><code>## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec = dec, :
+## embedded nul(s) found in input</code></pre>
+<pre class="r"><code>## Some issues in the first lines of HPO files
 # toRem &lt;- grep(&quot;disease-db&quot;, HPO_diseaseHP$db)
 # HPO_diseaseHP &lt;- HPO_diseaseHP[-toRem,]
 # toRem &lt;- grep(&quot;disease-db&quot;, HPO_diseases$db)
@@ -384,39 +389,39 @@ for(s in src){
 <p>The URL provides a link to its respective GitHub repository where you can find the scripts to parse the different ontologies and generate the necessary input files for the current workflow. However, this workflow is easily adapted to include additional disease or phenotype ontologies. It requires parsing the ontology and generating files with specific format and specific table name. The table name is always constructes as follows: <em>name of the ontology<em>name table</em>, eg. &quot;Monarch</em>entryId&quot;. The script will read these files with the specific table names from the global environment and append them automatically to each other. The format of each table is listed below, if information is not available or not provided in the ontology, the table doesn't need to be created. If specific information of a table is missing, please assign NA to that column.</p>
 <p><strong>entryId</strong></p>
 <p>Dataframe with columns <em>DB</em> (character, database or ontology), <em>id</em> (character, identifier without database prefix), <em>def</em> (character, definition of the concept), and <em>level</em> (integer, in the ontology hierarchy).</p>
-<div id="htmlwidget-579471825dc48aeabee2" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-579471825dc48aeabee2">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0000310"],["A primary or metastatic malignant neoplasm involving the cervix.","A disease caused by infection with Alkhumra hemorrhagic fever virus."],["9","5"],["Monarch","Monarch"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>def<\/th>\n      <th>level<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-9cf290c7dbfe389a9508" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9cf290c7dbfe389a9508">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0000310"],["A primary or metastatic malignant neoplasm involving the cervix.","A disease caused by infection with Alkhumra hemorrhagic fever virus."],["9","5"],["Monarch","Monarch"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>def<\/th>\n      <th>level<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
 <p><strong>idNames</strong></p>
 <p>Dataframe with columns <em>DB</em> (character, database or ontology), <em>id</em> (character, identifier without database prefix), <em>syn</em> (character, synonym and label), and canonical (boolean, whether <em>syn</em> is the canonical concept label).</p>
-<div id="htmlwidget-80f81828c3c2717c5908" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-80f81828c3c2717c5908">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0000310"],["cervical cancer","Alkhurma hemorrhagic fever"],["TRUE","TRUE"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>syn<\/th>\n      <th>canonical<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-944ee043bca21f6c0c96" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-944ee043bca21f6c0c96">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0000310"],["cervical cancer","Alkhurma hemorrhagic fever"],["TRUE","TRUE"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>syn<\/th>\n      <th>canonical<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
 <p><strong>parentId</strong></p>
 <p>Dataframe with columns <em>DB</em> (character, database or ontology), <em>id</em> (character, identifier without the database prefex), <em>pDB</em> (character, database or ontology of the parent term), <em>parent</em> (character, identifiers of the parent), origin (character, database or ontology where this relationship originates from).</p>
-<div id="htmlwidget-e6df2b1cf994297c5722" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-e6df2b1cf994297c5722">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0016629","0007779"],["MONDO","MONDO"],["0002243","0000426"],["MONDO","MONDO"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>pDB<\/th>\n      <th>parent<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-b82a19a42d6d1a4af1d8" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-b82a19a42d6d1a4af1d8">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0016629","0007779"],["MONDO","MONDO"],["0002243","0000426"],["MONDO","MONDO"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB<\/th>\n      <th>id<\/th>\n      <th>pDB<\/th>\n      <th>parent<\/th>\n      <th>origin<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
 <p><strong>crossId</strong></p>
 <p>Dataframe with columns <em>DB1</em> (character, database or ontology of the first identifier), <em>id1</em> (character, first identifier without the database prefex), <em>DB2</em> (character, database or ontology of the second identifier), <em>id2</em> (character, second identifier also called cross-referenced identifier without database prefix).</p>
-<div id="htmlwidget-346d12193ef8d5c39b37" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-346d12193ef8d5c39b37">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0002974"],["ICD9","ICD9"],["180.8","180"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB1<\/th>\n      <th>id1<\/th>\n      <th>DB2<\/th>\n      <th>id2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-ee8bef8c855b0b2ec3c6" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-ee8bef8c855b0b2ec3c6">{"x":{"filter":"none","data":[["1","2"],["MONDO","MONDO"],["0002974","0002974"],["ICD9","ICD9"],["180.8","180"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>DB1<\/th>\n      <th>id1<\/th>\n      <th>DB2<\/th>\n      <th>id2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
 <p><strong>altId</strong></p>
 <p>Dataframe with columns <em>DB</em> (character, database or ontology), <em>id</em> (character, identifier without the database prefex), <em>alt</em> (character, database or ontology of the alternative identifier), <em>altDB</em> (character, alternative identifier).</p>
-<div id="htmlwidget-d607404ed09c80b55cfd" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-d607404ed09c80b55cfd">{"x":{"filter":"none","data":[["1","2"],["0000003","0000005"],["0004715","0001453"],["HP","HP"],["HP","HP"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>id<\/th>\n      <th>alt<\/th>\n      <th>altDB<\/th>\n      <th>DB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-0d2c2357e6b07eef3315" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-0d2c2357e6b07eef3315">{"x":{"filter":"none","data":[["1","2"],["0000003","0000005"],["0004715","0001453"],["HP","HP"],["HP","HP"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>id<\/th>\n      <th>alt<\/th>\n      <th>altDB<\/th>\n      <th>DB<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
 <p><strong>pheno2dis</strong></p>
 <p>Dataframe with columns <em>phenoDB</em> (character, database or ontology of the phenotype), <em>phenoID</em> (character, phenotype identifier without the database prefex), <em>disDB</em> (character, database or ontology of the disease identifier), <em>disID</em> (character, disease identifier).</p>
-<div id="htmlwidget-2886b0bb6b6bed39f3c9" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2886b0bb6b6bed39f3c9">{"x":{"filter":"none","data":[["1","2"],["HP","HP"],["0000252","0001249"],["DECIPHER","DECIPHER"],["1","1"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>phenoDB<\/th>\n      <th>phenoID<\/th>\n      <th>disDB<\/th>\n      <th>disID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-d193bfa18a45199f4c9e" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-d193bfa18a45199f4c9e">{"x":{"filter":"none","data":[["1","2"],["HP","HP"],["0000252","0001249"],["DECIPHER","DECIPHER"],["1","1"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>phenoDB<\/th>\n      <th>phenoID<\/th>\n      <th>disDB<\/th>\n      <th>disID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]}},"evals":[],"jsHooks":[]}</script>
 <div id="database-convention" class="section level2">
 <h2><span class="header-section-number">4.1</span> Database convention</h2>
 <p>There are often different abbreviations available for different ontology database. Here, we adopt a naming convention to harmonize the different inputs.</p>
-<div id="htmlwidget-2d73f055f8ef8853406b" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-2d73f055f8ef8853406b">{"x":{"filter":"none","data":[["MeSH","MONDO","EFO","OMIMPS","OMIM","Orphanet","SNOMEDCT","SCTID","DOID","NCIt","UMLS","ICD9","ICD10","GARD","MedGen","Human Phenotype Ontology"],["Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease",null,"Trait"],["MeSH","MONDO","EFO","OMIMPS","OMIM","ORPHA","SNOMEDCT","SNOMEDCT","DOID","NCIt","MedGen","ICD9","ICD10","GARD","MedGen","HP"],["D001368","0000001","0000408","602483","613339 ","377788","702443003","702443003","1","C84570","C0003803","255.4","Q04.3","0007446","C0003803","0001272"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Database<\/th>\n      <th>Type<\/th>\n      <th>DB<\/th>\n      <th>ID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-3a68a564e1cf6fb892b4" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3a68a564e1cf6fb892b4">{"x":{"filter":"none","data":[["MeSH","MONDO","EFO","OMIMPS","OMIM","Orphanet","SNOMEDCT","SCTID","DOID","NCIt","UMLS","ICD9","ICD10","GARD","MedGen","Human Phenotype Ontology"],["Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease","Disease",null,"Trait"],["MeSH","MONDO","EFO","OMIMPS","OMIM","ORPHA","SNOMEDCT","SNOMEDCT","DOID","NCIt","MedGen","ICD9","ICD10","GARD","MedGen","HP"],["D001368","0000001","0000408","602483","613339 ","377788","702443003","702443003","1","C84570","C0003803","255.4","Q04.3","0007446","C0003803","0001272"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>Database<\/th>\n      <th>Type<\/th>\n      <th>DB<\/th>\n      <th>ID<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="cross-reference-edges" class="section level2">
 <h2><span class="header-section-number">4.2</span> Cross-reference edges</h2>
 <p>There are two types of cross-reference edges encoded into the database, <em>is_xref</em> and <em>is_related</em>. The <em>is_xref</em> edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The <em>is_related</em> edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases. Ontologies with a ambiguity equal or lower than 4 are considered as <em>is_xref</em> with the exception of ICD10 and ICD9 which are never an <em>is_xref</em> edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional <em>is_xref</em> edge between these. For more information please consult the vignette.</p>
-<div id="htmlwidget-75c00a67611ddaca12c7" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-75c00a67611ddaca12c7">{"x":{"filter":"none","data":[["EFO","MedGen","OPRHA","ORPHA","Cortellis_condition","ORPHA","ORPHA","ORPHA","DOID","EFO","ORPHA","ICD10","Cortellis_indication","ORPHA","ClinVar","Cortellis_indication","MONDO","ORPHA","Cortellis_condition","EFO","DOID","OMIM","MedGen","UMLS","Cortellis_condition","Cortellis_indication","DOID","EFO","ORPHA","ClinVar","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","EFO","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","MONDO","ORPHA","ClinVar","MedGen","ORPHA"],["ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","DOID","EFO","GARD","GARD","GARD","ICD9","MEDDRA","MedGen","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MetaBase_disease","MetaBase_disease","MONDO","MONDO","MONDO","NCIt","NCIt","NCIt","NCIt","NCIt","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","SNOMEDCT","SNOMEDCT","SNOMEDCT","SNOMEDCT","UMLS","UMLS","UMLS"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-3574952c563d9a257125" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3574952c563d9a257125">{"x":{"filter":"none","data":[["EFO","MedGen","OPRHA","ORPHA","Cortellis_condition","ORPHA","ORPHA","ORPHA","DOID","EFO","ORPHA","ICD10","Cortellis_indication","ORPHA","ClinVar","Cortellis_indication","MONDO","ORPHA","Cortellis_condition","EFO","DOID","OMIM","MedGen","UMLS","Cortellis_condition","Cortellis_indication","DOID","EFO","ORPHA","ClinVar","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","EFO","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","MONDO","ORPHA","ClinVar","MedGen","ORPHA"],["ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","DOID","EFO","GARD","GARD","GARD","ICD9","MEDDRA","MedGen","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MetaBase_disease","MetaBase_disease","MONDO","MONDO","MONDO","NCIt","NCIt","NCIt","NCIt","NCIt","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","SNOMEDCT","SNOMEDCT","SNOMEDCT","SNOMEDCT","UMLS","UMLS","UMLS"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="harmonize-hpo" class="section level2">
 <h2><span class="header-section-number">4.3</span> Harmonize HPO</h2>
@@ -637,6 +642,7 @@ DODO_crossId &lt;- DODO_crossId %&gt;%
 </div>
 <div id="medgen-disease-concepts-only" class="section level2">
 <h2><span class="header-section-number">5.2</span> Medgen Disease concepts only</h2>
+<p>Semantic types related to &quot;Disease or Syndrome&quot;,&quot;Acquired Abnormality&quot;, &quot;Anatomical Abnormality&quot;,&quot;Congenital Abnormality&quot;, &quot;Neoplastic Process&quot;, &quot;Mental or Behavioral Dysfunction&quot; are retained.</p>
 <pre class="r"><code>mg &lt;- read.table(&quot;/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/MedGen/sources/MGSTY.RFF&quot;,
                  sep = &quot;|&quot;, 
                  header = TRUE, 
@@ -644,18 +650,54 @@ DODO_crossId &lt;- DODO_crossId %&gt;%
                  quote = &quot;&quot;,
                  fill = TRUE, 
                  colClasses = c(&quot;character&quot;))
-## Some ideas have double designation
+## Some identifiers have double designation
+## Pathologic Function  
+## Mental or Behavioral Dysfunction
+## Cell or Molecular Dysfunction
 toKeep &lt;- mg %&gt;% filter(grepl(paste(&quot;Disease or Syndrome&quot;,&quot;Acquired Abnormality&quot;,
                                 &quot;Anatomical Abnormality&quot;,&quot;Congenital Abnormality&quot;,
-                                &quot;Neoplastic Process&quot;,
+                                &quot;Neoplastic Process&quot;,&quot;Mental or Behavioral Dysfunction&quot;,
                                 sep = &quot;|&quot;), STY)) 
-toRem &lt;- mg %&gt;% filter(!X.CUI %in% toKeep$X.CUI)
+## Keep all ClinVar MedGen ids
+cv_mg &lt;- cv_crossId %&gt;% 
+  filter(DB2 == &quot;UMLS&quot;) %&gt;% 
+  mutate(DB2 = &quot;MedGen&quot;,
+         dbid2 = gsub(&quot;UMLS&quot;, &quot;MedGen&quot;, dbid2)) %&gt;% 
+  as_tibble()
+# toShow &lt;- mg %&gt;% 
+#   filter(X.CUI %in% cv_mg$id2)
+# sort(table(toShow$STY))
+toKeep2 &lt;- mg %&gt;% 
+  filter(X.CUI %in% cv_mg$id2)
+toRem &lt;- mg %&gt;% 
+  filter(!X.CUI %in% c(toKeep$X.CUI, toKeep2$X.CUI))
+
+##
 DODO_crossId &lt;- DODO_crossId %&gt;% 
   filter(!dbid2 %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
                        paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;))) %&gt;%
   distinct()
 dim(DODO_crossId)</code></pre>
-<pre><code>## [1] 357441      6</code></pre>
+<pre><code>## [1] 527785      6</code></pre>
+<pre class="r"><code>DODO_entryId &lt;- DODO_entryId %&gt;% 
+  filter(!dbid %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
+                       paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;)))
+DODO_idNames &lt;- DODO_idNames %&gt;% 
+  filter(!dbid %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
+                       paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;)))
+DODO_parentId &lt;- DODO_parentId %&gt;% 
+  filter(!pdbid %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
+                       paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;))) %&gt;% 
+  filter(!dbid %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
+                       paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;)))
+DODO_altId &lt;- DODO_altId %&gt;% 
+  filter(!dbid %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
+                       paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;))) %&gt;% 
+  filter(!adbid %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
+                       paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;)))
+DODO_pheno2dis &lt;- DODO_pheno2dis %&gt;% 
+  filter(!ddbid %in% c(paste(&quot;MedGen&quot;, toRem$X.CUI, sep = &quot;:&quot;),
+                       paste(&quot;UMLS&quot;, toRem$X.CUI, sep = &quot;:&quot;)))</code></pre>
 </div>
 <div id="modify-database-name" class="section level2">
 <h2><span class="header-section-number">5.3</span> Modify database name</h2>
@@ -663,7 +705,8 @@ dim(DODO_crossId)</code></pre>
 <pre class="r"><code>##################################################################@
 ## Modify DB names and entries ----
 ## Add UMLS entries as MedGen entries (double entry)
-DODO_entryId &lt;- filter(DODO_entryId,DB == &quot;MedGen&quot;) %&gt;% 
+DODO_entryId &lt;- DODO_entryId %&gt;% 
+  filter(DB == &quot;MedGen&quot;) %&gt;% 
   mutate(DB =  str_replace_all(DB, &quot;MedGen&quot;,&quot;UMLS&quot;),
          origin =  str_replace_all(origin, &quot;MedGen&quot;,&quot;UMLS&quot;),
          dbid = str_replace_all(dbid, &quot;MedGen&quot;,&quot;UMLS&quot;)) %&gt;%
@@ -778,7 +821,7 @@ DODO_parentId &lt;- mutate(DODO_parentId,
 <pre class="r"><code>print(dodoInstance)</code></pre>
 <pre><code>## [1] &quot;UCB-Public&quot;</code></pre>
 <pre class="r"><code>print(dodoVersion)</code></pre>
-<pre><code>## [1] &quot;2021.06.01&quot;</code></pre>
+<pre><code>## [1] &quot;2021.08.02&quot;</code></pre>
 <pre class="r"><code>DODO:::set_dodo_version(dodoInstance=dodoInstance, dodoVersion=dodoVersion)</code></pre>
 </div>
 <div id="load-data-model" class="section level2">
@@ -862,8 +905,8 @@ DODO:::load_parent_identifiers(toImport=toImport, concept=concept)</code></pre>
                             sheet = &quot;Max_ambiguity_4_across_DBs&quot;)
 datatable(xrefDB,
           rownames = FALSE)</code></pre>
-<div id="htmlwidget-ce0052b49fdcdc7a0092" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-ce0052b49fdcdc7a0092">{"x":{"filter":"none","data":[["EFO","MedGen","OPRHA","ORPHA","Cortellis_condition","ORPHA","ORPHA","ORPHA","DOID","EFO","ORPHA","ICD10","Cortellis_indication","ORPHA","ClinVar","Cortellis_indication","MONDO","ORPHA","Cortellis_condition","EFO","DOID","OMIM","MedGen","UMLS","Cortellis_condition","Cortellis_indication","DOID","EFO","ORPHA","ClinVar","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","EFO","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","MONDO","ORPHA","ClinVar","MedGen","ORPHA"],["ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","DOID","EFO","GARD","GARD","GARD","ICD9","MEDDRA","MedGen","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MetaBase_disease","MetaBase_disease","MONDO","MONDO","MONDO","NCIt","NCIt","NCIt","NCIt","NCIt","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","SNOMEDCT","SNOMEDCT","SNOMEDCT","SNOMEDCT","UMLS","UMLS","UMLS"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-06890cd3ca4503a4ed80" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-06890cd3ca4503a4ed80">{"x":{"filter":"none","data":[["EFO","MedGen","OPRHA","ORPHA","Cortellis_condition","ORPHA","ORPHA","ORPHA","DOID","EFO","ORPHA","ICD10","Cortellis_indication","ORPHA","ClinVar","Cortellis_indication","MONDO","ORPHA","Cortellis_condition","EFO","DOID","OMIM","MedGen","UMLS","Cortellis_condition","Cortellis_indication","DOID","EFO","ORPHA","ClinVar","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","EFO","MedGen","MONDO","ORPHA","UMLS","ClinVar","DOID","MONDO","ORPHA","ClinVar","MedGen","ORPHA"],["ClinVar","ClinVar","ClinVar","Cortellis_condition","Cortellis_indication","Cortellis_indication","DOID","EFO","GARD","GARD","GARD","ICD9","MEDDRA","MedGen","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MeSH","MetaBase_disease","MetaBase_disease","MONDO","MONDO","MONDO","NCIt","NCIt","NCIt","NCIt","NCIt","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","OMIM","SNOMEDCT","SNOMEDCT","SNOMEDCT","SNOMEDCT","UMLS","UMLS","UMLS"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th>DB1<\/th>\n      <th>DB2<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 <pre class="r"><code>toImport &lt;- DODO_crossId %&gt;%
   select(DB1, id1, DB2, id2)
 DODO:::load_cross_references(
@@ -966,6 +1009,9 @@ $(document).ready(function () {
 
 <script>
 $(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
 
     // move toc-ignore selectors from section div to header
     $('div.section.toc-ignore')

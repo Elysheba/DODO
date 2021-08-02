@@ -1,7 +1,7 @@
 ---
 title: "Building DODO database"
 author: "Liesbeth François"
-date: "June 01 2021"
+date: "August 02 2021"
 abstract: "This report records the process the load the different disease ontologies into a single DODO instance and return an RDF table as well as RData objects with all parsed information."
 output:
     html_document:
@@ -114,7 +114,24 @@ for(s in src){
     assign(gsub(".txt","",i), x) 
   }
 }
+```
 
+```
+## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec = dec, :
+## EOF within quoted string
+```
+
+```
+## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec = dec, :
+## number of items read is not a multiple of the number of columns
+```
+
+```
+## Warning in scan(file = file, what = what, sep = sep, quote = quote, dec = dec, :
+## embedded nul(s) found in input
+```
+
+```r
 ## Some issues in the first lines of HPO files
 # toRem <- grep("disease-db", HPO_diseaseHP$db)
 # HPO_diseaseHP <- HPO_diseaseHP[-toRem,]
@@ -146,49 +163,49 @@ The URL provides a link to its respective GitHub repository where you can find t
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *def* (character, definition of the concept), and *level* (integer, in the ontology hierarchy).
 
-preserve15a64539cb42f7c0
+preserve57d807c4c9cd2671
 
 **idNames**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *syn* (character, synonym and label), and canonical (boolean, whether *syn* is the canonical concept label).
 
-preserve6ab97e26ebeed910
+preserve02aa2971a3fbd59f
 
 **parentId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *pDB* (character, database or ontology of the parent term), *parent* (character, identifiers of the parent), origin (character, database or ontology where this relationship originates from).
 
-preserve1044d1c14d10d805
+preserveb6bc4e351b75295b
 
 **crossId**
 
 Dataframe with columns *DB1* (character, database or ontology of the first identifier), *id1* (character, first identifier without the database prefex), *DB2* (character, database or ontology of the second identifier), *id2* (character, second identifier also called cross-referenced identifier without database prefix).
 
-preserve7ac3dfb9fed20179
+preserve321a50bdedf2e052
 
 **altId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *alt* (character, database or ontology of the alternative identifier), *altDB* (character, alternative identifier).
 
-preserve3f51abfc899df0cf
+preserve68094990f2232a7f
 
 **pheno2dis**
 
 Dataframe with columns *phenoDB* (character, database or ontology of the phenotype), *phenoID* (character, phenotype identifier without the database prefex), *disDB* (character, database or ontology of the disease identifier), *disID* (character, disease identifier).
 
-preserve35240cd075cb64eb
+preserveb2bd03ad25015dec
 
 ## Database convention
 
 There are often different abbreviations available for different ontology database. Here, we adopt a naming convention to harmonize the different inputs.
 
-preserve2c8872a18b7d9d09
+preserveae4350d1c87a1e5c
 
 ## Cross-reference edges
 
 There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
 
-preserve39e5e80e7eafb8a2
+preserved394c0ae69f7c3fd
 
 ## Harmonize HPO
 
@@ -437,6 +454,8 @@ DODO_crossId <- DODO_crossId %>%
 
 ## Medgen Disease concepts only
 
+Semantic types related to "Disease or Syndrome","Acquired Abnormality", "Anatomical Abnormality","Congenital Abnormality", "Neoplastic Process", "Mental or Behavioral Dysfunction" are retained. 
+
 
 ```r
 mg <- read.table("/home/lfrancois/Shared/Data-Science/Data-Source-Model-Repository/MedGen/sources/MGSTY.RFF",
@@ -446,12 +465,29 @@ mg <- read.table("/home/lfrancois/Shared/Data-Science/Data-Source-Model-Reposito
                  quote = "",
                  fill = TRUE, 
                  colClasses = c("character"))
-## Some ideas have double designation
+## Some identifiers have double designation
+## Pathologic Function  
+## Mental or Behavioral Dysfunction
+## Cell or Molecular Dysfunction
 toKeep <- mg %>% filter(grepl(paste("Disease or Syndrome","Acquired Abnormality",
                                 "Anatomical Abnormality","Congenital Abnormality",
-                                "Neoplastic Process",
+                                "Neoplastic Process","Mental or Behavioral Dysfunction",
                                 sep = "|"), STY)) 
-toRem <- mg %>% filter(!X.CUI %in% toKeep$X.CUI)
+## Keep all ClinVar MedGen ids
+cv_mg <- cv_crossId %>% 
+  filter(DB2 == "UMLS") %>% 
+  mutate(DB2 = "MedGen",
+         dbid2 = gsub("UMLS", "MedGen", dbid2)) %>% 
+  as_tibble()
+# toShow <- mg %>% 
+#   filter(X.CUI %in% cv_mg$id2)
+# sort(table(toShow$STY))
+toKeep2 <- mg %>% 
+  filter(X.CUI %in% cv_mg$id2)
+toRem <- mg %>% 
+  filter(!X.CUI %in% c(toKeep$X.CUI, toKeep2$X.CUI))
+
+##
 DODO_crossId <- DODO_crossId %>% 
   filter(!dbid2 %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
                        paste("UMLS", toRem$X.CUI, sep = ":"))) %>%
@@ -460,7 +496,29 @@ dim(DODO_crossId)
 ```
 
 ```
-## [1] 357441      6
+## [1] 527785      6
+```
+
+```r
+DODO_entryId <- DODO_entryId %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_idNames <- DODO_idNames %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_parentId <- DODO_parentId %>% 
+  filter(!pdbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":"))) %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_altId <- DODO_altId %>% 
+  filter(!dbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":"))) %>% 
+  filter(!adbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
+DODO_pheno2dis <- DODO_pheno2dis %>% 
+  filter(!ddbid %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":")))
 ```
 
 ## Modify database name
@@ -473,7 +531,8 @@ Some resources use either "MedGen" or "UMLS" as database name for NCI Metathesau
 ##################################################################@
 ## Modify DB names and entries ----
 ## Add UMLS entries as MedGen entries (double entry)
-DODO_entryId <- filter(DODO_entryId,DB == "MedGen") %>% 
+DODO_entryId <- DODO_entryId %>% 
+  filter(DB == "MedGen") %>% 
   mutate(DB =  str_replace_all(DB, "MedGen","UMLS"),
          origin =  str_replace_all(origin, "MedGen","UMLS"),
          dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
@@ -623,7 +682,7 @@ print(dodoVersion)
 ```
 
 ```
-## [1] "2021.06.01"
+## [1] "2021.08.02"
 ```
 
 ```r
@@ -733,7 +792,7 @@ datatable(xrefDB,
           rownames = FALSE)
 ```
 
-preserve562c2bad0a701923
+preserve474d012afe4ad239
 
 ```r
 toImport <- DODO_crossId %>%

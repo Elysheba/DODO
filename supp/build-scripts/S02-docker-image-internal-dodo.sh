@@ -44,10 +44,11 @@ cd $NJ_HOME/working/dodo/
 docker build -t $NAME:$DODO_VERSION .
 
 cd $NJ_ROOT/
-mkdir -p DODO-images
+# mkdir -p DODO-images
 docker save $NAME:$DODO_VERSION > $NJ_HOME/DODO-images/docker-$NAME-$DODO_VERSION.tar
 
 ## Copy image to ARCHIVE
+mkdir $NJ_HOME/ARCHIVE/$DODO_VERSION/
 cp $NJ_HOME/DODO-images/docker-$NAME-$DODO_VERSION.tar $NJ_HOME/ARCHIVE/$DODO_VERSION/
 ## Copy ARCHIVE to data science folder
 # cp -r $NJ_ROOT/ARCHIVE/$DODO_VERSION /home/lfrancois/Shared/Data-Science/R-Sandbox/neoDODO/build/ARCHIVE/
