@@ -6,12 +6,6 @@ doc
 *rda
 *.Rproj
 vignettes/DODO.R
-build/working
-build/working1
-build/DODO-images
-build/ARCHIVE
-build/data
-build/plugins
 bck/
 test/
 inst/documentation/DODO-F1000-publication/data/clinvar_2020-03-27/
@@ -22,3 +16,7 @@ inst/documentation/DODO-F1000-publication/data/bck_als_disNet_to_externalResourc
 tmp
 vignettes/data/chembl_25
 vignettes/data/clinvar_2020-03-27
+./supp/build-scripts/compare-public-dodo-public-report.html
+supp/build-scripts/compare-public-dodo-public-report.md
+supp/build-scripts/building-public-dodo-public-report.html
+supp/build-scripts/building-public-dodo-public-report.md

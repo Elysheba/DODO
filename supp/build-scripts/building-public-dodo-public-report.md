@@ -1,7 +1,7 @@
 ---
 title: "Building DODO database"
 author: "Liesbeth François"
-date: "August 02 2021"
+date: "August 05 2021"
 abstract: "This report records the process the load the different disease ontologies into a single DODO instance and return an RDF table as well as RData objects with all parsed information."
 output:
     html_document:
@@ -163,49 +163,49 @@ The URL provides a link to its respective GitHub repository where you can find t
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *def* (character, definition of the concept), and *level* (integer, in the ontology hierarchy).
 
-preserve57d807c4c9cd2671
+preserved49b30027791b17e
 
 **idNames**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without database prefix), *syn* (character, synonym and label), and canonical (boolean, whether *syn* is the canonical concept label).
 
-preserve02aa2971a3fbd59f
+preserve3527ef2ae650f154
 
 **parentId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *pDB* (character, database or ontology of the parent term), *parent* (character, identifiers of the parent), origin (character, database or ontology where this relationship originates from).
 
-preserveb6bc4e351b75295b
+preserve5f8bd01da0c445c6
 
 **crossId**
 
 Dataframe with columns *DB1* (character, database or ontology of the first identifier), *id1* (character, first identifier without the database prefex), *DB2* (character, database or ontology of the second identifier), *id2* (character, second identifier also called cross-referenced identifier without database prefix).
 
-preserve321a50bdedf2e052
+preserve90127be8a06ea23c
 
 **altId**
 
 Dataframe with columns *DB* (character, database or ontology), *id* (character, identifier without the database prefex), *alt* (character, database or ontology of the alternative identifier), *altDB* (character, alternative identifier).
 
-preserve68094990f2232a7f
+preserve952443ce125ecd7f
 
 **pheno2dis**
 
 Dataframe with columns *phenoDB* (character, database or ontology of the phenotype), *phenoID* (character, phenotype identifier without the database prefex), *disDB* (character, database or ontology of the disease identifier), *disID* (character, disease identifier).
 
-preserveb2bd03ad25015dec
+preserve4a84e135ece905c0
 
 ## Database convention
 
 There are often different abbreviations available for different ontology database. Here, we adopt a naming convention to harmonize the different inputs.
 
-preserveae4350d1c87a1e5c
+preserved58fbe25dc2a91e6
 
 ## Cross-reference edges
 
 There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
 
-preserved394c0ae69f7c3fd
+preservea2f83e2238dd93ef
 
 ## Harmonize HPO
 
@@ -491,12 +491,14 @@ toRem <- mg %>%
 DODO_crossId <- DODO_crossId %>% 
   filter(!dbid2 %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
                        paste("UMLS", toRem$X.CUI, sep = ":"))) %>%
+  filter(!dbid1 %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":"))) %>% 
   distinct()
 dim(DODO_crossId)
 ```
 
 ```
-## [1] 527785      6
+## [1] 408580      6
 ```
 
 ```r
@@ -537,6 +539,13 @@ DODO_entryId <- DODO_entryId %>%
          origin =  str_replace_all(origin, "MedGen","UMLS"),
          dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_entryId) 
+DODO_entryId <- DODO_entryId %>% 
+  filter(DB == "UMLS") %>% 
+  mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
+         origin =  str_replace_all(origin, "UMLS","MedGen"),
+         dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
+  bind_rows(DODO_entryId) %>% 
+  distinct()
 tmp <- DODO_entryId %>%
   filter(grepl("MedGen", dbid)) %>%
   mutate(DB1 = DB,
@@ -552,6 +561,7 @@ tmp <- DODO_entryId %>%
          dbid1, 
          dbid2)
 ##
+## MedGen to UMLS
 DODO_crossId <- filter(DODO_crossId,(DB1 == "MedGen" | DB2 == "MedGen")) %>% 
   mutate(DB1 =  str_replace_all(DB1, "MedGen","UMLS"),
          dbid1 = str_replace_all(dbid1, "MedGen","UMLS"), 
@@ -559,16 +569,34 @@ DODO_crossId <- filter(DODO_crossId,(DB1 == "MedGen" | DB2 == "MedGen")) %>%
          dbid2 = str_replace_all(dbid2, "MedGen","UMLS")) %>%
   bind_rows(DODO_crossId) %>%
   bind_rows(tmp)
+## UMLS to MedGen
+DODO_crossId <- filter(DODO_crossId,(DB1 == "UMLS" | DB2 == "UMLS")) %>% 
+  mutate(DB1 =  str_replace_all(DB1, "UMLS","MedGen"),
+         dbid1 = str_replace_all(dbid1, "UMLS","MedGen"), 
+         DB2 =  str_replace_all(DB2, "UMLS","MedGen"),
+         dbid2 = str_replace_all(dbid2, "UMLS","MedGen")) %>%
+  bind_rows(DODO_crossId) %>% 
+  distinct()
 ##
 DODO_idNames <- filter(DODO_idNames,DB == "MedGen") %>% 
   mutate(DB =  str_replace_all(DB, "MedGen","UMLS"),
          dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_idNames)
+DODO_idNames <- filter(DODO_idNames,DB == "UMLS") %>% 
+  mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
+         dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
+  bind_rows(DODO_idNames) %>% 
+  distinct()
 ##
 DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "MedGen") %>% 
   mutate(disDB =  str_replace_all(disDB, "MedGen","UMLS"),
          ddbid = str_replace_all(ddbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_pheno2dis)
+DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "UMLS") %>% 
+  mutate(disDB =  str_replace_all(disDB, "UMLS","MedGen"),
+         ddbid = str_replace_all(ddbid, "UMLS","MedGen")) %>%
+  bind_rows(DODO_pheno2dis) %>% 
+  distinct()
 ##
 
 ## Add ICD10CM entries as ICD10 entries (double entry)
@@ -612,6 +640,180 @@ DODO_parentId <- filter(DODO_parentId,pDB == "ICD10CM" | DB == "ICD10CM") %>%
 ## Mistake in DOID parent ID
 DODO_parentId <- mutate(DODO_parentId,
                         origin = str_replace_all(origin, "\\bDO\\b","DOID"))
+```
+
+## Check label and definition information
+
+
+```r
+## if identifiers have no definition
+table(is.na(DODO_entryId$def))
+```
+
+```
+## 
+##  FALSE   TRUE 
+## 420916 407108
+```
+
+```r
+nodef <- DODO_entryId %>% 
+  filter(is.na(def))
+table(nodef$DB)
+```
+
+```
+## 
+##                   COHD                     DC               DECIPHER 
+##                   1575                    149                      9 
+##                  DERMO                     DI                   DOID 
+##                      1                      1                  11435 
+##                    EFO                     EV                  Fyler 
+##                   2843                      2                      1 
+##                   GARD                    GTR                   HGNC 
+##                   7647                  36285                     47 
+##                     HP                  ICD10                ICD10CM 
+##                  17798                   4830                   2407 
+##                  ICD11                   ICD9                 ICD9CM 
+##                      2                   3920                   2234 
+##                    IDO                   KEGG                 MedDRA 
+##                      2                     38                   1619 
+##                 MedGen            MedlinePlus                   MeSH 
+##                  24953                      2                  11952 
+##                  MFOMD                  MONDO                     MP 
+##                      3                  20709                      8 
+##                    MTH                   NCIm                   NCIt 
+##                      1                      8                  45312 
+##                  NDFRT                 NIFSTD                    OAE 
+##                      1                     26                      1 
+##                    OBI                   OGMS                   OMIM 
+##                      2                      2                  60159 
+##                 OMIMPS                   OMIT                   OMOP 
+##                    498                      2                      5 
+##               ONCOTREE                   OROD                  ORPHA 
+##                      2                      1                   9287 
+##                   PATO                   PMID               Reactome 
+##                      1                     67                      1 
+##                   SCDO               SNOMEDCT     SNOMEDCT_2010_1_31 
+##                      2                 111478                     16 
+##    SNOMEDCT_2018_03_01    SNOMEDCT_2020_03_01 SNOMEDCT_US_2018_03_01 
+##                      1                      1                      8 
+## SNOMEDCT_US_2019_09_01 SNOMEDCT_US_2020_03_01 SNOMEDCT_US_2020_09_01 
+##                   4790                      8                      2 
+##                   UMLS                UniProt 
+##                  24953                      1
+```
+
+```r
+label <- DODO_idNames %>% 
+  filter(canonical == TRUE) %>% 
+  filter(dbid %in% nodef$dbid)
+table(label$DB)
+```
+
+```
+## 
+##    DOID     EFO      HP   ICD10 ICD10CM  MedGen    MeSH   MONDO    OMIM   ORPHA 
+##    9739    2744   15860    5894    2400   22847    4687   20347    9090    9991 
+##    UMLS 
+##   22847
+```
+
+```r
+nodef <- nodef %>% 
+  mutate(def = label$syn[match(dbid, label$dbid)]) %>% 
+  as_tibble()
+
+DODO_entryId <- DODO_entryId %>% 
+  filter(!dbid %in% nodef$dbid) %>% 
+  bind_rows(nodef) %>% 
+  distinct()
+
+## if identifiers have no label but a definition
+## 
+table(is.na(DODO_idNames$syn))
+```
+
+```
+## 
+##   FALSE 
+## 1178493
+```
+
+```r
+nolabel <- DODO_entryId %>%
+  filter(!dbid %in% DODO_idNames$dbid) %>% 
+  mutate(canonical = "TRUE") %>% 
+  filter(!is.na(def)) %>% 
+  select(DB, id, syn = def, canonical, dbid)
+head(nolabel)
+```
+
+```
+##            DB id                                       syn canonical
+## ...1 DECIPHER 76              12q14 microdeletion syndrome      TRUE
+## ...2 DECIPHER 74            15q13.3 microdeletion syndrome      TRUE
+## ...3 DECIPHER 66    15q24 recurrent microdeletion syndrome      TRUE
+## ...4 DECIPHER 81                 15q26 overgrowth syndrome      TRUE
+## ...5 DECIPHER 68      16p11.2-p12.2 microdeletion syndrome      TRUE
+## ...6 DECIPHER 57 17q21.31 recurrent microdeletion syndrome      TRUE
+##             dbid
+## ...1 DECIPHER:76
+## ...2 DECIPHER:74
+## ...3 DECIPHER:66
+## ...4 DECIPHER:81
+## ...5 DECIPHER:68
+## ...6 DECIPHER:57
+```
+
+```r
+table(gsub(":.*", "", unique(nolabel$dbid)))
+```
+
+```
+## 
+## DECIPHER       HP     OMIM    ORPHA 
+##       38     1513        6        1
+```
+
+```r
+head(DODO_idNames)
+```
+
+```
+##               DB    id                                                syn
+## 168323...1 ICD10   A00                                            Cholera
+## 168324...2 ICD10 A00.0 Cholera due to Vibrio cholerae 01, biovar cholerae
+## 168325...3 ICD10 A00.1    Cholera due to Vibrio cholerae 01, biovar eltor
+## 168326...4 ICD10 A00.9                               Cholera, unspecified
+## 168327...5 ICD10   A01                     Typhoid and paratyphoid fevers
+## 168328...6 ICD10 A01.0                                      Typhoid fever
+##            canonical        dbid
+## 168323...1      TRUE   ICD10:A00
+## 168324...2      TRUE ICD10:A00.0
+## 168325...3      TRUE ICD10:A00.1
+## 168326...4      TRUE ICD10:A00.9
+## 168327...5      TRUE   ICD10:A01
+## 168328...6      TRUE ICD10:A01.0
+```
+
+```r
+dim(DODO_idNames)
+```
+
+```
+## [1] 1178493       5
+```
+
+```r
+DODO_idNames <- DODO_idNames %>% 
+  bind_rows(nolabel) %>% 
+  distinct()
+dim(DODO_idNames)
+```
+
+```
+## [1] 1180051       5
 ```
 
 ## Remove duplicated entries
@@ -682,7 +884,7 @@ print(dodoVersion)
 ```
 
 ```
-## [1] "2021.08.02"
+## [1] "2021.08.05"
 ```
 
 ```r
@@ -792,7 +994,7 @@ datatable(xrefDB,
           rownames = FALSE)
 ```
 
-preserve474d012afe4ad239
+preserve26bc1bf5b46e3067
 
 ```r
 toImport <- DODO_crossId %>%

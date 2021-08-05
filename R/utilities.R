@@ -329,10 +329,11 @@ list_node_type <- function(){
 #' Describing provided concept identifiers (when available) using disease label
 #' 
 #' @param ids a character vector of  concept identifier to search (e.g. "MONDO:0005027")
+#' @param verbose return query content (default = FALSE)
 #' @return vector of disease labels
 #' 
 #' @export
-describe_concept <- function(ids){
+describe_concept <- function(ids, verbose = FALSE){
   ## Checking
   if(is.null(ids)){ 
     stop('Please provide ID')
@@ -341,6 +342,10 @@ describe_concept <- function(ids){
   cql <- c('MATCH (n)',
            'WHERE n.name IN $from',
            'RETURN n.name as id, n.label as label, n.level as level, n.definition as definition')
+  if(verbose){
+    cat(cql, sep = "\n")
+  }
+  
   toRet <- call_dodo(
     neo2R::cypher,
     neo2R::prepCql(cql),

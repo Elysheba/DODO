@@ -136,7 +136,10 @@ extend_disNet <- function(
       'r.origin as origin, r.BA as backwardAmbiguity, r.FA as forwardAmbiguity,',
       'Type(r) as type'
     )
-              
+    
+    if(verbose){
+      cat(cql.trans, sep = "\n")
+    }         
     
     ## run transitivity ----
     transitivity <- DODO::call_dodo(
@@ -218,6 +221,10 @@ extend_disNet <- function(
                          USE.NAMES = FALSE,
                          simplify = FALSE)
     names(statements) <- gsub("cql.", "", s)
+    
+    if(verbose){
+      print(statements, sep = "\n")
+    }
     
     ## Call query ----
     toRet <- call_dodo(

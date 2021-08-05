@@ -15,6 +15,7 @@
 #' step of conversion (default: no filter)
 #' @param step number of steps to traverse when converting within concepts (default: NULL) 
 #' (see details)
+#' @param verbose show query input (default = FALSE)
 #' 
 #' @details Conversion is performed in different steps, first identifiers are converted 
 #' (if requested) within a concept, otherwise stated, their cross-references are 
@@ -57,7 +58,8 @@ convert_concept <- function(from,
                             deprecated = FALSE,
                             transitive_ambiguity = 1,
                             intransitive_ambiguity = NULL,
-                            step = NULL){
+                            step = NULL,
+                            verbose = FALSE){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    db.to <- match.arg(to, c(NULL, list_database()$database))
@@ -97,6 +99,9 @@ convert_concept <- function(from,
             'WHERE f.name IN $from',
             "RETURN DISTINCT f.name as from, t.name as to"
          )
+         if(verbose){
+           cat(cql, sep = "\n")
+         }
          toRet <- call_dodo(
                neo2R::cypher,
                neo2R::prepCql(cql),
@@ -123,6 +128,9 @@ convert_concept <- function(from,
             # (nodes(path))[0].name AS from
             # last(nodes(path)).name AS to
             # size(relationships(path)) AS hops
+         if(verbose){
+           cat(cql, sep = "\n")
+         }
          toRet <- call_dodo(
                neo2R::cypher,
                neo2R::prepCql(cql),
@@ -149,6 +157,9 @@ convert_concept <- function(from,
          'WHERE f.name IN $from',
          "RETURN DISTINCT f.name as from, t.name as to"
       )
+      if(verbose){
+        cat(cql, sep = "\n")
+      }
       b2 <- call_dodo(
          neo2R::cypher,
          neo2R::prepCql(cql),
@@ -216,6 +227,9 @@ convert_concept <- function(from,
          'WHERE f.name IN $from',
          "RETURN DISTINCT f.name as from, t.name as to"
       )
+      if(verbose){
+        cat(cql, sep = "\n")
+      }
       b3 <- call_dodo(
          neo2R::cypher,
          neo2R::prepCql(cql),
@@ -259,6 +273,7 @@ convert_concept <- function(from,
 #' in the final step of conversion (default: no filter)
 #' @param step number of steps to traverse when converting within concepts (default: NULL) 
 #' (see details)
+#' @param verbose show query input (default = FALSE)
 #' 
 #' @details The specific conversion procedure is recommended for the ontologies that 
 #' consider disease concepts that are (only) connected through *is_related* edges
@@ -295,7 +310,8 @@ get_related <- function(from,
                         deprecated = FALSE,
                         transitive_ambiguity = 1,
                         intransitive_ambiguity = NULL,
-                        step = NULL){
+                        step = NULL, 
+                        verbose = FALSE){
    from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
    db.to <- match.arg(to, c(NULL, list_database()$database))
@@ -314,6 +330,9 @@ get_related <- function(from,
    cql <- c(sprintf("MATCH (n:Disease)-[%s]-(n1:Disease)", relationship),
             "WHERE n.name in $from",
             "RETURN n.name as from2, n1.name as to2")
+   if(verbose){
+     cat(cql, sep = "\n")
+   }
    relConv <- call_dodo(neo2R::cypher, 
                         neo2R::prepCql(cql),
                         parameters = list(from = as.list(unique(from))),
@@ -325,7 +344,8 @@ get_related <- function(from,
                                to.concept = to.concept,
                                deprecated = deprecated,
                                transitive_ambiguity = transitive_ambiguity,
-                               intransitive_ambiguity = intransitive_ambiguity)
+                               intransitive_ambiguity = intransitive_ambiguity,
+                               verbose = verbose)
 
    finConv <- dodoConv %>%
       dplyr::left_join(relConv,

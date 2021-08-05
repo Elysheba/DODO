@@ -4,10 +4,12 @@
 \alias{describe_concept}
 \title{Get concept description}
 \usage{
-describe_concept(ids)
+describe_concept(ids, verbose = FALSE)
 }
 \arguments{
 \item{ids}{a character vector of  concept identifier to search (e.g. "MONDO:0005027")}
+
+\item{verbose}{return query content (default = FALSE)}
 }
 \value{
 vector of disease labels

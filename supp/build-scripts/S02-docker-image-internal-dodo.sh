@@ -79,4 +79,5 @@ docker run -d \
    --env=NEO4J_dbms_security_procedures_unrestricted=apoc.\\\* \
    --env=NEO4J_dbms_directories_import=import \
    --env NEO4J_AUTH=$NJ_AUTH \
+   --restart=always \
     $NAME:latest

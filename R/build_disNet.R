@@ -13,6 +13,7 @@
 #' @param ambiguity level of backward ambiguity allowed
 #' (default: 1 ==> no ambiguity allowed)
 #' @param avoidOrigin avoid a particular origin 
+#' @param verbose show query input (default = FALSE)
 #' 
 #' @details 
 #' The disNet object is constructed around the return 
@@ -91,7 +92,8 @@ build_disNet <- function(id = NULL,
                         term = NULL,
                         fields = c("label", "synonym"),
                         ambiguity = NULL, 
-                        avoidOrigin = NULL){
+                        avoidOrigin = NULL,
+                        verbose = FALSE){
   #########################@
   ## Check ----
   fields <- match.arg(fields, c("label", "synonym"), several.ok = TRUE)
@@ -191,7 +193,10 @@ build_disNet <- function(id = NULL,
                        xref = neo2R::prepCql(cql.xref),
                        child = neo2R::prepCql(cql.child),
                        pheno = neo2R::prepCql(cql.pheno))
-  
+    if(verbose){
+      print(statements, sep = "\n")
+    }
+    
   #######################@
   # Send queries ----
   toRet <- call_dodo(

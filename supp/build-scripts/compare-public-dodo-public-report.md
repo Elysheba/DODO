@@ -1,7 +1,7 @@
 ---
 title: "Compare DODO instances"
 author: "Liesbeth François"
-date: "August 02 2021"
+date: "August 05 2021"
 abstract: "This report compares the content of two DODO instances."
 output: 
    html_document: 
@@ -32,26 +32,26 @@ params:
 
 
 
-*Version: 2021.08.02*
+*Version: 2021.08.05*
 
 # Comparison 
 
 ## Type
 
-preserve33ed45be525f4b0d
+preserve1e9e81f3553ca2a1
 
 ## Nodes
 
-preserved0f629f690616882
+preservee78a9c76c4ab520a
 
 ## is_xref relationships
 
-preserveccd55ed8148a9741
+preservef090590e092f116a
 
 ## is_related relationships
 
-preserved666a430e5bc58ba
+preservec20e6f1315867d7c
 
 ## has_pheno relationships
 
-preservea321409ff31e7c2d
+preserve6f1d40b2b87e22bd

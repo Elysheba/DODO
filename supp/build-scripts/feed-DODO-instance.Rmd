@@ -431,6 +431,8 @@ toRem <- mg %>%
 DODO_crossId <- DODO_crossId %>% 
   filter(!dbid2 %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
                        paste("UMLS", toRem$X.CUI, sep = ":"))) %>%
+  filter(!dbid1 %in% c(paste("MedGen", toRem$X.CUI, sep = ":"),
+                       paste("UMLS", toRem$X.CUI, sep = ":"))) %>% 
   distinct()
 dim(DODO_crossId)
 DODO_entryId <- DODO_entryId %>% 
@@ -469,6 +471,13 @@ DODO_entryId <- DODO_entryId %>%
          origin =  str_replace_all(origin, "MedGen","UMLS"),
          dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_entryId) 
+DODO_entryId <- DODO_entryId %>% 
+  filter(DB == "UMLS") %>% 
+  mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
+         origin =  str_replace_all(origin, "UMLS","MedGen"),
+         dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
+  bind_rows(DODO_entryId) %>% 
+  distinct()
 tmp <- DODO_entryId %>%
   filter(grepl("MedGen", dbid)) %>%
   mutate(DB1 = DB,
@@ -484,6 +493,7 @@ tmp <- DODO_entryId %>%
          dbid1, 
          dbid2)
 ##
+## MedGen to UMLS
 DODO_crossId <- filter(DODO_crossId,(DB1 == "MedGen" | DB2 == "MedGen")) %>% 
   mutate(DB1 =  str_replace_all(DB1, "MedGen","UMLS"),
          dbid1 = str_replace_all(dbid1, "MedGen","UMLS"), 
@@ -491,16 +501,34 @@ DODO_crossId <- filter(DODO_crossId,(DB1 == "MedGen" | DB2 == "MedGen")) %>%
          dbid2 = str_replace_all(dbid2, "MedGen","UMLS")) %>%
   bind_rows(DODO_crossId) %>%
   bind_rows(tmp)
+## UMLS to MedGen
+DODO_crossId <- filter(DODO_crossId,(DB1 == "UMLS" | DB2 == "UMLS")) %>% 
+  mutate(DB1 =  str_replace_all(DB1, "UMLS","MedGen"),
+         dbid1 = str_replace_all(dbid1, "UMLS","MedGen"), 
+         DB2 =  str_replace_all(DB2, "UMLS","MedGen"),
+         dbid2 = str_replace_all(dbid2, "UMLS","MedGen")) %>%
+  bind_rows(DODO_crossId) %>% 
+  distinct()
 ##
 DODO_idNames <- filter(DODO_idNames,DB == "MedGen") %>% 
   mutate(DB =  str_replace_all(DB, "MedGen","UMLS"),
          dbid = str_replace_all(dbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_idNames)
+DODO_idNames <- filter(DODO_idNames,DB == "UMLS") %>% 
+  mutate(DB =  str_replace_all(DB, "UMLS","MedGen"),
+         dbid = str_replace_all(dbid, "UMLS","MedGen")) %>%
+  bind_rows(DODO_idNames) %>% 
+  distinct()
 ##
 DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "MedGen") %>% 
   mutate(disDB =  str_replace_all(disDB, "MedGen","UMLS"),
          ddbid = str_replace_all(ddbid, "MedGen","UMLS")) %>%
   bind_rows(DODO_pheno2dis)
+DODO_pheno2dis <- filter(DODO_pheno2dis,disDB == "UMLS") %>% 
+  mutate(disDB =  str_replace_all(disDB, "UMLS","MedGen"),
+         ddbid = str_replace_all(ddbid, "UMLS","MedGen")) %>%
+  bind_rows(DODO_pheno2dis) %>% 
+  distinct()
 ##
 
 ## Add ICD10CM entries as ICD10 entries (double entry)
@@ -544,6 +572,48 @@ DODO_parentId <- filter(DODO_parentId,pDB == "ICD10CM" | DB == "ICD10CM") %>%
 ## Mistake in DOID parent ID
 DODO_parentId <- mutate(DODO_parentId,
                         origin = str_replace_all(origin, "\\bDO\\b","DOID"))
+```
+
+## Check label and definition information
+
+```{r}
+## if identifiers have no definition
+table(is.na(DODO_entryId$def))
+nodef <- DODO_entryId %>% 
+  filter(is.na(def))
+table(nodef$DB)
+
+label <- DODO_idNames %>% 
+  filter(canonical == TRUE) %>% 
+  filter(dbid %in% nodef$dbid)
+table(label$DB)
+
+nodef <- nodef %>% 
+  mutate(def = label$syn[match(dbid, label$dbid)]) %>% 
+  as_tibble()
+
+DODO_entryId <- DODO_entryId %>% 
+  filter(!dbid %in% nodef$dbid) %>% 
+  bind_rows(nodef) %>% 
+  distinct()
+
+## if identifiers have no label but a definition
+## 
+table(is.na(DODO_idNames$syn))
+nolabel <- DODO_entryId %>%
+  filter(!dbid %in% DODO_idNames$dbid) %>% 
+  mutate(canonical = "TRUE") %>% 
+  filter(!is.na(def)) %>% 
+  select(DB, id, syn = def, canonical, dbid)
+head(nolabel)
+table(gsub(":.*", "", unique(nolabel$dbid)))
+head(DODO_idNames)
+
+dim(DODO_idNames)
+DODO_idNames <- DODO_idNames %>% 
+  bind_rows(nolabel) %>% 
+  distinct()
+dim(DODO_idNames)
 ```
 
 ## Remove duplicated entries

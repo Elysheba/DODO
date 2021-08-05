@@ -9,7 +9,8 @@ build_disNet(
   term = NULL,
   fields = c("label", "synonym"),
   ambiguity = NULL,
-  avoidOrigin = NULL
+  avoidOrigin = NULL,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ build_disNet(
 (default: 1 ==> no ambiguity allowed)}
 
 \item{avoidOrigin}{avoid a particular origin}
+
+\item{verbose}{show query input (default = FALSE)}
 }
 \value{
 A disease network is a list with the following elements

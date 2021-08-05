@@ -12,7 +12,8 @@ convert_concept(
   deprecated = FALSE,
   transitive_ambiguity = 1,
   intransitive_ambiguity = NULL,
-  step = NULL
+  step = NULL,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ step of conversion (default: no filter)}
 
 \item{step}{number of steps to traverse when converting within concepts (default: NULL)
 (see details)}
+
+\item{verbose}{show query input (default = FALSE)}
 }
 \value{
 a dataframe with three columns:
