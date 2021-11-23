@@ -16,7 +16,7 @@
 #' @param intransitive.ambiguity backward ambiguity while using transitivity to identify cross-references (default: no filter)
 #' @param avoidNodes a vector of disease ids to be avoided in the search path
 # @param avoidOrigin: allows to avoid traversing parent/child edges from a particular ontology (default = NULL)
-#' 
+#' @param verbose show query input (default = FALSE)
 #' @details 
 #' 
 #'  Once a initial disNet has been constructed, it can be extended through cross-reference or hierarchical information 
@@ -54,7 +54,8 @@ extend_disNet <- function(
   step = NULL,
   transitive.ambiguity = 1,
   intransitive.ambiguity = NULL,
-  avoidNodes = NULL
+  avoidNodes = NULL,
+  verbose = FALSE
   # avoidOrigin = NULL
   ){
   ## checking
@@ -329,7 +330,7 @@ extend_disNet <- function(
   
   ##############################################@
   ## Annotate missing fields
-  rel_info <- build_disNet(id = ids)
+  rel_info <- build_disNet(id = ids, verbose = verbose)
   if(nrow(xref) == 0){
     xref <- rel_info$xref
   }

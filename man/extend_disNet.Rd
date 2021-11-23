@@ -10,7 +10,8 @@ extend_disNet(
   step = NULL,
   transitive.ambiguity = 1,
   intransitive.ambiguity = NULL,
-  avoidNodes = NULL
+  avoidNodes = NULL,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ Possible values among combinations of: "xref", "child", "parent", and/or "pheno"
 \item{intransitive.ambiguity}{backward ambiguity while using transitivity to identify cross-references (default: no filter)}
 
 \item{avoidNodes}{a vector of disease ids to be avoided in the search path}
+
+\item{verbose}{show query input (default = FALSE)}
 }
 \value{
 A normalized disease network

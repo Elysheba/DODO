@@ -65,9 +65,8 @@ find_term <- function(term,
 
 
   
-  cql <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE',
-                   st),
-           query,
+  cql <- c(sprintf('MATCH (s:Synonym)-[:is_known_as]-(n) WHERE %s' ,
+                   query),
            'RETURN DISTINCT n.name')
   toRet <- call_dodo(neo2R::cypher,
                      neo2R::prepCql(cql),
