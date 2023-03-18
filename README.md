@@ -34,7 +34,7 @@ The graph database has been implemented with Neo4j 3.4.9 [@Neo4j2020], the DODO 
 
 ## Implementation and usage
 
-Please refer to the (DODO paper)[https://doi.org/10.12688/f1000research.25144.1] for more information.
+Please refer to the [DODO paper](https://doi.org/10.12688/f1000research.25144.1) for more information.
 
 A public instance of the BED Neo4j database is provided for convenience and can be reached as follows:
 
