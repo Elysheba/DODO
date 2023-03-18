@@ -1,22 +1,45 @@
 Package: DODO
 Type: Package
 Title: Dictionary of Disease Ontologies (DODO)
-Version: 1.0.0
-Author: Liesbeth Francois, Patrice Godard
-Year: 2020
+Version: 1.1.0
+Authors@R: c(
+    person(
+        "Liesbeth", "François",
+        role = c("aut", "cre","cph"),
+        email = "liesbeth.francois@ucb.com"
+    ),
+    person(
+        "Patrice", "Godard",
+        role = c("aut","cph"),
+        email = "patrice.godard@gmail.com"
+    )
+    )
 Maintainer: Liesbeth Francois <liesbeth.francois@ucb.com>
 Description: DODO is a Neo4j database that collects the information of 
-    different disease ontologies. This package aims to provide 
-    convenient entrypoint to DODO and allows the conversion of disease identifiers 
-    between databases or the construction of a disease landscape.
-License: TBD
+   different disease ontologies. This package aims to provide 
+   convenient entrypoint to DODO and allows the conversion of disease identifiers 
+   between databases or the construction of a disease landscape.
+License: GPL-3
 LazyData: TRUE
-Depends: R (>= 3.5.0), dplyr
-Imports: shiny, stringr, DT, igraph, neo2R (>= 2.1.0), utils, methods
-Suggests: knitr, rmarkdown, BiocStyle, readr, RColorBrewer, glue,  visNetwork, kableExtra, here
+Depends: R (>= 3.6.0),
+   dplyr
+Imports: shiny,
+   stringr,
+   DT,
+   igraph,
+   neo2R (>= 2.1.1),
+   utils,
+   methods
+Suggests: knitr,
+   rmarkdown,
+   BiocStyle,
+   readr,
+   RColorBrewer,
+   glue,
+   visNetwork,
+   kableExtra,
+   here
 Encoding: UTF-8
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
-NeedsCompilation: no
-Packaged: 2020-04-15 12:55:33 UTC; lfrancois
+RoxygenNote: 7.2.3

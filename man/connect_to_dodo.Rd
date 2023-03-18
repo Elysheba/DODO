@@ -9,8 +9,9 @@ connect_to_dodo(
   username = NULL,
   password = NULL,
   connection = 1,
-  remember = TRUE,
-  importPath = NA
+  remember = FALSE,
+  importPath = NA,
+  .opts = list()
 )
 }
 \arguments{
@@ -30,6 +31,9 @@ them can be forgotten with \link{forget_dodo_connection}.}
 
 \item{importPath}{the path to the import folder for loading information
 in DODO (used only when feeding the database ==> default: NA)}
+
+\item{.opts}{a named list identifying the curl
+options for the handle (see \code{\link[neo2R:startGraph]{neo2R::startGraph()}}).}
 }
 \value{
 This function does not return any value. It prepares the DODO
