@@ -1,0 +1,21 @@
+bibentry(
+   bibtype="Article",
+   title="Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies",
+   author=c(
+      person("Liesbeth François"),
+      person("Jonathan van Eyll"),
+      person("Patrice Godard")
+   ),
+   journal="F1000Research",
+   year=2020,
+   volume=9,
+   pages=942,
+   doi="10.12688/f1000research.25144.1",
+   url="https://doi.org/10.12688/f1000research.25144.1"
+   textVersion=paste(
+      "Liesbeth François, Jonathan van Eyll and Patrice Godard (2020).",
+      "Dictionary of disease ontologies (DODO): a graph database to facilitate access and interaction with disease and phenotype ontologies",
+      "[version 1; peer review: 1 approved, 1 approved with reservations].",
+      "F1000Research, 9:942."
+   )
+)

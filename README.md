@@ -9,7 +9,7 @@ The aim of DODO is to allow an easier way to interact and explore disease ontolo
 The data model is implemented using the Neo4j graph database which using the Cypher query language [@Neo4j2020]. One accompagnying R package *DODO* was developed to connect and query the resource. It provides higher level functions to query the Neo4j graph database based on the described data model (above) [@R2019].
 
 ```
-devtools::install_github("patzaw/BED")
+devtools::install_github("Elysheba/DODO")
 ```
 
 The minimal system requirements are: 
@@ -34,7 +34,16 @@ The graph database has been implemented with Neo4j 3.4.9 [@Neo4j2020], the DODO 
 
 ## Implementation and usage
 
-Please refer to the (DODO paper)[https://github.com/Elysheba/DODO/tree/master/inst/documentation/DODO-F1000-publication/DODO-F1000-publication.Rmd] for more information.
+Please refer to the [DODO paper](https://doi.org/10.12688/f1000research.25144.1) for more information.
+
+A public instance of the BED Neo4j database is provided for convenience and can be reached as follows:
+
+```
+library(DODO)
+connect_to_dodo("https://genodesy.org/DODO/", remember=TRUE)
+list_database()
+shinyConcept()
+```
 
 ## Constructing a new DODO Neo4j database
 
