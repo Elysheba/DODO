@@ -105,9 +105,7 @@ harmonize_Cortellis <- function(CortellisONT_siConditions,
                                 CortellisONT_ciIndicationXref,
                                 checkMissing = NULL){
   ## EntryId
-  # nc <- nchar(CortellisONT_siConditions$name)
-  # head(table(nc), n = 20)
-  # CortellisONT_siConditions[which(nc < 4),]
+
   
   # CortellisONT_siConditions[which(nc < 4),"def"] <- NA
   ## Check characters for \t, \n, \r and put to ASCII
