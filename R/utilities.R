@@ -2,138 +2,60 @@
 #========================================================================================@
 #' Connect to a neo4j DODO database
 #'
-#' @param url a character string. The host and the port are sufficient
-#' (e.g: "localhost:7474")
-#' @param username a character string (if NA ==> no auth)
-#' @param password a character string (if NA ==> no auth)
-#' @param connection the id of the connection already registered to use. By
-#' default the first registered connection is used.
-#' @param remember if TRUE the connection is registered. All the registered
-#' connections can be listed with [list_dodo_connections] and any of
-#' them can be forgotten with [forget_dodo_connection].
-#' @param importPath the path to the import folder for loading information
-#' in DODO (used only when feeding the database ==> default: NA)
-#' @param .opts a named list identifying the curl
-#' options for the handle (see [neo2R::startGraph()]).
+#' @param local	Boolean. Connect to a local Neo4J instance, containing the Knowledge Graph. Default: FALSE.
+#' @param user_name	String. The user name to connect to the Graph.
+#' @param password	String. The password to connect to the Graph.
+#' @param local_port	String. Which port is exposed to the local https:// connection. Default: 7474
+#' @param ucb_http	String. Which http address is exposed to within the UCB instance for the https:// connection. Default: https://dodo.ucb.com/ 
+#' @param verbose	Boolean. Controls verbosity of the function.
 #'
-#' @return This function does not return any value. It prepares the DODO
-#' environment to allow transparent DB calls.
+#' @return Established a connection to local or remote DODO instance
 #'
-#' @details Be carefull that you should reconnect to DODO database each time
-#' the environment is reloaded.
-#'
-#' @seealso [check_dodo_connection], [list_dodo_connections],
-#' [forget_dodo_connection]
 #'
 #' @export
 #'
 connect_to_dodo <- function(
-  url=NULL, username=NULL, password=NULL, connection=1,
-  remember=FALSE,
-  importPath=NA,
-  .opts=list()
-){
-  dodoDIR <- file.path(
-    Sys.getenv("HOME"), "R", "DODO"
-  )
-  dir.create(dodoDIR, showWarnings=FALSE, recursive=TRUE)
-  conFile <- file.path(
-    dodoDIR, "DODO-Connections.rda"
-  )
-  connections <- list()
-  if(file.exists(conFile)){
-    load(conFile)
-  }
-  if(length(url)==0 && length(username)==0 && length(password)==0){
-    if(length(connections)==0){
-      check_dodo_connection()
-      return(FALSE)
-    }else{
-      url <- connections[[connection]]["url"]
-      username <- connections[[connection]]["username"]
-      password <- connections[[connection]]["password"]
-    }
-    connections <- c(connections[connection], connections[-connection])
-  }else{
-    if(length(username)==0 && length(password)==0){
-      username <- password <- NA
-    }
-    connections <- c(
-      list(c(url=url, username=username, password=password)),
-      connections
-    )
-  }
-  ## The graph DB
-  try(assign(
-    "graph",
-    neo2R::startGraph(
-      url=url,
-      username=username,
-      password=password,
-      importPath=importPath,
-      .opts=.opts
-    ),
-    dodoEnv
-  ))
-  corrConn <- check_dodo_connection(verbose=TRUE)
-  if(!corrConn){
-    rm("graph", envir=dodoEnv)
-    return(FALSE)
-  }else{
-    connections[[1]][colnames(attr(corrConn, "dbVersion")[1,])] <-
-      as.character(attr(check_dodo_connection(), "dbVersion")[1,])
-  }
-  ##
-  if(remember){
-    connections <- connections[which(
-      !duplicated(unlist(lapply(
-        connections,
-        function(x){
-          x["url"]
+    local = F, 
+    user_name = "", 
+    password = "", 
+    local_port = "7474", 
+    ucb_http = "https://dodo.ucb.com/",
+    azure_authorization = "/Local_Disk/Docker_Volumes/Secrets/kmt_authorization.rds",
+    verbose = T) 
+    {
+      checkmate::qassert(local, "B1")
+      checkmate::qassert(local_port, "S1")
+      checkmate::qassert(verbose, "B1")
+      graph <- if (local) {
+        if (verbose) {
+          message("Connecting to a local Neo4J instance of the Knowledge Graph via port: ", 
+                  local_port, ".")
         }
-      )))
-    )]
-    save(connections, file=conFile)
-  }
-  ## The cache directory
-  cachedbDir <- file.path(
-    Sys.getenv("HOME"), "R",
-    "DODO",
-    paste(
-      sub(
-        "[:]", "..",
-        sub(
-          "[/].*$", "",
-          sub("^https{0,1}[:][/]{2}", "", url)
-        )
-      ),
-      username,
-      sep=".."
-    )
-  )
-  dir.create(cachedbDir, showWarnings=FALSE, recursive=TRUE)
-  cachedbFile <- file.path(cachedbDir, "0000-DODO-cache.rda")
-  assign(
-    "cachedbFile",
-    cachedbFile,
-    dodoEnv
-  )
-  if(file.exists(cachedbFile)){
-    load(cachedbFile)
-  }else{
-    cache <- data.frame(
-      name=character(),
-      file=character(),
-      stringsAsFactors=FALSE
-    )
-  }
-  assign(
-    "cache",
-    cache,
-    dodoEnv
-  )
-  ## Managing cache vs DB version
-  check_dodo_cache(newCon=TRUE)
+        neo2R::startGraph(paste0("http://localhost:", local_port), 
+                          username = user_name, 
+                          password = password, 
+                          .opts = list(ssl_verifypeer = 0))
+      }
+      else {
+        if (verbose) {
+          message("Connecting to a UCB Neo4J instance of the Knowledge Graph via https://dodo.ucb.com")
+        }
+        checkmate::assertFileExists(azure_authorization)
+        token <- readRDS(azure_authorization)
+        neo2R::startGraph(url = "https://dodo.ucb.com/", 
+                          username = user_name, 
+                          password = password, 
+                          .opts = list(ssl_verifypeer = 0,
+                                       extendedHeaders = Aether::.get_tk_headers(token)))
+      }
+      attr(graph, "neo2R") <- TRUE
+      .dodo_env <<- new.env(parent = .GlobalEnv)
+      .dodo_env$graph <- graph
+      .dodo_env$dodo_version <- "2.0.0"
+      # if (!.test_DODOversion()) {
+      #   warning("You are not connected to the expected version of the graph, i.e., ", 
+      #           .dodo_env$dodo_version)
+      # }
 }
 
 #========================================================================================@
@@ -141,116 +63,35 @@ connect_to_dodo <- function(
 #' Check if there is a connection to a DODO database
 #'
 #' @param verbose if TRUE print information about the DODO connection
-#' (default: FALSE).
+#' (default: TRUE).
 #'
 #' @return
 #'  - TRUE if the connection can be established
-#'  - Or FALSE if the connection cannot be established or the "System" node
-#'  does not exist or does not have "DODO" as name or any version recorded.
+#'  - Or FALSE if the connection cannot be established
 #'
 #' @seealso [connect_to_dodo]
 #'
 #' @export
 #'
-check_dodo_connection <- function(verbose=FALSE){
-  if(!exists("graph", dodoEnv)){
+check_dodo_connection <- function(verbose=T){
+  if(!"graph" %in% names(.dodo_env)){
     warning(
       "You should connect to a DODO DB using the connect_to_dodo function"
     )
     return(FALSE)
-  }
-  if(verbose) message(get("graph", dodoEnv)$url)
-  dbVersion <- try(call_dodo(
-    f=neo2R::cypher,
-    query=neo2R::prepCql(c(
-      'MATCH (n:System) RETURN',
-      'n.name as name, n.instance as instance, n.version as version'
-    )),
-    dodoCheck=FALSE
-  ))
-  if(inherits(dbVersion, "try-error")){
-    return(FALSE)
-  }
-  if(is.null(dbVersion)){
-    dbSize <- call_dodo(
+  }else{
+    dbVersion <- try(call_dodo(
       f=neo2R::cypher,
-      query='MATCH (n) WITH n LIMIT 1 RETURN count(n);',
+      query=neo2R::prepCql(c(
+        'MATCH (n:System) RETURN',
+        'n.name as name, n.instance as instance, n.version as version'
+      )),
       dodoCheck=FALSE
-    )[,1]
-    if(is.null(dbSize)){
-      warning("No connection")
-      return(FALSE)
-    }
-    if(dbSize==0){
-      warning("DODO DB is empty !")
-      return(TRUE)
-    }else{
-      warning("DB is not empty but without any System node. Check url.")
-      return(FALSE)
-    }
+    ))
+    if(verbose) message(.dodo_env$graph$url)
+    if(verbose) message(dbVersion)
+    return(TRUE)
   }
-  dbVersion$url <- get("graph", dodoEnv)$url
-  if(verbose){
-    message(dbVersion$name)
-    message(dbVersion$instance)
-    message(dbVersion$version)
-    
-  }
-  if(
-    is.null(dbVersion$name) || dbVersion$name!="DODO" ||
-    is.null(dbVersion$instance) ||
-    is.null(dbVersion$version)
-  ){
-    warning("Wrong system. Check url.")
-    print(get("graph", dodoEnv)$url)
-    return(FALSE)
-  }
-  toRet <- TRUE
-  attr(toRet, "dbVersion") <- dbVersion
-  return(toRet)
-}
-
-#========================================================================================@
-#========================================================================================@
-#' List all registered DODO connection
-#'
-#' @seealso [connect_to_dodo],
-#' [forget_dodo_connection], [check_dodo_connection]
-#'
-#' @export
-#'
-list_dodo_connections <- function(){
-  conFile <- file.path(
-    Sys.getenv("HOME"), "R", "DODO", "DODO-Connections.rda"
-  )
-  connections <- list()
-  if(file.exists(conFile)){
-    load(conFile)
-  }
-  return(connections)
-}
-
-#========================================================================================@
-#========================================================================================@
-#' Forget a DODO connection
-#'
-#' @param connection the id of the connection to forget.
-#'
-#' @seealso [list_dodo_connections],
-#' [connect_to_dodo], [check_dodo_connection]
-#'
-#' @export
-#'
-forget_dodo_connection <- function(connection){
-  conFile <- file.path(
-    Sys.getenv("HOME"), "R", "DODO", "DODO-Connections.rda"
-  )
-  connections <- list()
-  if(file.exists(conFile)){
-    load(conFile)
-  }
-  connections <- connections[-connection]
-  save(connections, file=conFile)
 }
 
 
@@ -268,13 +109,12 @@ forget_dodo_connection <- function(connection){
 #'
 #' @export
 #'
-dodoCall <- function(f, ..., dodoCheck=FALSE){
+call_dodo <- function(f, ..., dodoCheck=FALSE){
   if(dodoCheck) if(!check_dodo_connection()){
     stop("No connection")
   }
-  do.call(f, list(graph=get("graph", dodoEnv), ...))
+  do.call(f, list(graph=.dodo_env$graph, ...))
 }
-
 
 #========================================================================================@
 #========================================================================================@
@@ -287,17 +127,17 @@ dodoCall <- function(f, ..., dodoCheck=FALSE){
 #' @return Returns a list of all database in DODO
 #'
 #' @export
-#'
+#' @import data.table
 list_database <- function(){
   ## Prepare query
   cql <- c('MATCH (n:Database)<-[r:is_in]-(d)',
-           'RETURN n.name as database, count(r) as count')
+           'RETURN n.db as database, count(r) as count')
   toRet <- call_dodo(
     neo2R::cypher,
     neo2R::prepCql(cql),
     result = "row"
-  ) %>%
-    tibble::as_tibble()
+  ) %>% 
+    data.table::as.data.table()
   return(toRet)
 }
 
@@ -312,7 +152,7 @@ list_database <- function(){
 #' @return Returns a list of all database in DODO
 #'
 #' @export
-#'
+#' @import data.table
 list_node_type <- function(){
   cql <- c('MATCH (n)',
            'RETURN labels(n) as type, count(n) as count')
@@ -321,7 +161,7 @@ list_node_type <- function(){
     neo2R::prepCql(cql),
     result = "row"
   ) %>%
-    tibble::as_tibble()
+    data.table::as.data.table()
   return(toRet)
 }
 
@@ -337,6 +177,7 @@ list_node_type <- function(){
 #' @return vector of disease labels
 #' 
 #' @export
+#' @import data.table
 describe_concept <- function(ids, verbose = FALSE){
   ## Checking
   if(is.null(ids)){ 
@@ -344,18 +185,19 @@ describe_concept <- function(ids, verbose = FALSE){
   }
   
   cql <- c('MATCH (n)',
-           'WHERE n.name IN $from',
-           'RETURN n.name as id, n.label as label, n.level as level, n.definition as definition')
+           'WHERE n.dbid IN $from',
+           'RETURN n.dbid as dbid, n.name as label, n.def as definition')
   if(verbose){
     cat(cql, sep = "\n")
   }
   
   toRet <- call_dodo(
-    neo2R::cypher,
-    neo2R::prepCql(cql),
-    parameters = list(from = as.list(ids)),
-    result = "row") %>%
-    tibble::as_tibble()
+      neo2R::cypher,
+      neo2R::prepCql(cql),
+      parameters = list(from = as.list(ids)),
+      result = "row")  %>% 
+    data.table::as.data.table()
+  
   return(toRet)
 }
 
@@ -375,30 +217,27 @@ describe_concept <- function(ids, verbose = FALSE){
 #' get_concept_url(ids = "MONDO:0005027")
 #' 
 #' @export
-#'
+#' @import data.table
 get_concept_url <- function(ids,
-                          exact = TRUE){
+                           exact = TRUE){
   ## Checking
   if(is.null(ids)){ 
     stop('Please provide ID')
   }
   
   cql <- c('MATCH (n)-[r:is_in]->(db:Database)',
-           'WHERE n.name IN $from',
-           'RETURN n.name as id, db.name as origin, db.idURL as url')
+           'WHERE n.dbid IN $from',
+           'RETURN n.dbid as dbid ,n.DB as db, n.id as id, db.db as origin, db.url as url')
   toRet <- call_dodo(
-    neo2R::cypher,
-    neo2R::prepCql(cql),
-    parameters = list(from = as.list(ids)),
-    result = "row") %>%
-    tibble::as_tibble() %>%
-    dplyr::mutate(db = gsub(":.*", "", id),
-                  shortID = gsub(".*:", "", id),
-                  url = sprintf(stringr::str_replace(url, "%3A", "%%3A"), shortID))
-  
+      neo2R::cypher,
+      neo2R::prepCql(cql),
+      parameters = list(from = as.list(ids)),
+      result = "row") %>%
+    as.data.table() %>% 
+    .[, url := sprintf(stringr::str_replace(url, "%3A", "%%3A"), id)]
+    
   if(exact){
-    toRet <- dplyr::filter(toRet,
-                           db == origin)
+    toRet <- toRet[db == origin,]
   }  
   return(toRet)
 }
@@ -415,7 +254,7 @@ get_concept_url <- function(ids,
 #' @return Returns current version of DODO instance
 #'
 #' @export
-#'
+#' @import data.table
 get_version <- function(){
   cql <- c('MATCH (f {name: "DODO"})',
            'RETURN f.name as Name, f.instance as Instance, f.version as Version')
@@ -424,7 +263,7 @@ get_version <- function(){
     neo2R::prepCql(cql),
     result = "row"
   ) %>%
-    tibble::as_tibble()
+    data.table::as.data.table()
   return(toRet)
 }
 
@@ -435,14 +274,31 @@ get_version <- function(){
 #' Show the shema of the DODO data model.
 #'
 #' @export
-#'
+#' @import data.table
 show_dodo_model <- function(){
-  pkgname <- utils::packageName()
-  htmlFile <- system.file(
-    "documentation", "data-model", "DODO.html",
-    package=pkgname
-  )
-  utils::browseURL(paste0('file://', htmlFile))
+  cql <- c("MATCH (n)-[r]->(n2) RETURN DISTINCT labels(n) as node1, type(r) as type, labels(n2) as node2")
+  toRet <- call_dodo(
+      neo2R::cypher,
+      neo2R::prepCql(cql),
+      result = "row") %>%
+    data.table::as.data.table() %>% 
+    .[!grepl(" ", node1) & !grepl(" ", node2)]
+
+  # Create nodes and edges for visNetwork
+  nodes <- data.table(id = unique(c(toRet$node1, toRet$node2)),
+                      label = unique(c(toRet$node1, toRet$node2)),
+                      color = c("seagreen", "tomato", "lightblue"))
+  
+  edges <- data.table(from = toRet$node1,
+                      to = toRet$node2,
+                      label = toRet$type)
+  
+  # Create the network visualization
+  visNetwork::visNetwork(nodes, edges) %>%
+    visNetwork::visEdges(arrows = "to") %>% # Adds arrow to edges
+    visNetwork::visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>% 
+    visNetwork::visPhysics(solver = "barnesHut",
+               barnesHut = list(avoidOverlap = 1, springLength = 400, enabled = FALSE))
 }
 
 #========================================================================================@

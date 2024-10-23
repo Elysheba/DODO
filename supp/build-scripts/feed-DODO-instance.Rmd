@@ -38,6 +38,7 @@ library(DT)
 library(arrow)
 library(data.table)
 library(kableExtra)
+library(polars)
 ##
 
 setwd("/Local_Disk/Git_Repos/DODO/")
@@ -127,48 +128,50 @@ Harmonize information from CortellisONT when available.
 ```{r harm_cort, include = FALSE, echo = FALSE}
 if(params$type == "internal"){
   # CortellisoNT_siConditions links to CortellisDD and CortellisONT_ciIndications links to CortesllisID
-  library(polars)
-  CortellisONT_siConditions <- CortellisONT_siConditions %>% 
-    mutate(dbid = paste("Cortellis_condition", id, sep = ":"),
-           DB = "Cortellis_condition", 
-           origin = "Cortellis_condition", 
+  CortellisONT_siConditions <- copy(CortellisONT_siConditions) %>% 
+    mutate(dbid = paste("Cortellis-condition", id, sep = ":"),
+           DB = "Cortellis-condition", 
+           origin = "Cortellis-condition", 
            def = NA, 
            name = gsub(paste("\n","\t","\r", sep = "|")," ", tolower(name)))
-  CortellisONT_ciIndications <- CortellisONT_ciIndications %>% 
-    mutate(dbid = paste("Cortellis_indication", id, sep = ":"),
-           DB = "Cortellis_indication", 
-           origin = "Cortellis_indication", 
+  CortellisONT_ciIndications <- copy(CortellisONT_ciIndications) %>% 
+    mutate(dbid = paste("Cortellis-indication", id, sep = ":"),
+           DB = "Cortellis-indication", 
+           origin = "Cortellis-indication", 
            def = NA, 
            name = gsub(paste("\n","\t","\r", sep = "|")," ", tolower(name)))
   
   CortellisONT_entryId <- rbind(CortellisONT_siConditions, CortellisONT_ciIndications)
   
   ## Xref
-  crossId1 <- CortellisONT_siConditionXref[, DB1:= "Cortellis_condition"] %>% 
+  crossId1 <- copy(CortellisONT_siConditionXref)[, DB1:= "Cortellis-condition"] %>% 
     .[, `:=`(dbid1 = paste(DB1,conditionId, sep = ":"),
              dbid2 = paste(source, xref, sep = ":"))] %>%
     setnames(., c("source", "xref", "conditionId"), c("DB2", "id2", "id1")) %>%
-    .[, -c("dbRef", "direct")]
+    .[, -c("dbRef", "direct")] %>% 
+    .[, `:=`(DB2 = gsub("\\_", "-",  DB2),
+             dbid2 = gsub("\\_", "-", dbid2))]
     
-  crossId2 <- CortellisONT_ciIndicationXref[, DB1:= "Cortellis_indication"] %>% 
+  crossId2 <- copy(CortellisONT_ciIndicationXref)[, DB1:= "Cortellis-indication"] %>% 
     .[, `:=`(dbid1 = paste(DB1,indicationId, sep = ":"),
              dbid2 = paste(source, xref, sep = ":"))] %>%
     setnames(., c("source", "xref", "indicationId"), c("DB2", "id2", "id1")) %>%
-    .[, -c("dbRef", "direct")]
+    .[, -c("dbRef", "direct")] %>% 
+    .[, `:=`(DB2 = gsub("\\_", "-",  DB2),
+             dbid2 = gsub("\\_", "-", dbid2))]
   CortellisONT_crossId <- rbind(crossId1,crossId2)
   rm(crossId1, crossId2)
   
-  
   ##================@
   ## ParentId
-  parentId1 <- CortellisONT_siConditionParents[, `:=`(DB = "Cortellis_condition", 
-                                                      pDB = "Cortellis_condition")] %>% 
+  parentId1 <- copy(CortellisONT_siConditionParents)[, `:=`(DB = "Cortellis-condition", 
+                                                      pDB = "Cortellis-condition")] %>% 
     setnames(., c("depth", "parent"), c("level", "pid")) %>%
     .[, `:=`(dbid = paste(DB, id, sep = ":"),
              pdbid = paste(pDB, pid, sep = ":"))] %>% 
     .[level != 1,]
-  parentId2 <- CortellisONT_ciIndicationParents[, `:=`(DB = "Cortellis_indication", 
-                                                      pDB = "Cortellis_indication")] %>% 
+  parentId2 <- CortellisONT_ciIndicationParents[, `:=`(DB = "Cortellis-indication", 
+                                                      pDB = "Cortellis-indication")] %>% 
     setnames(., c("depth", "parent"), c("level", "pid")) %>%
     .[, `:=`(dbid = paste(DB, id, sep = ":"),
              pdbid = paste(pDB, pid, sep = ":"))] %>% 
@@ -211,7 +214,8 @@ for(i in obj){
 ##################################################################@
 ## create dbid
 DODO_crossId <- DODO_crossId[!is.na(id2)] %>% 
-  unique()
+  unique()  %>% 
+  .[, lapply(.SD, function(x) gsub("_", "-", x))]
   
 DODO_pheno <- DODO_pheno[, `:=`(dDB = gsub(":.*", "", dbid),
                                     pDB = gsub(":.*", "", hp),
@@ -221,7 +225,8 @@ DODO_pheno <- DODO_pheno[, `:=`(dDB = gsub(":.*", "", dbid),
 
 
 DODO_altId <- DODO_altId %>%
-  setnames(., "altdbib", "adbid")
+  setnames(., "altdbib", "adbid")  %>% 
+  .[, lapply(.SD, function(x) gsub("_", "-", x))]
 
 # check availability of def and assign label to def is it is NA
 x <- copy(DODO_entryId[, def := case_when(is.na(def) ~ name,
@@ -242,7 +247,8 @@ toAdd <- DODO_entryId %>%
 DODO_idNames <- DODO_idNames %>% 
   bind_rows(toAdd) %>%
   .[, synonym := trimws(gsub(",", " ", synonym))] %>%
-  unique()
+  unique()  %>% 
+  .[, lapply(.SD, function(x) gsub("_", "-", x))]
 
 ## Add identifiers to DODO_entryId if missing
 toAdd <- copy(DODO_crossId[!dbid2 %in% DODO_entryId$dbid, .(dbid2, id2, DB2)]) %>% 
@@ -252,7 +258,8 @@ toAdd <- copy(DODO_crossId[!dbid2 %in% DODO_entryId$dbid, .(dbid2, id2, DB2)]) %
 DODO_entryId <- rbind(DODO_entryId, toAdd) 
 
 ## remove disease ids from dodo_pheno if they are not in dodo_entry as they are not disease ids, but pheno ids themselves
-DODO_pheno <- DODO_pheno[dbid %in% DODO_entryId$dbid & pdbid %in% DODO_entryId$dbid]
+DODO_pheno <- DODO_pheno[dbid %in% DODO_entryId$dbid & pdbid %in% DODO_entryId$dbid]  %>% 
+  .[, lapply(.SD, function(x) gsub("_", "-", x))]
 
 ##
 toAdd <- copy(DODO_altId[!adbid %in% DODO_entryId$dbid, .(adbid, altDB, altid)]) %>% 
@@ -266,9 +273,10 @@ DODO_entryId <- copy(DODO_entryId) %>%
   .[, duplicated := .N > 1, by = dbid] %>% 
   .[, `:=`(name = trimws(gsub("[^[:alnum:]]", " ", name)),
            def = trimws(gsub("[^[:alnum:]]", " ", def)))]  %>% 
-  .[, `:=`(name = min(unique(name)),
-           def = paste(unique(na.omit(def)), collapse = " | ")), by = dbid] %>% 
-  unique()
+  .[, `:=`(name = tolower(min(unique(name))),
+           def = tolower(paste(unique(na.omit(def)), collapse = " | "))), by = dbid] %>% 
+  unique() 
+  # .[, lapply(.SD, function(x) gsub("_", "-", x))] 
 ```
 
 # Save files to csv
@@ -277,12 +285,14 @@ DODO_entryId <- copy(DODO_entryId) %>%
 # Create nodes 
 instance.nodes = data.table(`name:ID` = "DODO", 
                            `instance:string` = dodoInstance, 
-                           `version:LABEL` = dodoVersion)
+                           `version:string` = dodoVersion, 
+                           `:LABEL` = "System")
+
 # Create disease nodes
 # we are going to add synonyms as an array of terms to the node attribute
 table(DODO_entryId$origin)
 toAdd <- copy(DODO_idNames) %>% 
-  .[, syn := paste0('["', paste(unique(na.omit(synonym)), collapse = '";"'), '"]'), by = dbid] %>% 
+  .[, syn := tolower(paste0('["', paste(unique(na.omit(synonym)), collapse = '";"'), '"]')), by = dbid] %>% 
   .[, N := .N, by = dbid] %>% 
   .[, .(dbid, syn, N)] %>% 
   unique()
@@ -291,21 +301,25 @@ disease.nodes <- DODO_entryId[origin != "HP" | is.na(origin), .(dbid, DB, id, na
   .[, type := case_when(DB == "HP" ~ "Disease;Phenotype",
                         TRUE ~ "Disease")] %>% 
   .[, synonyms := toAdd$syn[match(dbid, toAdd$dbid)]] %>% 
-  `colnames<-`(c("name:ID", "DB:string", "id:string", "name:string", "def:string", ":LABEL", "synonyms:string[]")) 
-phenotype.nodes <- DODO_entryId[origin == "HP" & !dbid %in% disease.nodes$`name:ID`, 
+  `colnames<-`(c("dbid:ID", "DB:string", "id:string", "name:string", 
+                 "def:string", ":LABEL", "synonyms:string[]")) 
+phenotype.nodes <- DODO_entryId[origin == "HP" & !dbid %in% disease.nodes$`dbid:ID`, 
                                 .(dbid, DB, id, name, def)] %>% 
   unique() %>% 
   .[, type := "Phenotype"] %>% 
   .[, synonyms := toAdd$syn[match(dbid, toAdd$dbid)]] %>% 
-  `colnames<-`(c("name:ID", "DB:string", "id:string", "name:string", "def:string", ":LABEL", "synonyms:string[]"))
+  `colnames<-`(c("dbid:ID", "DB:string", "id:string", "label:string", 
+                 "def:string", ":LABEL", "synonyms:string[]"))
 
-databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"), col_names = c("name", "idURL"))
-db.nodes <- data.table(db_name = sort(unique(c(DODO_entryId[["DB"]], DODO_crossId[["DB1"]], DODO_crossId[["DB2"]])))) %>% 
+databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"), 
+                               col_names = c("name", "idURL"))
+db.nodes <- data.table(db_name = sort(unique(c(DODO_entryId[["DB"]], 
+                                               DODO_crossId[["DB1"]], DODO_crossId[["DB2"]])))) %>% 
   .[, DB := gsub("\\_.*", "", db_name)] %>% 
   .[, url := databases$idURL[match(DB, databases$name)]] %>% 
   .[, .(db_name, url)] %>% 
   .[, type := "Database"] %>% 
-  `colnames<-`(c("name:ID", "url:string", ":LABEL"))
+  `colnames<-`(c("db:ID", "url:string", ":LABEL"))
 
 # Create edges
 ## database of origin
@@ -318,24 +332,17 @@ parent.edges <- DODO_parentId[, .(dbid, pdbid, origin)] %>%
   .[, type := "is_a"] %>% 
   `colnames<-`(c(":START_ID", ":END_ID", "origin:string", ":TYPE")) %>% 
   unique()
-table(parent.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
-table(parent.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+table(parent.edges$`:START_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
+table(parent.edges$`:END_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
 
 # xref edges
-# Some edges are is_xref (defined in the excel below) all others are is_related.
-# In addition, I will do filtering on the edges to put in, avoiding ambigous relations to traverse between
-## soooo evrything that is in the excel = is_xref with an attribute on the edge: confidence = 1
-## everything that is not on the excel, attribute: confidence = 0
-## within the is_xref, we are going to check the ambiguity, if it's higher than 1 (one-to-many) -> confidence = 0
-## We have directed edges but duplicate them in both directions to calculate this ambiguity
-## and we'll do this before ingestion and then just adapt the functions afterwards
 xrefDB <- readxl::read_xlsx(file.path(getwd(), "inst", "documentation",
                                       "CrossreferencesEdges.xlsx"),
                             sheet = "Max_ambiguity_4_across_DBs"
                             ) %>% 
   as.data.table() %>% 
   .[, db_edge := paste(pmin(DB1, DB2), pmax(DB1, DB2), sep = "-")]
-xref <- DODO_crossId[, .(dbid1, DB1, dbid2, DB2)] %>% 
+xref <- DODO_crossId[DB1 != "HP" & DB2 != "HP", .(dbid1, DB1, dbid2, DB2)] %>% 
   .[, type := "is_xref"] %>% 
   .[, db_edge := paste(pmin(DB1, DB2), pmax(DB1, DB2), sep = "-")] %>% 
   .[, confidence := case_when(db_edge %in% xrefDB$db_edge ~ 1, TRUE ~ 0)] 
@@ -348,32 +355,34 @@ xref.edges <-  rbind(xref[, .(dbid1, dbid2, DB2, type, db_edge, confidence)],
                               TRUE ~ confidence)] %>% 
   .[, .(dbid1, dbid2, type, confidence, ambiguity)]  %>% 
   `colnames<-`(c(":START_ID", ":END_ID", ":TYPE", "confidence:int", "ambiguity:int"))
-table(xref.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
-table(xref.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
-
+table(xref.edges$`:START_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
+table(xref.edges$`:END_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
 
 ## alternative id
 altid.edges <- DODO_altId[, .(dbid, adbid)] %>% 
   .[, type := "has_alternative_id"] %>% 
   `colnames<-`(c(":START_ID", ":END_ID", ":TYPE")) %>% 
   unique()
-table(altid.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
-table(altid.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
-
+table(altid.edges$`:START_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
+table(altid.edges$`:END_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
 
 ## phenotype to disease
-pheno.edges <- DODO_pheno[, .(dbid, pdbid)] %>% 
+pheno.edges <- rbind(DODO_pheno[, .(dbid, pdbid)],
+                     copy(DODO_crossId)[DB1 == "HP", .(dbid2, dbid1)] %>% `colnames<-`(c("dbid", "pdbid")),
+                     copy(DODO_crossId)[DB2 == "HP", .(dbid1, dbid2)] %>% `colnames<-`(c("dbid", "pdbid"))) %>% 
+  .[grepl("HP", pdbid), ] %>% 
   .[, type := "has_phenotype"] %>% 
   `colnames<-`(c(":START_ID", ":END_ID", ":TYPE")) %>% 
   unique()
-table(pheno.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
-table(pheno.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+table(pheno.edges$`:START_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
+table(pheno.edges$`:END_ID` %in% c(disease.nodes$`dbid:ID`, phenotype.nodes$`dbid:ID`))
 
 toSave <- grep("edges|nodes", ls(), value = T)
 
 walk(toSave, ~{
   print(.x)
-  fwrite(get(.x), file = file.path("/Local_Disk/Reference_Files/DODO/final_disease_ontos", 
+  x <- get(.x)[, lapply(.SD, function(x) gsub(":", "|", x))]
+  fwrite(x, file = file.path("/Local_Disk/Reference_Files/DODO/final_disease_ontos", 
                                    paste0(.x, ".csv")))
 })
 ```

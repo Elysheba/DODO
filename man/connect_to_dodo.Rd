@@ -5,48 +5,31 @@
 \title{Connect to a neo4j DODO database}
 \usage{
 connect_to_dodo(
-  url = NULL,
-  username = NULL,
-  password = NULL,
-  connection = 1,
-  remember = FALSE,
-  importPath = NA,
-  .opts = list()
+  local = F,
+  user_name = "",
+  password = "",
+  local_port = "7474",
+  ucb_http = "https://dodo.ucb.com/",
+  azure_authorization = "/Local_Disk/Docker_Volumes/Secrets/kmt_authorization.rds",
+  verbose = T
 )
 }
 \arguments{
-\item{url}{a character string. The host and the port are sufficient
-(e.g: "localhost:7474")}
+\item{local}{Boolean. Connect to a local Neo4J instance, containing the Knowledge Graph. Default: FALSE.}
 
-\item{username}{a character string (if NA ==> no auth)}
+\item{user_name}{String. The user name to connect to the Graph.}
 
-\item{password}{a character string (if NA ==> no auth)}
+\item{password}{String. The password to connect to the Graph.}
 
-\item{connection}{the id of the connection already registered to use. By
-default the first registered connection is used.}
+\item{local_port}{String. Which port is exposed to the local https:// connection. Default: 7474}
 
-\item{remember}{if TRUE the connection is registered. All the registered
-connections can be listed with \link{list_dodo_connections} and any of
-them can be forgotten with \link{forget_dodo_connection}.}
+\item{ucb_http}{String. Which http address is exposed to within the UCB instance for the https:// connection. Default: https://dodo.ucb.com/}
 
-\item{importPath}{the path to the import folder for loading information
-in DODO (used only when feeding the database ==> default: NA)}
-
-\item{.opts}{a named list identifying the curl
-options for the handle (see \code{\link[neo2R:startGraph]{neo2R::startGraph()}}).}
+\item{verbose}{Boolean. Controls verbosity of the function.}
 }
 \value{
-This function does not return any value. It prepares the DODO
-environment to allow transparent DB calls.
+Established a connection to local or remote DODO instance
 }
 \description{
 Connect to a neo4j DODO database
-}
-\details{
-Be carefull that you should reconnect to DODO database each time
-the environment is reloaded.
-}
-\seealso{
-\link{check_dodo_connection}, \link{list_dodo_connections},
-\link{forget_dodo_connection}
 }

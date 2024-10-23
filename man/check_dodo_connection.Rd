@@ -4,17 +4,16 @@
 \alias{check_dodo_connection}
 \title{Check if there is a connection to a DODO database}
 \usage{
-check_dodo_connection(verbose = FALSE)
+check_dodo_connection(verbose = T)
 }
 \arguments{
 \item{verbose}{if TRUE print information about the DODO connection
-(default: FALSE).}
+(default: TRUE).}
 }
 \value{
 \itemize{
 \item TRUE if the connection can be established
-\item Or FALSE if the connection cannot be established or the "System" node
-does not exist or does not have "DODO" as name or any version recorded.
+\item Or FALSE if the connection cannot be established
 }
 }
 \description{
