@@ -107,7 +107,7 @@ for(s in src){
           x$origin <- s
       }
       if(grepl("entryId", i)){
-        if(grepl("MedGen|ICDO", s)){
+        if(grepl("MedGen|ICDO|HP|DO", s)){
           x$origin <- x$DB
         }else{
           x$origin <- s
@@ -117,60 +117,10 @@ for(s in src){
       assign(paste(s, gsub(".parquet|.txt","",i), sep = "_"), x) 
     }
 }
-## to fix in the ICDO script
-ICDO_parentId <- copy(ICDO_parentId[, `:=`(
-  pid=gsub(".*\\_", "", pDB),
-  pDB=gsub("\\_.*", "",pDB), 
-  pdbid=gsub("_", ":",pdbid))])
-ICDO_idNames <- copy(ICDO_idNames[, `:=`(
-  id=gsub(".*\\_", "", DB),
-  DB=gsub("\\_.*", "",DB), 
-  dbid=gsub("_", ":",dbid))] )
-# Fix DOID names and HPO
-## also somewhere ORPHA (in HPO!)
 ```
 
 
-# Format input tables
-
-This script generates the different tables required to build the DODO Dgraph database and takes the files created by parsing the disease ontologies as input. The ontologies provided in public DODO instance are:
-
-- MONDO (Monarch)
-- EFO
-- DO
-- Orphanet
-- MedGen
-- MeSH
-- HPO
-- ICDO
-- ClinVar
-
-The URL provides a link to its respective GitHub repository where you can find the scripts to parse the different ontologies and generate the necessary input files for the current workflow. However, this workflow is easily adapted to include additional disease or phenotype ontologies. It requires parsing the ontology and generating files with specific format and specific table name. The table name is always constructes as follows: *name of the ontology*_*name table*, eg. "Monarch_entryId". The script will read these files with the specific table names from the global environment and append them automatically to each other. The format of each table is listed below, if information is not available or not provided in the ontology, the table doesn't need to be created. If specific information of a table is missing, please assign NA to that column. 
-
-## Database convention
-
-There are often different abbreviations available for different ontology database. Here, we adopt a naming convention to harmonize the different inputs.
-
-```{r db_convention, echo = FALSE, include = TRUE}
-toShow <- readxl::read_xlsx(file.path(getwd(), "inst", "documentation", "DatabaseDocumentation.xlsx"))
-datatable(toShow,
-          rownames = FALSE)
-```
-
-## Cross-reference edges
-
-There are two types of cross-reference edges encoded into the database, *is_xref* and *is_related*.  The *is_xref* edge is used for equal cross-reference relationships where the concepts relate more directly to each other (similar concept levels). The *is_related* edge is used for all other cross-reference edges. These edges are defined based on the sum of forward and backward ambiguities between databases. Ontologies with a ambiguity equal or lower than 4 are considered as *is_xref* with the exception of ICD10 and ICD9 which are never an *is_xref* edge except between these two databases. In addition, MedGen and UMLS identifiers are duplicated therefore there is an additional *is_xref* edge between these. For more information please consult the vignette. 
-
-```{r db_xref_edge, echo = FALSE, include = TRUE}
-xrefDB <- readxl::read_xlsx(file.path(getwd(), "inst", "documentation",
-                                      "CrossreferencesEdges.xlsx"),
-                            sheet = "Max_ambiguity_4_across_DBs"
-                            )
-datatable(xrefDB,
-          rownames = FALSE)
-```
-
-## Harmonize CortellisONT
+# Harmonize CortellisONT
 
 Harmonize information from CortellisONT when available.
 
@@ -196,13 +146,13 @@ if(params$type == "internal"){
   ## Xref
   crossId1 <- CortellisONT_siConditionXref[, DB1:= "Cortellis_condition"] %>% 
     .[, `:=`(dbid1 = paste(DB1,conditionId, sep = ":"),
-             dbid2 = paste(source, xref))] %>%
+             dbid2 = paste(source, xref, sep = ":"))] %>%
     setnames(., c("source", "xref", "conditionId"), c("DB2", "id2", "id1")) %>%
     .[, -c("dbRef", "direct")]
     
   crossId2 <- CortellisONT_ciIndicationXref[, DB1:= "Cortellis_indication"] %>% 
     .[, `:=`(dbid1 = paste(DB1,indicationId, sep = ":"),
-             dbid2 = paste(source, xref))] %>%
+             dbid2 = paste(source, xref, sep = ":"))] %>%
     setnames(., c("source", "xref", "indicationId"), c("DB2", "id2", "id1")) %>%
     .[, -c("dbRef", "direct")]
   CortellisONT_crossId <- rbind(crossId1,crossId2)
@@ -248,11 +198,11 @@ obj <- c("entryId","crossId","idNames","parentId","pheno","altId")
 for(i in obj){
   dbobj <- grep(i,ls(),value = T)
   print(i)
-  sapply(dbobj,
-           function(x){
-             print(x)
-             print(names(get(x)))
-           })
+  # sapply(dbobj,
+  #          function(x){
+  #            print(x)
+  #            print(head(get(x), n = 2))
+  #          })
   sobj <- unique(do.call(rbind,lapply(dbobj,function(x) get(x))))
   fn <- paste0("DODO_",i)
   assign(value = sobj,x = fn)
@@ -260,8 +210,7 @@ for(i in obj){
 
 ##################################################################@
 ## create dbid
-DODO_entryId <- DODO_entryId %>%
-  .[!DB %in% c("https", "BFO")] %>% 
+DODO_crossId <- DODO_crossId[!is.na(id2)] %>% 
   unique()
   
 DODO_pheno <- DODO_pheno[, `:=`(dDB = gsub(":.*", "", dbid),
@@ -270,42 +219,11 @@ DODO_pheno <- DODO_pheno[, `:=`(dDB = gsub(":.*", "", dbid),
                                     pid = gsub(".*:", "", hp))] %>% 
   setnames(., c("hp"), c("pdbid"))
 
-DODO_idNames <- DODO_idNames %>% 
-  .[!grepl("BFO|https|icdo.owl|PATO|RO|UBERON", DB),] 
-
-# Just some fun mismatching in the cross reference DBs
-DODO_crossId$DB2 <- gsub("-", "", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("MedDRA", "MEDDRA", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("Medgen|MEDGEN", "MedGen", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("MESH", "MeSH", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("ORDO|Orphanet", "ORPHA", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("SNOMED_CT|SCTID", "SNOMEDCT", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("UMLS_CUI", "UMLS", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("MIM", "OMIM", DODO_crossId$DB2)
-DODO_crossId$DB2 <- gsub("NCIT", "NCIt", DODO_crossId$DB2)
-
-# replace_db <- c("MedDRA" = "MEDDRA", 
-#                 "Medgen" = "MedGen", 
-#                 "MEDGEN" = "MedGen",
-#                 "MESH" = "MeSH", 
-#                 "ORDO" = "Orphanet",
-#                 "ORPHA" = "Orphanet",
-#                 "SNOMED_CT" = "SNOMEDCT",
-#                 "SCTID" = "SNOMEDCT",
-#                 "UMLS_CUI" = "UMLS",
-#                 "MIM" = "OMIM",
-#                 "NCIT", "NCIt")
-
-DODO_crossId$dbid2 <- paste(DODO_crossId$DB2, DODO_crossId$id2, sep = ":")
-
 
 DODO_altId <- DODO_altId %>%
   setnames(., "altdbib", "adbid")
-```
 
-## Check label and definition information
-
-```{r}
+# check availability of def and assign label to def is it is NA
 x <- copy(DODO_entryId[, def := case_when(is.na(def) ~ name,
                                                 TRUE ~ def)]) %>% 
   .[, same := (DB==origin)] %>% 
@@ -313,207 +231,149 @@ x <- copy(DODO_entryId[, def := case_when(is.na(def) ~ name,
   # select(-same)
 ## Adding names as canonical label if missing in idNames
 nolabel <- DODO_entryId[!dbid %in% DODO_idNames$dbid]
-
-  
 ## if identifiers have no label but a definition
-## 
 table(is.na(DODO_idNames$syn))
-nolabel <- DODO_entryId %>%
+toAdd <- DODO_entryId %>%
   filter(!dbid %in% DODO_idNames$dbid) %>% 
-  mutate(canonical = "TRUE") %>% 
+  mutate(canonical = TRUE) %>% 
   filter(!is.na(def)) %>% 
-  select(DB, id, syn = def, canonical, dbid)
-head(nolabel)
-table(gsub(":.*", "", unique(nolabel$dbid)))
-head(DODO_idNames)
-
-dim(DODO_idNames)
+  select(DB, id, synonym = def, canonical, dbid) %>% 
+  .[, synonym := trimws(gsub("[^[:alnum:]]", " ", synonym)) ] 
 DODO_idNames <- DODO_idNames %>% 
-  bind_rows(nolabel) %>% 
-  distinct()
-dim(DODO_idNames)
+  bind_rows(toAdd) %>%
+  .[, synonym := trimws(gsub(",", " ", synonym))] %>%
+  unique()
+
+## Add identifiers to DODO_entryId if missing
+toAdd <- copy(DODO_crossId[!dbid2 %in% DODO_entryId$dbid, .(dbid2, id2, DB2)]) %>% 
+  setnames(., c("dbid2", "id2", "DB2"), c("dbid", "id", "DB")) %>% 
+  .[, `:=`(origin = NA, name = NA, def = NA)] %>% 
+  unique()
+DODO_entryId <- rbind(DODO_entryId, toAdd) 
+
+## remove disease ids from dodo_pheno if they are not in dodo_entry as they are not disease ids, but pheno ids themselves
+DODO_pheno <- DODO_pheno[dbid %in% DODO_entryId$dbid & pdbid %in% DODO_entryId$dbid]
+
+##
+toAdd <- copy(DODO_altId[!adbid %in% DODO_entryId$dbid, .(adbid, altDB, altid)]) %>% 
+  setnames(., c("adbid", "altDB", "altid"), c("dbid", "DB", "id")) %>% 
+  .[, `:=`(name = NA, origin = NA, def = NA)]
+DODO_entryId <- rbind(DODO_entryId, toAdd)  %>% unique()
+
+# Some identifiers are multiple times in DODO_entryId
+# will check if they have a label/def, if they are the same, if not, we will take the shortest label and combine the definition
+DODO_entryId <- copy(DODO_entryId) %>% 
+  .[, duplicated := .N > 1, by = dbid] %>% 
+  .[, `:=`(name = trimws(gsub("[^[:alnum:]]", " ", name)),
+           def = trimws(gsub("[^[:alnum:]]", " ", def)))]  %>% 
+  .[, `:=`(name = min(unique(name)),
+           def = paste(unique(na.omit(def)), collapse = " | ")), by = dbid] %>% 
+  unique()
 ```
 
-
-
-# Save csv
+# Save files to csv
 
 ```{r}
-DODO_instance = data.table(name = "DODO", instance = dodoInstance, version = dodoVersion)
+# Create nodes 
+instance.nodes = data.table(`name:ID` = "DODO", 
+                           `instance:string` = dodoInstance, 
+                           `version:LABEL` = dodoVersion)
+# Create disease nodes
+# we are going to add synonyms as an array of terms to the node attribute
+table(DODO_entryId$origin)
+toAdd <- copy(DODO_idNames) %>% 
+  .[, syn := paste0('["', paste(unique(na.omit(synonym)), collapse = '";"'), '"]'), by = dbid] %>% 
+  .[, N := .N, by = dbid] %>% 
+  .[, .(dbid, syn, N)] %>% 
+  unique()
+disease.nodes <- DODO_entryId[origin != "HP" | is.na(origin), .(dbid, DB, id, name, def)] %>% 
+  unique() %>% 
+  .[, type := case_when(DB == "HP" ~ "Disease;Phenotype",
+                        TRUE ~ "Disease")] %>% 
+  .[, synonyms := toAdd$syn[match(dbid, toAdd$dbid)]] %>% 
+  `colnames<-`(c("name:ID", "DB:string", "id:string", "name:string", "def:string", ":LABEL", "synonyms:string[]")) 
+phenotype.nodes <- DODO_entryId[origin == "HP" & !dbid %in% disease.nodes$`name:ID`, 
+                                .(dbid, DB, id, name, def)] %>% 
+  unique() %>% 
+  .[, type := "Phenotype"] %>% 
+  .[, synonyms := toAdd$syn[match(dbid, toAdd$dbid)]] %>% 
+  `colnames<-`(c("name:ID", "DB:string", "id:string", "name:string", "def:string", ":LABEL", "synonyms:string[]"))
 
-toSave <- grep("DODO", ls(), value = T)
+databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"), col_names = c("name", "idURL"))
+db.nodes <- data.table(db_name = sort(unique(c(DODO_entryId[["DB"]], DODO_crossId[["DB1"]], DODO_crossId[["DB2"]])))) %>% 
+  .[, DB := gsub("\\_.*", "", db_name)] %>% 
+  .[, url := databases$idURL[match(DB, databases$name)]] %>% 
+  .[, .(db_name, url)] %>% 
+  .[, type := "Database"] %>% 
+  `colnames<-`(c("name:ID", "url:string", ":LABEL"))
 
+# Create edges
+## database of origin
+concept_db.edges <- DODO_entryId[!is.na(origin), .(dbid, origin)] %>% 
+  .[, type := "is_in"] %>% 
+  `colnames<-`(c(":START_ID", ":END_ID", ":TYPE")) %>% 
+  unique()
+## parent hierarchy
+parent.edges <- DODO_parentId[, .(dbid, pdbid, origin)] %>% 
+  .[, type := "is_a"] %>% 
+  `colnames<-`(c(":START_ID", ":END_ID", "origin:string", ":TYPE")) %>% 
+  unique()
+table(parent.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+table(parent.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+
+# xref edges
+# Some edges are is_xref (defined in the excel below) all others are is_related.
+# In addition, I will do filtering on the edges to put in, avoiding ambigous relations to traverse between
+## soooo evrything that is in the excel = is_xref with an attribute on the edge: confidence = 1
+## everything that is not on the excel, attribute: confidence = 0
+## within the is_xref, we are going to check the ambiguity, if it's higher than 1 (one-to-many) -> confidence = 0
+## We have directed edges but duplicate them in both directions to calculate this ambiguity
+## and we'll do this before ingestion and then just adapt the functions afterwards
+xrefDB <- readxl::read_xlsx(file.path(getwd(), "inst", "documentation",
+                                      "CrossreferencesEdges.xlsx"),
+                            sheet = "Max_ambiguity_4_across_DBs"
+                            ) %>% 
+  as.data.table() %>% 
+  .[, db_edge := paste(pmin(DB1, DB2), pmax(DB1, DB2), sep = "-")]
+xref <- DODO_crossId[, .(dbid1, DB1, dbid2, DB2)] %>% 
+  .[, type := "is_xref"] %>% 
+  .[, db_edge := paste(pmin(DB1, DB2), pmax(DB1, DB2), sep = "-")] %>% 
+  .[, confidence := case_when(db_edge %in% xrefDB$db_edge ~ 1, TRUE ~ 0)] 
+xref.edges <-  rbind(xref[, .(dbid1, dbid2, DB2, type, db_edge, confidence)],
+          xref[, .(dbid2, dbid1, DB1, type, db_edge, confidence)] %>% 
+                  setnames(., c("dbid1", "dbid2", "DB1"), c("dbid2", "dbid1", "DB2"))) %>% 
+  unique() %>% 
+  .[, ambiguity := .N , by = c("dbid1", "DB2")] %>% 
+  .[, confidence := case_when(ambiguity > 1 ~ 0,
+                              TRUE ~ confidence)] %>% 
+  .[, .(dbid1, dbid2, type, confidence, ambiguity)]  %>% 
+  `colnames<-`(c(":START_ID", ":END_ID", ":TYPE", "confidence:int", "ambiguity:int"))
+table(xref.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+table(xref.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+
+
+## alternative id
+altid.edges <- DODO_altId[, .(dbid, adbid)] %>% 
+  .[, type := "has_alternative_id"] %>% 
+  `colnames<-`(c(":START_ID", ":END_ID", ":TYPE")) %>% 
+  unique()
+table(altid.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+table(altid.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+
+
+## phenotype to disease
+pheno.edges <- DODO_pheno[, .(dbid, pdbid)] %>% 
+  .[, type := "has_phenotype"] %>% 
+  `colnames<-`(c(":START_ID", ":END_ID", ":TYPE")) %>% 
+  unique()
+table(pheno.edges$`:START_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+table(pheno.edges$`:END_ID` %in% c(disease.nodes$`name:ID`, phenotype.nodes$`name:ID`))
+
+toSave <- grep("edges|nodes", ls(), value = T)
 
 walk(toSave, ~{
-  fwrite(get(.x), file = file.path(getwd()))
+  print(.x)
+  fwrite(get(.x), file = file.path("/Local_Disk/Reference_Files/DODO/final_disease_ontos", 
+                                   paste0(.x, ".csv")))
 })
-## db version
-## need to rewrite this in nodes and edges, also putting concept (Disease/Phenotype) in there
-## and is_xref or is_related edges
-## For origin, I think perhaps it should be is_in edge and nodes = dodo_entry without origin
-## Parent edges will have attributes
-## DBs should have there url templates as attributes
-```
-
-
-# DODO:::load_dodo_model()
-
-<!-- concept <- "Concept" -->
-
-
-## Concepts
-
-```{r}
-toImport <- DODO_entryId %>%
-  select(
-    database = DB,
-    shortID = id,
-    definition= def,
-    label = syn,
-    name = dbid,
-    level,
-    origin
-  ) %>%
-  arrange(desc(level)) %>%
-  filter(database == origin) %>% ## First only DB = origin, to add original DBs, later add additional databases
-  distinct(name, .keep_all = T)
-toAdd <-  DODO_entryId %>%
-  select(
-    database = DB,
-    shortID = id,
-    definition= def,
-    label = syn,
-    name = dbid,
-    level,
-    origin
-  ) %>%
-  arrange(desc(level)) %>%
-  filter(database != origin) %>%
-  filter(!name %in% toImport$name)
-toImport <- bind_rows(toImport, toAdd) %>%
-  distinct()
-# toImport$origin <- db
-concept <- "Concept"
-stopifnot(nrow(distinct(toImport, name))==nrow(toImport))
-DODO:::load_concept_definitions(toImport=toImport, concept=concept)
-```
-
-## Synonyms
-
-```{r}
-toImport <- DODO_idNames %>%
-  select("database"=DB, 
-         "shortID"=id, 
-         "name" = dbid,
-         "value"=syn) %>%
-  distinct()
-DODO:::load_concept_synonyms(toImport=toImport, concept=concept)
-```
-
-## Alternative identifiers
-
-```{r}
-toImport <- DODO_altId %>%
-  select("database"="DB", 
-         "shortID"="id", 
-         "altdb"="altDB", 
-         "altid"="alt")
-DODO:::load_alternative_identifiers(toImport=toImport, concept=concept)
-```
-
-## Parents
-
-```{r}
-toImport <- DODO_parentId %>%
-  select("database"=DB, 
-         "shortID"=id, 
-         "parentdb"=pDB, 
-         "parentid"=parent,
-         origin)
-DODO:::load_parent_identifiers(toImport=toImport, concept=concept)
-```
-
-## Cross-references
-
-```{r}
-xrefDB <- readxl::read_xlsx(here::here("inst", "documentation",
-                                       "CrossreferencesEdges.xlsx"),
-                            sheet = "Max_ambiguity_4_across_DBs")
-datatable(xrefDB,
-          rownames = FALSE)
-toImport <- DODO_crossId %>%
-  select(DB1, id1, DB2, id2)
-DODO:::load_cross_references(
-  toImport = toImport, 
-  xrefDB = xrefDB, 
-  concept = concept
-)
-```
-
-## Diseases - Phenotypes
-
-```{r}
-nodes <- DODO_entryId %>% filter(DB == "HP") %>% pull(dbid)
-DODO:::set_labels(concept = "Phenotype", nodes = nodes)
-
-nodes <- DODO_entryId %>% filter(DB != "HP") %>% pull(dbid)
-DODO:::set_labels(concept = "Disease", nodes = nodes)
-
-toImport <- DODO_pheno2dis %>%
-  select(diseaseDB = disDB, 
-         diseaseID = disID, 
-         phenoID = phenoID,
-         phenoDB = phenoDB)
-DODO:::load_has_phenotypes(toImport=toImport)
-```
-
-## Connect nodes to databases
-
-Some identifiers are recorded across multiple database, e.g. EFO incorporates identifiers from Monarch, Orphanet, etc. These receive additional *is_in* edge.
-
-```{r}
-# toImport <- bind_rows(DODO_parentId %>% select(DB,
-#                                                id, 
-#                                                origin),
-#                       DODO_parentId %>% select(DB = pDB,
-#                                                id = parent,
-#                                                origin)) %>%
-#   distinct() %>%
-#   select(database = DB,
-#          shortID = id,
-#          origin)
-toImport <- DODO_entryId %>%
-  select(
-    database = DB,
-    shortID = id,
-    name = dbid,
-    level,
-    origin
-  ) %>%
-  arrange(desc(level)) %>%
-  distinct(name, origin, .keep_all = T)
-DODO:::load_concept_names(toImport = toImport, concept = concept)
-```
-
-# Database URL templates
-
-```{r db_url, echo = FALSE, include = TRUE}
-databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"), col_names = c("name", "idURL"))
-# datatable(databases,
-#           rownames = FALSE)
-DODO:::load_db_definitions(toImport=databases)
-```
-
-## Write files
-
-Files are writting to the specified location both as rdf and rda files.
-
-```{r write_files}
-############################@
-## Save .rda ----
-############################@
-toSave <- grep("^DODO[_]", ls(), value=T)
-save(list = toSave,
-     file = here("..","data",
-                 paste0(params$name, "-neo4j-input-files.rda")))
 ```
