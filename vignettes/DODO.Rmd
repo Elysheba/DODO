@@ -1,0 +1,109 @@
+---
+title: "Base usage of DODO"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Base usage of DODO}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, eval = F}
+library(DODO)
+```
+
+Connect to the neo4j instance.
+
+```{r, eval = F}
+connect_to_dodo(local = T)
+```
+
+# Basic information on the Neo4j instance.
+
+Show the data model of DODO
+
+```{r, eval = F}
+show_dodo_model()
+```
+
+List node types and databases that are included. 
+
+```{r, eval = F}
+list_database()
+list_node_type()
+```
+
+```{r, eval = F}
+get_ontology("MONDO")
+```
+
+# Cross-reference relations
+
+Identify direct cross-reference relations for (an) identifier(s).
+
+```{r, eval = F}
+convert_concept(
+  ids = "MONDO:0005027",
+  relationship = "xref",
+  direct = T
+)
+```
+
+Identify indirect cross-reference relations for (an) identifier(s).
+
+```{r, eval = F}
+convert_concept(
+  ids = "MONDO:0005027",
+  relationship = "xref",
+  direct = F
+)
+```
+
+Identify all indirect parent-child relations for (an) identifier(s).
+
+```{r, eval = F}
+convert_concept(
+  ids = "MONDO:0005027",
+  relationship = "parent", # "child"
+  direct = F
+)
+```
+
+Identify all disease-phenotype or inverse for (an) identifier(s).
+
+```{r, eval = F}
+convert_concept(
+  ids = "HP:0001250",
+  relationship = "disease"
+) # "phenotype"
+```
+
+Identify alternative identifiers.
+
+```{r, eval = F}
+convert_concept(
+  ids = "DOID:9489",
+  relationship = "alternative"
+) # "phenotype"
+```
+
+# Plot
+
+Plot the indirect cross-reference relations for (an) identifier(s).
+
+```{r, eval = F}
+plot_relations(
+  ids = "MONDO:0005027",
+  relationship = "xref",
+  direct = F
+)
+```
+

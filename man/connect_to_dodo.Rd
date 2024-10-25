@@ -9,8 +9,7 @@ connect_to_dodo(
   user_name = "",
   password = "",
   local_port = "7474",
-  ucb_http = "https://dodo.ucb.com/",
-  azure_authorization = "/Local_Disk/Docker_Volumes/Secrets/kmt_authorization.rds",
+  azure_authorization = NULL,
   verbose = T
 )
 }
@@ -23,7 +22,7 @@ connect_to_dodo(
 
 \item{local_port}{String. Which port is exposed to the local https:// connection. Default: 7474}
 
-\item{ucb_http}{String. Which http address is exposed to within the UCB instance for the https:// connection. Default: https://dodo.ucb.com/}
+\item{azure_authorization}{Object. Location of the rds object with the azure token.}
 
 \item{verbose}{Boolean. Controls verbosity of the function.}
 }

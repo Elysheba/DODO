@@ -1,360 +1,285 @@
-#' Convert concept identifiers
-#' 
-#' Another core functionality is the ability to convert concept identifiers between different 
-#' databases and types (disease or phenotype). By default a backward ambiguity of one is taken,
-#' with no limitation on forward ambiguity. 
-#' 
-#' @param from a vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
-#' @param to database to convert to (default = NULL, no filtering)
-#' @param from.concept concept (disease or phenotype) of from
-#' @param to.concept concept (disease or phenotype) to convert to
-#' @param deprecated If deprecated = TRUE, only the deprecated identifiers of the original input (from) are returned (default: false)
-#' @param transitive_ambiguity backward ambiguity while using transitivity to identify 
-#' cross-references (default: 1)
-#' @param intransitive_ambiguity specification for backward ambiguity used in the final 
-#' step of conversion (default: no filter)
-#' @param step number of steps to traverse when converting within concepts (default: NULL) 
-#' (see details)
+#' Convert identifiers
+#'
+#' Convert identifiers between different databases and types (disease or phenotype).
+#'
+#' @param ids String. A vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
+#' @param to_db String. A database to convert to (default = NULL, no filtering)
+#' @param relationship String. Type of relationship to extract ("xref", "parent", "child",
+#' "phenotype", "disease", "alternative"). Default: xref.
+#' @param direct Boolean. Only getting direct relationships or moving through the disease
+#' network to return all connected relationship.
+#' @param sep String. Separator used, default: ":".
 #' @param verbose show query input (default = FALSE)
-#' 
-#' @details Conversion is performed in different steps, first identifiers are converted 
-#' (if requested) within a concept, otherwise stated, their cross-references are 
-#' returned depending on the provided parameters of transitive_ambiguity and
-#' intransitive_ambiguity. The manner of converting within concepts is defined by the *step*
-#' parameters (see below). Next, these identifiers are converted between concepts 
-#' (Disease -> Phenotype or Phenotype -> Disease).
-#' 
-#' If deprecated = TRUE, only the deprecated identifiers of the original input 
-#' (from) are returned. 
-#' 
-#' The step parameters allows the user to specify the number of steps to take when 
-#' onverting within a concept (e.g. Disease or Phenotype). If step = NA, 
-#' no conversion within concepts is performed (skipping the first step). If step = NULL
-#' the full transitivity mappings are used to return cross-references edges. This means that all
-#' identifiers are converted using the transitivity between *is_xref* mappings. This is followed
-#' by another step where all cross-references one step removed are returned using both *is_xref*
-#' and *is_related* edges. The transitive_ambiguity and intransitive_ambiguity 
-#' can be used to specify how/which cross-reference identifiers should be returned by 
-#' selecting edges below the ambiguity thresholds to traverse.
-#' If step = 1, only direct cross-references are returned using both *is_xref* and *is_related* edges. 
-#' This is similar to the final step of the full conversion (step = NULL) and the intransitive_ambiguity 
-#' can be used to specify the threshold on the backward ambiguity. 
-#' 
-#' @return a dataframe with three columns:
+#'
+#' @details
+#' The function identifies cross-references, parent-child hierarchies, disease-phenotype
+#' or alternative relationships.
+#' Direct = T will return only the direct relations, direct = F will move through
+#' the nodes to retrieve connected relationships.
+#'
+#' @return a data.table with three columns:
 #' - from: identifier to convert
 #' - to: returned conversion
-#' 
-#' @examples 
-#' convert_concept(from = "MONDO:0005027",
-#'                 to = "EFO", 
-#'                 from.concept = "Disease",
-#'                 to.concept = "Disease")
-#' @export
-#' 
-convert_concept <- function(from, 
-                            to = NULL,
-                            from.concept = c("Disease", "Phenotype"),
-                            to.concept = c("Disease", "Phenotype"),
-                            deprecated = FALSE,
-                            transitive_ambiguity = 1,
-                            intransitive_ambiguity = NULL,
-                            step = NULL,
-                            verbose = FALSE){
-   from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
-   to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
-   db.to <- match.arg(to, c(NULL, list_database()$database))
-   from <- setdiff(from, NA)
-   stopifnot(is.character(from), length(from)>0,
-             is.null(transitive_ambiguity) || transitive_ambiguity == 1,
-             is.null(intransitive_ambiguity) || intransitive_ambiguity == 1,
-             is.null(step) || step == 1 || is.na(step))
-   
-   if(is.null(transitive_ambiguity)){
-      transitivity <- "is_xref>"
-   }else{
-      transitivity <- "is_xref_nba"
-   }
-   
-   if(is.null(intransitive_ambiguity)){
-      relationship <- ":is_related|is_xref*0..1"
-   }else{
-      relationship <- ":is_related_nba|is_xref_nba*0..1"
-   }
-   
-   b1 <- b2 <- b3 <- toRet <- tibble::tibble(from = character(),
-                                             to = character(),
-                                             deprecated = logical())
-   
-   if(!deprecated & !isTRUE(is.na(step))){
-      #############################################@
-      ## To convert identifiers between concepts, first they are converted within the concept (d-d, p-p) = B1 
-      ## followed by a conversion between concepts (d-p, p-d) = B2
-      
-      if(isTRUE(step == 1)){
-         cql <- c(
-            sprintf('MATCH (f:%s)-[%s]-(t:%s)',
-                    from.concept,
-                    relationship,
-                    from.concept),
-            'WHERE f.name IN $from',
-            "RETURN DISTINCT f.name as from, t.name as to"
-         )
-         if(verbose){
-           cat(cql, sep = "\n")
-         }
-         toRet <- call_dodo(
-               neo2R::cypher,
-               neo2R::prepCql(cql),
-               parameters = list(from = as.list(from)),
-               result = "row") %>%
-            tibble::as_tibble()
-         
-      }else{
-         ## Convert within concepts: B1
-         cql <- c(
-            sprintf('MATCH (f:%s)-[%s]-(t:%s) WHERE f.name IN $from',
-               from.concept,
-               relationship,
-               from.concept),
-            'CALL apoc.path.expandConfig(',
-            sprintf('f, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s>"}',
-                    transitivity),
-            ') YIELD path',
-            'WITH f as f, (nodes(path))[0] as s, last(nodes(path)) as e',
-            sprintf('MATCH (e)-[%s]->(e2)',
-                    relationship),
-            'RETURN DISTINCT',
-            's.name as from, e2.name as to')
-            # (nodes(path))[0].name AS from
-            # last(nodes(path)).name AS to
-            # size(relationships(path)) AS hops
-         if(verbose){
-           cat(cql, sep = "\n")
-         }
-         toRet <- call_dodo(
-               neo2R::cypher,
-               neo2R::prepCql(cql),
-               parameters = list(from = as.list(from)),
-               result = "row") %>%
-            tibble::as_tibble()
-      }
-      
-      if(nrow(toRet) != 0){
-         b1 <- toRet
-      }
-   }else{
-      b1 <- tibble::tibble(from = from,
-                   to = from)
-   }
-   
-   #############################################@
-   ## Convert between concepts: B2
-   if(from.concept != to.concept){
-      cql <- c(
-         sprintf('MATCH (f:%s)-[:has_pheno]-(t:%s)',
-                 from.concept,
-                 to.concept),
-         'WHERE f.name IN $from',
-         "RETURN DISTINCT f.name as from, t.name as to"
-      )
-      if(verbose){
-        cat(cql, sep = "\n")
-      }
-      b2 <- call_dodo(
-         neo2R::cypher,
-         neo2R::prepCql(cql),
-         parameters = list(from = as.list(unique(b1$to))),
-         result = "row"
-      ) %>% tibble::as_tibble()
-      
-      # if(isTRUE(step == 1)){
-      #    cql <- c(
-      #       sprintf('MATCH (f:%s)-[:has_pheno]-(t:%s)',
-      #               from.concept,
-      #               relationship,
-      #               from.concept),
-      #       'WHERE f.name IN $from',
-      #       "RETURN DISTINCT f.name as from, t.name as to"
-      #    )
-      #    b2 <- call_dodo(
-      #       neo2R::cypher,
-      #       neo2R::prepCql(cql),
-      #       parameters = list(from = as.list(from)),
-      #       result = "row") %>%
-      #       tibble::as_tibble()
-      #    
-      # }else{
-      #    cql <- c(
-      #       sprintf('MATCH (f:%s)-[:has_pheno]-(t:%s) WHERE f.name IN $from',
-      #               from.concept,
-      #               relationship,
-      #               from.concept),
-      #       'CALL apoc.path.expandConfig(',
-      #       'f, {uniqueness:"NODE_GLOBAL", relationshipFilter:":has_pheno>"}',
-      #       ') YIELD path',
-      #       'WITH f as f, (nodes(path))[0] as s, last(nodes(path)) as e',
-      #       'MATCH (e)-[:has_pheno]->(e2)',
-      #       'RETURN DISTINCT',
-      #       's.name as from, e2.name as to')
-      #    b2 <- call_dodo(
-      #       neo2R::cypher,
-      #       neo2R::prepCql(cql),
-      #       parameters = list(from = as.list(from)),
-      #       result = "row") %>%
-      #       tibble::as_tibble()
-      # }
-      
-   }
-   
-   if(nrow(b2) != 0){
-    toRet <- dplyr::bind_rows(b1,
-             dplyr::inner_join(b1,
-                               b2,
-                               by = c("to" = "from")) %>%
-             dplyr::select(from,
-                           to = to.y)) %>%
-       tibble::as_tibble() %>%
-       dplyr::distinct() %>%
-       dplyr::mutate(deprecated = FALSE)
-   }
-   
-   #############################################@
-   ## Return deprecated identifiers
-
-   if(deprecated){
-      cql <- c(
-         'MATCH (f:Concept)<-[:is_alt]-(t:Concept)',
-         'WHERE f.name IN $from',
-         "RETURN DISTINCT f.name as from, t.name as to"
-      )
-      if(verbose){
-        cat(cql, sep = "\n")
-      }
-      b3 <- call_dodo(
-         neo2R::cypher,
-         neo2R::prepCql(cql),
-         parameters = list(from = as.list(from)),
-         result = "row"
-      ) %>%
-         tibble::as_tibble()
-      if(nrow(b3) != 0){
-         b3 <- b3 %>%
-            dplyr::distinct() %>%
-            dplyr::mutate(deprecated = TRUE)
-      }
-   }
-
-   toRet <- dplyr::bind_rows(toRet,
-                             b3)
-   
-   if(!is.null(to)){
-      toRet <- toRet %>% 
-         dplyr::filter(grepl(glue::glue("{db.to}"), to))
-   }
-   
-   return(toRet %>% dplyr::distinct())
-}
-
-####################################@
-#' Get related concepts
-#' 
-#' The specific conversion procedure is recommended for the ontologies that 
-#' consider disease concepts that are (only) connected through *is_related* edges
-#' (e.g. ICD10, ICD9).
-#' 
-#' @param from a vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
-#' @param to database to convert to (default = NULL, no filtering)
-#' @param from.concept concept (disease or phenotype) of from
-#' @param to.concept concept (disease or phenotype) to convert to
-#' @param deprecated include deprecated identifiers (default: false)
-#' @param transitive_ambiguity backward ambiguity while using transitivity 
-#' to identify cross-references (default: 1)
-#' @param intransitive_ambiguity specification for backward ambiguity used 
-#' in the final step of conversion (default: no filter)
-#' @param step number of steps to traverse when converting within concepts (default: NULL) 
-#' (see details)
-#' @param verbose show query input (default = FALSE)
-#' 
-#' @details The specific conversion procedure is recommended for the ontologies that 
-#' consider disease concepts that are (only) connected through *is_related* edges
-#' (e.g. ICD10, ICD9). This limits or removes the effect of the transitive 
-#' mapping and not return all cross-references. Therefore, for these ontologies it 
-#' is recommend that in addition to the standard conversion, an additional step 
-#' of intransitive mapping is performed which is implemented in the function *get_related*.
-#' This is implemented in a symmetric way, where first the intransitive mapping
-#' is returned (identical to the final step of a normal conversion with step = NULL
-#' where the same ambiguity specifications defined by 
-#' *intransitive_ambiguity*). Next the standard conversion is applied with a
-#' transitive mapping and final step where all cross-references one step removed 
-#' are returned using both *is_xref* and *is_related* edges.
-#' 
-#' @return a dataframe with three columns:
-#' - from: identifier to convert
-#' - to: returned conversion
-#' - deprecated: indicating whether the returned "to" identifier is a deprecated ID
-#' 
-#' @seealso convert_concept
-#' 
+#' - relation: type of relation between nodes
+#'
 #' @examples
-#' toRet <- get_related(from = "ICD10:G40.9",
-#'             to = "DOID",
-#'             from.concept = "Disease", 
-#'             to.concept = "Disease")
-#' 
+#' \dontrun{
+#' convert_concept(
+#'   id = "MONDO:0005027",
+#'   to_db = "EFO",
+#'   relationship = "xref",
+#'   direct = T
+#' )
+#' }
 #' @export
-#' 
-get_related <- function(from, 
-                        to = NULL,
-                        from.concept = c("Disease", "Phenotype"),
-                        to.concept = c("Disease", "Phenotype"),
-                        deprecated = FALSE,
-                        transitive_ambiguity = 1,
-                        intransitive_ambiguity = NULL,
-                        step = NULL, 
-                        verbose = FALSE){
-   from.concept <- match.arg(from.concept, c("Disease", "Phenotype"), several.ok = FALSE)
-   to.concept <- match.arg(to.concept, c("Disease", "Phenotype"), several.ok = FALSE)
-   db.to <- match.arg(to, c(NULL, list_database()$database))
-   from <- setdiff(from, NA)
-   stopifnot(is.character(from), length(from)>0,
-             is.null(transitive_ambiguity) || transitive_ambiguity == 1,
-             is.null(intransitive_ambiguity) || intransitive_ambiguity == 1,
-             is.null(step) || step == 1 || is.na(step))
-   
-   if(is.null(intransitive_ambiguity)){
-      relationship <- ":is_related|is_xref*0..1"
-   }else{
-      relationship <- ":is_related_nba|is_xref_nba*0..1"
-   }
-   ## Additional step
-   cql <- c(sprintf("MATCH (n:Disease)-[%s]-(n1:Disease)", relationship),
-            "WHERE n.name in $from",
-            "RETURN n.name as from2, n1.name as to2")
-   if(verbose){
-     cat(cql, sep = "\n")
-   }
-   relConv <- call_dodo(neo2R::cypher, 
-                        neo2R::prepCql(cql),
-                        parameters = list(from = as.list(unique(from))),
-                        result = "row")
-   ## normal conversion to end
-   dodoConv <- convert_concept(from = relConv$to2,
-                               to = to,
-                               from.concept = from.concept,
-                               to.concept = to.concept,
-                               deprecated = deprecated,
-                               transitive_ambiguity = transitive_ambiguity,
-                               intransitive_ambiguity = intransitive_ambiguity,
-                               verbose = verbose)
+#' @import data.table
+#' @import magrittr
+convert_concept <- function(ids,
+                            to_db = NULL,
+                            relationship = c("xref"),
+                            direct = F,
+                            sep = ":",
+                            verbose = FALSE) {
+  checkmate::assert(checkmate::checkNull(to_db),
+    checkmate::checkNames(to_db,
+      subset.of = c(list_database()$database)
+    ),
+    combine = "or"
+  )
+  checkmate::assertNames(relationship, subset.of = c(
+    "xref", "parent", "child",
+    "phenotype", "disease",
+    "alternative"
+  ))
+  checkmate::assertLogical(direct)
 
-   finConv <- dodoConv %>%
-      dplyr::left_join(relConv,
-                by = c("from" = "to2")) %>%
-      dplyr::select(from = from2,
-             to = to) %>%
-      dplyr::mutate(deprecated = FALSE) %>%
-      dplyr::distinct()
-   return(finConv)
+  ids <- na.omit(ids)
+  ids <- DODO:::check_divider(ids, sep = sep, format = "in")
+
+  if ("is_xref" %in% relationship & direct) relationship <- gsub("is_xref", "is_xref_many", relationship)
+  edge_types <- list(
+    "xref" = c("-[r:is_xref|is_xref_many]->", "-[r:is_xref]->", "is_xref>", "-[:is_xref_many]->"),
+    "parent" = c("-[r:is_a]->", "-[r:is_a]->", "is_a>", "-[:is_a]->"),
+    "child" = c("<-[r:is_a]-", "<-[r:is_a]-", "<is_a", "<-[:is_a]-"),
+    "phenotype" = "-[r:has_phenotype]->",
+    "disease" = "<-[r:has_phenotype]-",
+    "alternative" = "-[r:has_alternative_id]-"
+  )
+
+  if (any(c("xref", "parent", "child") %in% relationship) & !direct) {
+    cql <- DODO:::indirect_cql(
+      edge_types = edge_types,
+      relationship = relationship,
+      to_db = to_db,
+      network = F
+    )
+  } else {
+    cql <- DODO:::direct_cql(
+      edge_types = edge_types,
+      relationship = relationship,
+      to_db = to_db
+    )
+  }
+  toRet <- DODO:::process_cql(cql, verbose = verbose)
+
+  if (ncol(toRet) != 3) {
+    toRet <- data.table(
+      from = ids,
+      to = NA,
+      relation = relationship
+    )
+  }
+  if (!all(ids %in% toRet$from)) {
+    toRet <- rbind(
+      toRet,
+      data.table(
+        from = setdiff(ids, toRet$from),
+        to = NA,
+        relation = relationship
+      )
+    )
+  }
+  toRet <- toRet[, `:=`(
+    from = DODO:::check_divider(from, sep = sep, format = "out"),
+    to = DODO:::check_divider(to, sep = sep, format = "out")
+  )]
+  return(toRet)
 }
 
 
+#' Convert identifiers
+#'
+#' Convert identifiers between different databases and types (disease or phenotype).
+#' and return the full relationships to be explored as a graph or network (e.g. igraph)
+#'
+#' @param ids String. A vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
+#' @param to_db String. A database to convert to (default = NULL, no filtering)
+#' @param relationship String. Type of relationship to extract ("xref", "parent", "child",
+#' "phenotype", "disease", "alternative"). Default: xref.
+#' @param direct Boolean. Only getting direct relationships or moving through the disease
+#' network to return all connected relationship.
+#' @param sep String. Separator used, default: ":".
+#' @param verbose show query input (default = FALSE)
+#'
+#' @details
+#' The function identifies cross-references, parent-child hierarchies, disease-phenotype
+#' or alternative relationships.
+#' Direct = T will return only the direct relations, direct = F will move through
+#' the nodes to retrieve connected relationships.
+#'
+#' @return a data.table with three columns:
+#' - from: identifier to convert
+#' - to: returned conversion
+#' - relation: type of relation between nodes
+#'
+#' @examples
+#' \dontrun{
+#' get_network(
+#'   id = "MONDO:0005027",
+#'   to_db = "EFO",
+#'   relationship = "xref",
+#'   direct = T
+#' )
+#' }
+#' @export
+#' @import data.table
+#' @import magrittr
+get_network <- function(ids,
+                        to_db = NULL,
+                        relationship = c("xref"),
+                        direct = F,
+                        sep = ":",
+                        verbose = FALSE) {
+  checkmate::assert(checkmate::checkNull(to_db),
+    checkmate::checkNames(to_db,
+      subset.of = c(list_database()$database)
+    ),
+    combine = "or"
+  )
+  checkmate::assertNames(relationship, subset.of = c(
+    "xref", "parent", "child",
+    "phenotype", "disease",
+    "alternative"
+  ))
+  checkmate::assertLogical(direct)
+
+  ids <- na.omit(ids)
+  ids <- DODO:::check_divider(ids, sep = sep, format = "in")
+
+  if ("is_xref" %in% relationship & direct) relationship <- gsub("is_xref", "is_xref_many", relationship)
+  edge_types <- list(
+    "xref" = c("-[r:is_xref|is_xref_many]->", "-[r:is_xref]->", "is_xref>", "-[:is_xref_many]->"),
+    "parent" = c("-[r:is_a]->", "-[r:is_a]->", "is_a>", "-[:is_a]->"),
+    "child" = c("<-[r:is_a]-", "<-[r:is_a]-", "<is_a", "<-[:is_a]-"),
+    "phenotype" = "-[r:has_phenotype]->",
+    "disease" = "<-[r:has_phenotype]-",
+    "alternative" = "-[r:has_alternative_id]-"
+  )
+
+  if (any(c("xref", "parent", "child") %in% relationship) & !direct) {
+    cql <- DODO:::indirect_cql(
+      edge_types = edge_types,
+      relationship = relationship,
+      to_db = to_db,
+      network = T
+    )
+  } else {
+    cql <- DODO:::direct_cql(
+      edge_types = edge_types,
+      relationship = relationship,
+      to_db = to_db
+    )
+  }
+  toRet <- DODO:::process_cql(cql, ids, to_db, verbose)
+
+  if (ncol(toRet) != 3) {
+    toRet <- NULL
+  }
+  toRet <- toRet[, `:=`(
+    from = DODO:::check_divider(from, sep = sep, format = "out"),
+    to = DODO:::check_divider(to, sep = sep, format = "out")
+  )]
+  return(toRet)
+}
+
+
+#' helper function for indirect cql query
+#'
+#' will return the cql query to use the apoc.path.expandConfig
+#' based on a data.table or network to be returned
+#'
+#' @param edge_types List. Edge types to query. See [DODO::convert_concept]
+#' @param to_db String. Database to filter on.
+#' @param relationship String. Relationship to filter for.
+#' @param network Boolean. Network or data.table to be returned as output.
+#'
+indirect_cql <- function(edge_types = edge_types,
+                         to_db = to_db,
+                         relationship = relationship,
+                         network = F) {
+  checkmate::assertLogical(network)
+  cql <- c(
+    sprintf("MATCH (n1)%s(n2) WHERE n1.dbid IN $from", edge_types[[relationship]][2]),
+    "CALL apoc.path.expandConfig(",
+    sprintf('n1, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s"}', edge_types[[relationship]][3]),
+    ") YIELD path",
+    "WITH n1 as n1, (nodes(path))[0] as s, last(nodes(path)) as n2",
+    sprintf("MATCH (n2)%s(n3)", edge_types[[relationship]][4]),
+    ifelse(is.null(to_db), "", "WHERE n3.DB in $to_db"),
+    "RETURN DISTINCT",
+    sprintf("%s.dbid as from, n3.dbid as to", ifelse(network, "n2", "n1"))
+  )
+  return(cql)
+}
+
+#' helper function for direct cql query
+#'
+#' will return the cql query to get the direct relations
+#'
+#' @param edge_types List. Edge types to query. See [DODO::convert_concept]
+#' @param to_db String. Database to filter on.
+#' @param relationship String. Relationship to filter for.
+#'
+direct_cql <- function(edge_types = edge_types,
+                       to_db = to_db,
+                       relationship = relationship) {
+  cql <- c(
+    sprintf(
+      "MATCH (n1)%s(n2)",
+      edge_types[[relationship]][1]
+    ),
+    "WHERE n1.dbid IN $from",
+    ifelse(is.null(to_db), "", "AND n2.DB in $to_db"),
+    "RETURN DISTINCT n1.dbid as from,n2.dbid as to"
+  )
+  return(cql)
+}
+
+#' helper function to send the query and format the output
+#'
+#' Prepares, send and return the output of the query
+#'
+#' @param cql String. Cql query to send
+#' @param ids String. Vector of identifiers
+#' @param to_db String. database to filter for.
+#' @param verbose Boolean. verbose output.
+#'
+#' @import data.table
+#' @import magrittr
+process_cql <- function(cql = cql, ids = ids, to_db = to_db, verbose = verbose) {
+  if (verbose) {
+    cat(cql, sep = "\n")
+  }
+  toRet <- call_dodo(
+    neo2R::cypher,
+    neo2R::prepCql(cql),
+    parameters = list(
+      from = as.list(ids),
+      to_db = as.list(to_db)
+    ),
+    result = "row"
+  ) %>%
+    data.table::as.data.table() %>%
+    .[, relation := relationship]
+  return(toRet)
+}

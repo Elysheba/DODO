@@ -1,4 +1,0 @@
-Name: Find disease or phenotype
-Description: Find disease or phenotype concept in DODO based on their ID, label, synonym, or definition (keywords)
-Binding: shinyConcept
-Interactive: true

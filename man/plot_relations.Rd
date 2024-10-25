@@ -5,26 +5,27 @@
 \title{Identify and show all relationships}
 \usage{
 plot_relations(
-  df,
-  step = NULL,
-  transitive.ambiguity = 1,
-  intransitive.ambiguity = NULL
+  ids,
+  relationship = c("xref"),
+  direct = F,
+  sep = ":",
+  verbose = FALSE
 )
 }
 \arguments{
-\item{df}{Dataframe. Dataframe with columns dbid1, type, dbid2, confidence}
+\item{ids}{String. A vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)}
+
+\item{relationship}{String. Type of relationship to extract ("xref", "parent", "child",
+"phenotype", "disease", "alternative"). Default: xref.}
+
+\item{direct}{Boolean. Only getting direct relationships or moving through the disease
+network to return all connected relationship.}
+
+\item{sep}{String. Separator used, default: ":".}
+
+\item{verbose}{show query input (default = FALSE)}
 }
 \description{
-Takes the dataframe that was obtained from \link{convert_concept} as input and will query all cross-reference edges.
-For use of forward and backward ambiguity as well as black- and whitelist, see extendDisNet.
-}
-\details{
-The initial identifier is represented by a triangle, each node is colored based on the database. The edges
-between nodes are colored based on the ambiguity equal to one or larger.
-
-The edges are formatted based on forward ambiguity and type of the edge.
-The colour of the edges is based on ambiguity equal to one or larger than one.
-This information is encoded when hovering over the edge.
-The solid lines are used for \emph{is_xref} edges, while dashed lines are
-used from \emph{is_related} edges.
+Takes the datatable that was obtained from \link{get_network} as input and
+visualizes the nodes and edges as a visnetwork
 }

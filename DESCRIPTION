@@ -17,21 +17,19 @@ Description: DODO is a Neo4j database that collects the information of
 License: GPL-3
 LazyData: TRUE
 Depends: R (>= 4.4.0),
-Imports: shiny,
+Imports: 
    stringr,
-   DT,
    data.table,
-   igraph,
    neo2R (>= 2.4),
-   utils,
-   methods
-Suggests: rmarkdown,
-   BiocStyle,
-   readr,
-   RColorBrewer,
-   glue,
+   magrittr,
    visNetwork,
-   kableExtra
+   checkmate
+Suggests: 
+    rmarkdown,
+    readr,
+    igraph,
+    kableExtra,
+    knitr
 Encoding: UTF-8
 VignetteBuilder: knitr
 Roxygen: list(markdown = TRUE)

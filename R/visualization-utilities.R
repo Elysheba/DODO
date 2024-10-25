@@ -1,93 +1,86 @@
-#========================================================================================@
-#========================================================================================@
-#' Identify and show all relationships 
-#' 
-#' Takes the dataframe that was obtained from [DODO::convert_concept] as input and will query all cross-reference edges. 
-#' For use of forward and backward ambiguity as well as black- and whitelist, see extendDisNet.
-#' 
-#' The initial identifier is represented by a triangle, each node is colored based on the database. The edges
-#' between nodes are colored based on the ambiguity equal to one or larger.
-#' 
-#' @param df Dataframe. Dataframe with columns dbid1, type, dbid2, confidence
-#' 
-#' @details 
-#' The edges are formatted based on forward ambiguity and type of the edge. 
-#' The colour of the edges is based on ambiguity equal to one or larger than one.
-#' This information is encoded when hovering over the edge.
-#' The solid lines are used for *is_xref* edges, while dashed lines are
-#' used from *is_related* edges.
-#' 
-#' 
+# ========================================================================================@
+# ========================================================================================@
+#' Identify and show all relationships
+#'
+#' Takes the datatable that was obtained from [DODO::get_network] as input and
+#' visualizes the nodes and edges as a visnetwork
+#'
+#' @param ids String. A vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
+#' @param relationship String. Type of relationship to extract ("xref", "parent", "child",
+#' "phenotype", "disease", "alternative"). Default: xref.
+#' @param direct Boolean. Only getting direct relationships or moving through the disease
+#' network to return all connected relationship.
+#' @param sep String. Separator used, default: ":".
+#' @param verbose show query input (default = FALSE)
+#'
 #' @export
+#' @import data.table
+#' @import magrittr
+#' @import visNetwork
+plot_relations <- function(ids,
+                           relationship = c("xref"),
+                           direct = F,
+                           sep = ":",
+                           verbose = FALSE) {
+  checkmate::assertNames(relationship, subset.of = c(
+    "xref", "parent", "child",
+    "phenotype", "disease",
+    "alternative"
+  ))
+  checkmate::assertLogical(direct)
 
-plot_relations <- function(df,
-                           step = NULL,
-                           transitive.ambiguity = 1, 
-                           intransitive.ambiguity = NULL
-                           ){
-  if(length(id) > 1){
-    stop("Too many ids provided")
-  }
-  dbid <- id
-  ## Extend
-  xref <- extend_disNet(build_disNet(id = dbid), 
-                        relations = "xref", 
-                        step = step,
-                        transitive.ambiguity = transitive.ambiguity, 
-                        intransitive.ambiguity = intransitive.ambiguity)
-  col <- DODO:::color_database(disNet = xref)
-  
-  ## network object
-  nodes <- xref$nodes %>%
-    dplyr::select(id, 
-                  database,
-                  label) %>%
-    dplyr::mutate(shape = dplyr::case_when(id %in% dbid ~ "triangle",
-                                           TRUE ~ "dot"),
-                  color = col[database],
-                  title = paste(id, label, sep = " | "),
-                  label = id) 
-  edges1 <- xref$xref %>%
-    dplyr::select(to, 
-                  from,
-                  ambiguity = forwardAmbiguity, 
-                  type) %>%
-    dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
-                                           TRUE ~ "#7fcdbb"),
-                  title = paste("Forward ambiguity = ", ambiguity),
-                  type = gsub("_nba", "", type),
-                  dashes = dplyr::case_when(type == "is_xref" ~ FALSE,
-                                     TRUE ~ TRUE),
-                  arrows = "to") %>%
-    dplyr::distinct()
-  edges2 <- xref$xref %>%
-    dplyr::select(to = from, 
-                  from = to,
-                  ambiguity = backwardAmbiguity,
-                  type) %>%
-    dplyr::mutate(color = dplyr::case_when(ambiguity > 1 ~ "#fdbb84",
-                                           TRUE ~ "#7fcdbb"),
-                  title = paste("Forward ambiguity = ", ambiguity),
-                  type = gsub("_nba", "", type),
-                  dashes = dplyr::case_when(type == "is_xref" ~ FALSE,
-                                     TRUE ~ TRUE),
-                  arrows = "to") %>%
-    dplyr::distinct()
-  edges <- dplyr::bind_rows(edges1,
-                            edges2) %>%
-    dplyr::distinct()
-  
-  if(nrow(nodes) > 200){
+  ids <- DODO:::check_divider(ids, sep = sep, format = "in")
+
+  toPlot <- get_network(
+    ids = ids,
+    relationship = relationship,
+    direct = direct,
+    verbose = verbose
+  )
+
+  # Extract the prefix for coloring nodes
+  toPlot[, `:=`(
+    DB_from = sub("\\|.*|\\_.*", "", from),
+    DB_to = sub("\\|.*|\\_.*", "", to),
+    from = DODO:::check_divider(from, sep = sep, format = "out"),
+    to = DODO:::check_divider(to, sep = sep, format = "out")
+  )]
+
+  # Create unique nodes
+  nodes <- unique(data.table(
+    id = c(toPlot$from, toPlot$to),
+    prefix = c(toPlot$DB_from, toPlot$DB_to)
+  ))
+
+  # Define colors based on the prefix
+  base_colors <- hcl.colors(length(unique(c(toPlot$DB_from, toPlot$DB_to))),
+    palette = "Zissou 1"
+  )
+  colors <- setNames(
+    adjustcolor(base_colors, alpha.f = 1),
+    unique(c(toPlot$DB_from, toPlot$DB_to))
+  )
+  nodes[, `:=`(
+    color = colors[prefix],
+    label = id
+  )]
+
+  # Create edges without labels
+  edges <- toPlot[, .(from, to)] %>%
+    .[, arrows := "to"]
+
+  # Plot with visNetwork
+  p <- visNetwork(nodes, edges) %>%
+    visLayout(randomSeed = 42) %>%
+    visPhysics(stabilization = TRUE) %>%
+    visNetwork::visOptions(
+      highlightNearest = list(enabled = TRUE, hover = TRUE),
+      collapse = list(enabled = TRUE)
+    )
+  if (nrow(nodes) > 200) {
     message(paste(nrow(nodes), " nodes, displaying as igraph layout"))
-    visNetwork::visNetwork(nodes = nodes, edges = edges) %>%
-      visNetwork::visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE),
-                             collapse = list(enabled = TRUE)) %>%
+    p <- p %>%
       visNetwork::visIgraphLayout()
-  }else{
-    visNetwork::visNetwork(nodes = nodes, edges = edges) %>%
-      visNetwork::visPhysics(barnesHut = list(damping = 0.5), stabilization = FALSE) %>%
-      visNetwork::visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE, degree = 2),
-                             collapse = list(enabled = TRUE))
   }
+  p
 }
-

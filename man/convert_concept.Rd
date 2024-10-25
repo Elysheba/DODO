@@ -2,81 +2,56 @@
 % Please edit documentation in R/convert_concept.R
 \name{convert_concept}
 \alias{convert_concept}
-\title{Convert concept identifiers}
+\title{Convert identifiers}
 \usage{
 convert_concept(
-  from,
-  to = NULL,
-  from.concept = c("Disease", "Phenotype"),
-  to.concept = c("Disease", "Phenotype"),
-  deprecated = FALSE,
-  transitive_ambiguity = 1,
-  intransitive_ambiguity = NULL,
-  step = NULL,
+  ids,
+  to_db = NULL,
+  relationship = c("xref"),
+  direct = F,
+  sep = ":",
   verbose = FALSE
 )
 }
 \arguments{
-\item{from}{a vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)}
+\item{ids}{String. A vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)}
 
-\item{to}{database to convert to (default = NULL, no filtering)}
+\item{to_db}{String. A database to convert to (default = NULL, no filtering)}
 
-\item{from.concept}{concept (disease or phenotype) of from}
+\item{relationship}{String. Type of relationship to extract ("xref", "parent", "child",
+"phenotype", "disease", "alternative"). Default: xref.}
 
-\item{to.concept}{concept (disease or phenotype) to convert to}
+\item{direct}{Boolean. Only getting direct relationships or moving through the disease
+network to return all connected relationship.}
 
-\item{deprecated}{If deprecated = TRUE, only the deprecated identifiers of the original input (from) are returned (default: false)}
-
-\item{transitive_ambiguity}{backward ambiguity while using transitivity to identify
-cross-references (default: 1)}
-
-\item{intransitive_ambiguity}{specification for backward ambiguity used in the final
-step of conversion (default: no filter)}
-
-\item{step}{number of steps to traverse when converting within concepts (default: NULL)
-(see details)}
+\item{sep}{String. Separator used, default: ":".}
 
 \item{verbose}{show query input (default = FALSE)}
 }
 \value{
-a dataframe with three columns:
+a data.table with three columns:
 \itemize{
 \item from: identifier to convert
 \item to: returned conversion
+\item relation: type of relation between nodes
 }
 }
 \description{
-Another core functionality is the ability to convert concept identifiers between different
-databases and types (disease or phenotype). By default a backward ambiguity of one is taken,
-with no limitation on forward ambiguity.
+Convert identifiers between different databases and types (disease or phenotype).
 }
 \details{
-Conversion is performed in different steps, first identifiers are converted
-(if requested) within a concept, otherwise stated, their cross-references are
-returned depending on the provided parameters of transitive_ambiguity and
-intransitive_ambiguity. The manner of converting within concepts is defined by the \emph{step}
-parameters (see below). Next, these identifiers are converted between concepts
-(Disease -> Phenotype or Phenotype -> Disease).
-
-If deprecated = TRUE, only the deprecated identifiers of the original input
-(from) are returned.
-
-The step parameters allows the user to specify the number of steps to take when
-onverting within a concept (e.g. Disease or Phenotype). If step = NA,
-no conversion within concepts is performed (skipping the first step). If step = NULL
-the full transitivity mappings are used to return cross-references edges. This means that all
-identifiers are converted using the transitivity between \emph{is_xref} mappings. This is followed
-by another step where all cross-references one step removed are returned using both \emph{is_xref}
-and \emph{is_related} edges. The transitive_ambiguity and intransitive_ambiguity
-can be used to specify how/which cross-reference identifiers should be returned by
-selecting edges below the ambiguity thresholds to traverse.
-If step = 1, only direct cross-references are returned using both \emph{is_xref} and \emph{is_related} edges.
-This is similar to the final step of the full conversion (step = NULL) and the intransitive_ambiguity
-can be used to specify the threshold on the backward ambiguity.
+The function identifies cross-references, parent-child hierarchies, disease-phenotype
+or alternative relationships.
+Direct = T will return only the direct relations, direct = F will move through
+the nodes to retrieve connected relationships.
 }
 \examples{
-convert_concept(from = "MONDO:0005027",
-                to = "EFO", 
-                from.concept = "Disease",
-                to.concept = "Disease")
+\dontrun{
+convert_concept(
+  id = "MONDO:0005027",
+  to_db = "EFO",
+  relationship = "xref",
+  direct = T
+)
+}
 }
