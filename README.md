@@ -40,7 +40,7 @@ The graph database has been implemented with Neo4j 4.15 [@Neo4j2020], the DODO R
 
 ### Version 2.0.0
 
-An update of the DODO package and database was released on Oktober 2024 which alternated the data model as well as R package functionality.
+An major update of the DODO package and database was released on October 2024 where the underlying data model, R functions and neo4j ingestion was changed fully.
 
 
 ### Version 1.1.0
