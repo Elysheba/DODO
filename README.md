@@ -5,7 +5,7 @@
 
 </br>
 
-![DODO Logo](inst/logo/DODO_hex.png)
+<img src="inst/logo/DODO_hex.png" alt="DODO Logo" width="200" height="200" />
 
 ## Aim
 
