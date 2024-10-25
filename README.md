@@ -5,7 +5,7 @@
 
 </br>
 
-<img src="inst/logo/DODO_hex.png" alt="DODO Logo" width="200" height="200" />
+<img src="inst/logo/DODO_hex.png" alt="DODO Logo" width="150" height="150" />
 
 ## Aim
 
