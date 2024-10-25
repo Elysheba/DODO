@@ -58,6 +58,8 @@ The original [paper:](https://doi.org/10.12688/f1000research.25144.1).
 ## Implementation and usage
 
 Please refer to vignette for more information. Briefly:
+
+```
 library(DODO)
 connect_to_dodo(local = T)
 
@@ -103,7 +105,7 @@ convert_concept(
   ids = "DOID:9489",
   relationship = "alternative"
 ) # "phenotype"
-
+```
 
 
 ## Constructing a new DODO Neo4j database
