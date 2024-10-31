@@ -7,7 +7,7 @@
 #' @param relationship String. Type of relationship to extract ("xref", "parent", "child",
 #' "phenotype", "disease", "alternative"). Default: xref.
 #' @param direct Boolean. Only getting direct relationships or moving through the disease
-#' network to return all connected relationship.
+#' network to return all connected relationship. (default =)
 #' @param sep String. Separator used, default: ":".
 #' @param verbose show query input (default = FALSE)
 #'
@@ -46,11 +46,12 @@ convert_concept <- function(ids,
     ),
     combine = "or"
   )
-  checkmate::assertNames(relationship, subset.of = c(
+  checkmate::assertChoice(relationship, choices = c(
     "xref", "parent", "child",
     "phenotype", "disease",
     "alternative"
   ))
+  
   checkmate::assertLogical(direct)
 
   ids <- na.omit(ids)
@@ -58,7 +59,7 @@ convert_concept <- function(ids,
 
   if ("is_xref" %in% relationship & direct) relationship <- gsub("is_xref", "is_xref_many", relationship)
   edge_types <- list(
-    "xref" = c("-[r:is_xref|is_xref_many]->", "-[r:is_xref]->", "is_xref>", "-[:is_xref_many]->"),
+    "xref" = c("-[r:is_xref|is_xref_many]->", "-[r:is_xref]->", "is_xref>", "-[:is_xref|is_xref_many]->"),
     "parent" = c("-[r:is_a]->", "-[r:is_a]->", "is_a>", "-[:is_a]->"),
     "child" = c("<-[r:is_a]-", "<-[r:is_a]-", "<is_a", "<-[:is_a]-"),
     "phenotype" = "-[r:has_phenotype]->",
@@ -80,22 +81,24 @@ convert_concept <- function(ids,
       to_db = to_db
     )
   }
-  toRet <- DODO:::process_cql(cql, verbose = verbose)
+
+  toRet <- DODO:::process_cql(cql,ids = ids, to_db = to_db, 
+                              relationship = relationship, verbose = verbose)
 
   if (ncol(toRet) != 3) {
-    toRet <- data.table(
+    toRet <- data.table::data.table(
       from = ids,
       to = NA,
-      relation = relationship
+      relationship = relationship
     )
   }
   if (!all(ids %in% toRet$from)) {
     toRet <- rbind(
       toRet,
-      data.table(
+      data.table::data.table(
         from = setdiff(ids, toRet$from),
         to = NA,
-        relation = relationship
+        relationship = relationship
       )
     )
   }
@@ -156,7 +159,7 @@ get_network <- function(ids,
     ),
     combine = "or"
   )
-  checkmate::assertNames(relationship, subset.of = c(
+  checkmate::assertChoice(relationship, choices = c(
     "xref", "parent", "child",
     "phenotype", "disease",
     "alternative"
@@ -168,7 +171,7 @@ get_network <- function(ids,
 
   if ("is_xref" %in% relationship & direct) relationship <- gsub("is_xref", "is_xref_many", relationship)
   edge_types <- list(
-    "xref" = c("-[r:is_xref|is_xref_many]->", "-[r:is_xref]->", "is_xref>", "-[:is_xref_many]->"),
+    "xref" = c("-[r:is_xref|is_xref_many]->", "-[r:is_xref]->", "is_xref>", "-[:is_xref|is_xref_many]->"),
     "parent" = c("-[r:is_a]->", "-[r:is_a]->", "is_a>", "-[:is_a]->"),
     "child" = c("<-[r:is_a]-", "<-[r:is_a]-", "<is_a", "<-[:is_a]-"),
     "phenotype" = "-[r:has_phenotype]->",
@@ -190,8 +193,9 @@ get_network <- function(ids,
       to_db = to_db
     )
   }
-  toRet <- DODO:::process_cql(cql, ids, to_db, verbose)
-
+  toRet <- DODO:::process_cql(cql,ids = ids, to_db = to_db, 
+                              relationship = relationship, verbose = verbose)
+  
   if (ncol(toRet) != 3) {
     toRet <- NULL
   }
@@ -218,14 +222,16 @@ indirect_cql <- function(edge_types = edge_types,
                          relationship = relationship,
                          network = F) {
   checkmate::assertLogical(network)
+  
   cql <- c(
     sprintf("MATCH (n1)%s(n2) WHERE n1.dbid IN $from", edge_types[[relationship]][2]),
     "CALL apoc.path.expandConfig(",
     sprintf('n1, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s"}', edge_types[[relationship]][3]),
     ") YIELD path",
     "WITH n1 as n1, (nodes(path))[0] as s, last(nodes(path)) as n2",
-    sprintf("MATCH (n2)%s(n3)", edge_types[[relationship]][4]),
-    ifelse(is.null(to_db), "", "WHERE n3.DB in $to_db"),
+    sprintf("MATCH (n2)%s(n3)%s", 
+            edge_types[[relationship]][4],
+            ifelse(is.null(to_db), "", "-[:is_in]->(db) WHERE db.short_name in $to_db")),
     "RETURN DISTINCT",
     sprintf("%s.dbid as from, n3.dbid as to", ifelse(network, "n2", "n1"))
   )
@@ -250,7 +256,7 @@ direct_cql <- function(edge_types = edge_types,
     ),
     "WHERE n1.dbid IN $from",
     ifelse(is.null(to_db), "", "AND n2.DB in $to_db"),
-    "RETURN DISTINCT n1.dbid as from,n2.dbid as to"
+    "RETURN DISTINCT n1.dbid as from, n2.dbid as to"
   )
   return(cql)
 }
@@ -266,7 +272,8 @@ direct_cql <- function(edge_types = edge_types,
 #'
 #' @import data.table
 #' @import magrittr
-process_cql <- function(cql = cql, ids = ids, to_db = to_db, verbose = verbose) {
+process_cql <- function(cql = cql, ids = ids, relationship = relationship, 
+                        to_db = to_db, verbose = verbose) {
   if (verbose) {
     cat(cql, sep = "\n")
   }
@@ -280,6 +287,6 @@ process_cql <- function(cql = cql, ids = ids, to_db = to_db, verbose = verbose) 
     result = "row"
   ) %>%
     data.table::as.data.table() %>%
-    .[, relation := relationship]
+    .[, relationship := relationship]
   return(toRet)
 }

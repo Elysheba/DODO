@@ -17,7 +17,7 @@ connect_to_dodo <- function(
     user_name = "",
     password = "",
     local_port = "7474",
-    azure_authorization = NULL,
+    # azure_authorization = NULL,
     verbose = T) {
   checkmate::qassert(local, "B1")
   checkmate::qassert(local_port, "S1")
@@ -38,15 +38,15 @@ connect_to_dodo <- function(
     if (verbose) {
       message("Connecting to a UCB Neo4J instance of the Knowledge Graph via https://dodo.ucb.com")
     }
-    checkmate::assertFileExists(azure_authorization)
-    token <- readRDS(azure_authorization)
+    # checkmate::assertFileExists(azure_authorization)
+    # token <- readRDS(azure_authorization)
     neo2R::startGraph(
-      url = "https://dodo.ucb.com/",
+      url = "https://gdcestzap801:8102",
       username = user_name,
       password = password,
       .opts = list(
-        ssl_verifypeer = 0,
-        extendedHeaders = DODO:::.get_tk_headers(token)
+        ssl_verifypeer = 0
+      #   extendedHeaders = DODO:::.get_tk_headers(token)
       )
     )
   }
