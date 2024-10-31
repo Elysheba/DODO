@@ -58,6 +58,7 @@ convert_concept <- function(ids,
   ids <- DODO:::check_divider(ids, sep = sep, format = "in")
 
   if ("is_xref" %in% relationship & direct) relationship <- gsub("is_xref", "is_xref_many", relationship)
+  
   edge_types <- list(
     "xref" = c("-[r:is_xref|is_xref_many]->", "-[r:is_xref]->", "is_xref>", "-[:is_xref|is_xref_many]->"),
     "parent" = c("-[r:is_a]->", "-[r:is_a]->", "is_a>", "-[:is_a]->"),
@@ -82,8 +83,20 @@ convert_concept <- function(ids,
     )
   }
 
-  toRet <- DODO:::process_cql(cql,ids = ids, to_db = to_db, 
+  # ICD ontology and Cortellis is a bit difficult.. they don't match
+  # directly with any other ontologies
+  # so.. let's first get the direct cross-references, then the normal conversion after that
+  if(any(grepl("ICD|Cortellis", ids)) & "xref" %in% relationship){
+    toRet <- DODO:::is_many_xrefs(ids = ids, 
+                                  edge_types = edge_types,
+                                  to_db = to_db, 
+                                  relationship = relationship, 
+                                  network = F,
+                                  verbose = verbose)
+  }else{
+    toRet <- DODO:::process_cql(cql,ids = ids, to_db = to_db, 
                               relationship = relationship, verbose = verbose)
+  }
 
   if (ncol(toRet) != 3) {
     toRet <- data.table::data.table(
@@ -193,8 +206,21 @@ get_network <- function(ids,
       to_db = to_db
     )
   }
-  toRet <- DODO:::process_cql(cql,ids = ids, to_db = to_db, 
-                              relationship = relationship, verbose = verbose)
+  
+  # ICD ontology and Cortellis is a bit difficult.. they don't match
+  # directly with any other ontologies
+  # so.. let's first get the direct cross-references, then the normal conversion after that
+  if(any(grepl("ICD|Cortellis", ids)) & "xref" %in% relationship){
+    toRet <- DODO:::is_many_xrefs(ids = ids, 
+                                  edge_types = edge_types,
+                                  to_db = to_db, 
+                                  relationship = relationship, 
+                                  network = T,
+                                  verbose = verbose)
+  }else{
+    toRet <- DODO:::process_cql(cql,ids = ids, to_db = to_db, 
+                                relationship = relationship, verbose = verbose)
+  }
   
   if (ncol(toRet) != 3) {
     toRet <- NULL
@@ -288,5 +314,60 @@ process_cql <- function(cql = cql, ids = ids, relationship = relationship,
   ) %>%
     data.table::as.data.table() %>%
     .[, relationship := relationship]
+  return(toRet)
+}
+
+#' helper function for ICD/Cortellis identifiers
+#' Prepares the query if you need to convert with cortellis/ICD
+#' 
+#' @param cql String. Cql query to send
+#' @param ids String. Vector of identifiers
+#' @param to_db String. database to filter for.
+#' @param verbose Boolean. verbose output.
+#'
+#' @import data.table
+#' @import magrittr
+is_many_xrefs <- function(ids = ids, 
+                          edge_types = edge_types,
+                          relationship = relationship, 
+                          to_db = to_db, 
+                          network = network, 
+                          verbose = verbose){
+  cql0 <- DODO:::direct_cql(
+    edge_types = edge_types,
+    relationship = relationship,
+    to_db = NULL
+  )
+  to_many <- DODO:::process_cql(cql0,
+                                ids = ids, 
+                                to_db = NULL, 
+                                relationship = relationship, 
+                                verbose = verbose) %>% 
+    setnames(., "to", "intermediate_id", skip_absent=TRUE) 
+  
+  cql <- DODO:::indirect_cql(
+      edge_types = edge_types,
+      relationship = relationship,
+      to_db = to_db,
+      network = network
+    )
+  to_xref <- DODO:::process_cql(cql,
+                            ids = to_many$intermediate_id, 
+                            to_db = to_db, 
+                            relationship = relationship, 
+                            verbose = verbose) %>% 
+    setnames(., "from", "intermediate_id", skip_absent=TRUE)  
+  toRet <- merge(to_many, to_xref, by = "intermediate_id") %>% 
+    .[, .(from, to)] %>% 
+    .[, relationship := "xref"] %>% 
+    unique()
+  
+  if(network){
+    toRet1 <- rbind(
+      toRet, 
+      to_xref[!intermediate_id %in% toRet$from] %>% 
+        `colnames<-`(c("from", "to", "relationship"))
+    )
+  }
   return(toRet)
 }

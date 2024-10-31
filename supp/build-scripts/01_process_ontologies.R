@@ -297,6 +297,7 @@ phenotype.nodes <- DODO_entryId[
 databases <- readxl::read_xlsx(here::here("inst", "documentation", "DatabaseURLs.xlsx"),
   col_names = c("name", "idURL")
 )
+## check if all db ids are the same as the database in dodo_entryId.. 
 db.nodes <- data.table(db_name = sort(unique(c(
   DODO_entryId[["DB"]],
   DODO_crossId[["DB1"]], DODO_crossId[["DB2"]]

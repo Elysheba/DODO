@@ -116,7 +116,7 @@ find_term <- function(term,
 #' @import data.table
 #' @import magrittr
 get_ontology <- function(database, sep = ":") {
-  checkmate::assertNames(database, subset.of = list_database()$database)
+  checkmate::assertChoice(database, choices = list_database()$database)
 
   ## Get concepts ----
   cql <- c(
@@ -130,23 +130,46 @@ get_ontology <- function(database, sep = ":") {
     parameters = list(database = database),
     result = "row"
   )
-
-  cql <- c(
-    "MATCH (n)-[r:is_a]-(n1) WHERE n.dbid IN $from AND n1.dbid IN $from",
-    "RETURN DISTINCT n.dbid as child, type(r) as type, n1.dbid as parent"
-  )
-
-  toRet <- call_dodo(
+  
+  cql <- c("MATCH (n1)-[r]->(n2) WHERE n1.dbid in $from RETURN DISTINCT type(r) AS edges")
+  
+  edge_types <- call_dodo(
     neo2R::cypher,
     neo2R::prepCql(cql),
     parameters = list(from = as.list(ont$dbid)),
     result = "row"
-  ) %>%
-    as.data.table() %>%
-    .[, `:=`(
-      child = DODO:::check_divider(child, sep = sep, format = "out"),
-      parent = DODO:::check_divider(parent, sep = sep, format = "out")
-    )]
+  )
+  
+  if("is_a" %in% edge_types$edges){
+    cql <- c(
+      "MATCH (n)-[r:is_a]-(n1) WHERE n.dbid IN $from AND n1.dbid IN $from",
+      "RETURN DISTINCT n.dbid as child, type(r) as type, n1.dbid as parent"
+    )
+    toRet <- call_dodo(
+      neo2R::cypher,
+      neo2R::prepCql(cql),
+      parameters = list(from = as.list(ont$dbid)),
+      result = "row"
+    ) %>%
+      as.data.table() %>%
+      .[, `:=`(
+        child = DODO:::check_divider(child, sep = sep, format = "out"),
+        parent = DODO:::check_divider(parent, sep = sep, format = "out")
+      )]
+  }else{
+    cql <- c(
+      "MATCH (n) WHERE n.DB CONTAINS $db RETURN n.dbid"
+    )
+    toRet <- call_dodo(
+      neo2R::cypher,
+      neo2R::prepCql(cql),
+      parameters = list(db = database),
+      result = "row"
+    ) %>%
+      as.data.table()
+    toRet <- data.table(child = DODO:::check_divider(toRet$n.dbid, sep = sep, format = "out"),
+                        parent = NA) 
+  }
 
   ## Return all results ----
   return(toRet)
