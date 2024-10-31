@@ -5,13 +5,16 @@
 
 </br>
 
-![DODO Logo](inst/logo/DODO_hex.png)
+<img src="inst/logo/DODO_hex.png" alt="DODO Logo" width="150" height="150" />
 
 ## Aim
 
 The aim of DODO is to allow an easier way to interact and explore disease ontologies and their identifiers. The database is build on Neo4j and incorporates different ontologies with an accompanying R package that allows easy access, exploration, and definition of disease concepts of interest. It can work as the intermediate player to facilitate access and exhaustive extraction of information from other life science databases without the need to harmonize these up front. 
 
 ## Installation 
+
+A public instance of the DODO Neo4j database dump is provided for convenience and can be reached as on Zenodo.
+https://zenodo.org/records/13993040
 
 The data model is implemented using the Neo4j graph database which using the Cypher query language [@Neo4j2020]. One accompagnying R package *DODO* was developed to connect and query the resource. It provides higher level functions to query the Neo4j graph database based on the described data model (above) [@R2019].
 
@@ -40,22 +43,70 @@ The graph database has been implemented with Neo4j 4.15 [@Neo4j2020], the DODO R
 
 ### Version 2.0.0
 
-An update of the DODO package and database was released on Oktober 2024 which alternated the data model as well as R package functionality.
+An major update of the DODO package and database was released on October 2024 where the underlying data model, R functions and neo4j ingestion was changed fully.
 
+A public instance of the DODO Neo4j database dump is provided for convenience and can be reached as on Zenodo.
+https://zenodo.org/records/13993040
 
 ### Version 1.1.0
 
    - `connect_to_dodo()` supports the .opts parameter of `neo2R::startGraph()`.
 
-The origin [paper:](https://doi.org/10.12688/f1000research.25144.1).
+The original [paper:](https://doi.org/10.12688/f1000research.25144.1).
 
 
 ## Implementation and usage
 
-Please refer to vignette.
+Please refer to vignette for more information. Briefly:
 
-A public instance of the DODO Neo4j database dump is provided for convenience and can be reached as on Zenodo.
-https://zenodo.org/records/13993040
+```
+library(DODO)
+connect_to_dodo(local = T)
+
+*Show the data model*
+show_dodo_model()
+
+*List node types and databases that are included*
+list_database()
+list_node_type()
+
+*Return a full ontology*
+get_ontology("MONDO")
+
+*Identify direct cross-reference relations for (an) identifier(s)*
+convert_concept(
+  ids = "MONDO:0005027",
+  relationship = "xref",
+  direct = T
+)
+
+*Identify indirect cross-reference relations for (an) identifier(s).*
+convert_concept(
+  ids = "MONDO:0005027",
+  relationship = "xref",
+  direct = F
+)
+
+*Identify all indirect parent-child relations for (an) identifier(s).*
+convert_concept(
+  ids = "MONDO:0005027",
+  relationship = "parent", # "child"
+  direct = F
+)
+
+*Identify all disease-phenotype or inverse for (an) identifier(s).*
+convert_concept(
+  ids = "HP:0001250",
+  relationship = "disease"
+) # "phenotype"
+
+*Identify alternative identifiers.*
+convert_concept(
+  ids = "DOID:9489",
+  relationship = "alternative"
+) # "phenotype"
+```
+
 
 ## Constructing a new DODO Neo4j database
 
@@ -74,9 +125,9 @@ To construct a DODO instance, a set of script is available to load and feed a Ne
 |Disease Ontology (DO) | https://github.com/Elysheba/DO |
 |International Classification of Diseases (ICD11) | https://github.com/Elysheba/ICD11 |
 
-## Docker image
+## Neo4j dump file
 
-This docker image provides an image of the DODO (Dictionary of Disease Ontologies) graph database. It aims to provide a more complete mapping across the multitude of disease ontologies and a comprehensive way to explore and interact with disease ontologies. It includes the ontologies listed below: 
+This neo4j dump file provides a dump of the DODO (Dictionary of Disease Ontologies) graph database. It aims to provide a more complete mapping across the multitude of disease ontologies and a comprehensive way to explore and interact with disease ontologies. It includes the ontologies listed below: 
 
 - Monarch Ontology
 - EFO
@@ -87,8 +138,8 @@ This docker image provides an image of the DODO (Dictionary of Disease Ontologie
 - HPO
 
 
-The docker image has been made available on Docker Hub: Updates will be made available on https://hub.docker.com/repository/docker/elysheba/public-dodo
-
+A public instance of the DODO Neo4j database dump is provided for convenience and can be reached as on Zenodo.
+https://zenodo.org/records/13993040
 
 ### Load the neo4j dump file
 
@@ -123,22 +174,6 @@ docker run --interactive --tty --rm \
     --volume=/user/neo4j_data:/data \
     --volume/users/neo4j_plugins:/plugins \
     neo4j:5.15
-    
-# docker run -d \
-# --name public-dodo\
-# --restart always \
-# --publish=7476:7474 \
-# --publish=7689:7687 \
-# --env=NEO4J_dbms_memory_heap_initial__size=4G \
-# --env=NEO4J_dbms_memory_heap_max__size=4G \
-# --env=NEO4J_dbms_memory_pagecache_size=2G \
-# --env=NEO4J_dbms_query__cache__size=0 \
-# --env=NEO4J_cypher_min__replan__interval=100000000ms \
-# --env=NEO4J_cypher_statistics__divergence__threshold=1 \
-# --env=NEO4J_dbms_security_procedures_unrestricted=apoc.\\\* \
-# --env=NEO4J_dbms_directories_import=import \
-# --env NEO4J_AUTH=none\
-# elysheba/public-dodo:20.04.2020
 ```
 
 
