@@ -9,7 +9,10 @@
 
 ## Aim
 
-The aim of DODO is to allow an easier way to interact and explore disease ontologies and their identifiers. The database is build on Neo4j and incorporates different ontologies with an accompanying R package that allows easy access, exploration, and definition of disease concepts of interest. It can work as the intermediate player to facilitate access and exhaustive extraction of information from other life science databases without the need to harmonize these up front. 
+The aim of DODO is to allow an easier way to interact and explore disease ontologies and their identifiers. 
+The database is build on Neo4j and incorporates different ontologies with an accompanying R package that allows easy access, 
+exploration, and definition of disease concepts of interest. It can work as the intermediate player to facilitate access and 
+exhaustive extraction of information from other life science databases without the need to harmonize these up front. 
 
 ## Installation 
 
