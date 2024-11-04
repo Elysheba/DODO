@@ -1,6 +1,8 @@
 #' Convert identifiers
 #'
 #' Convert identifiers between different databases and types (disease or phenotype).
+#' It will identify cross-reference, parent or child information, phenotype to disease
+#' and obsolete identifiers
 #'
 #' @param ids String. A vector with identifier to convert formatted as DB:id (eg. "MONDO:0005027)
 #' @param to_db String. A database to convert to (default = NULL, no filtering)
