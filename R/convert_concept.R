@@ -252,6 +252,11 @@ indirect_cql <- function(edge_types = edge_types,
   checkmate::assertLogical(network)
   
   cql <- c(
+    "MATCH (n1)-[r:is_xref_many]->(nxm)",
+    "WHERE n1.dbid in $from",
+    ifelse(is.null(to_db), "", "AND nxm.DB in $to_db"),
+    "RETURN DISTINCT n1.dbid as from, nxm.dbid as to",
+    "UNION",
     sprintf("MATCH (n1)%s(n2) WHERE n1.dbid IN $from", edge_types[[relationship]][2]),
     "CALL apoc.path.expandConfig(",
     sprintf('n1, {uniqueness:"NODE_GLOBAL", relationshipFilter:"%s"}', edge_types[[relationship]][3]),
